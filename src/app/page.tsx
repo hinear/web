@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import styles from "./page.module.css";
 
 export default function Home() {
@@ -10,6 +12,9 @@ export default function Home() {
           <p className={styles.lead}>
             Next.js App Router, TDD-ready test tooling, PWA metadata, and the
             project-based issue model are now in place.
+          </p>
+          <p className={styles.lead}>
+            <Link href="/projects/new">Create the first project</Link>
           </p>
         </section>
 

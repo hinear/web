@@ -129,6 +129,16 @@
 - drawer exploration이 존재하더라도 full page보다 많은 정보를 책임지지 않는다
 - tablet drawer와 mobile full-page 흐름이 문서와 디자인에서 일치한다
 
+현재 구현 메모:
+
+- 최소 앱 플로우는 이미 연결됨
+  - `/projects/new`
+  - `/projects/[projectId]`
+  - `/projects/[projectId]/issues/[issueId]`
+- 현재는 full-page issue detail shell 중심으로만 구현되어 있음
+- actor 식별은 임시로 `HINEAR_ACTOR_ID` env를 사용함
+- auth/session wiring 이후 이 임시 경계는 제거해야 함
+
 ### 7. 알림 구현
 
 - 알림 permission 요청 버튼
@@ -209,6 +219,11 @@
 - 기본 activity log
 - metadata 우측 컬럼
 - desktop / tablet / mobile route rule 정리
+
+현재 상태:
+
+- 이 스프린트의 최소 목표는 앱 라우트 수준에서 달성됨
+- 다만 실제 편집 컨트롤과 auth-bound persistence는 아직 후속 작업임
 
 ## 두 번째 스프린트 목표
 

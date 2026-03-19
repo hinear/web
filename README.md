@@ -23,6 +23,12 @@ pnpm test
 
 Copy `.env.example` to `.env.local` and fill in the values you need.
 
+Current local flow also expects:
+
+- `HINEAR_ACTOR_ID`
+
+This is a temporary server-action actor fallback until Supabase auth/session wiring replaces it.
+
 ## CI/CD
 
 GitHub Actions is configured for:
@@ -52,3 +58,9 @@ No GitHub Actions Vercel deploy workflow is checked in right now to avoid duplic
 - issue detail page
 - activity log with before/after tracking
 - invitation flow
+
+## Current App Flow
+
+- `/projects/new`
+- `/projects/[projectId]`
+- `/projects/[projectId]/issues/[issueId]`

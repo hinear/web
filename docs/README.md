@@ -22,6 +22,17 @@
   - issue tap 시 full page detail 우선
   - create 성공 후 full page detail 우선
 
+현재 앱에 구현된 최소 흐름은 아래와 같다.
+
+- `/projects/new`
+- `/projects/[projectId]`
+- `/projects/[projectId]/issues/[issueId]`
+
+주의:
+
+- 현재 server action은 임시 actor source로 `HINEAR_ACTOR_ID` env를 사용한다
+- auth/session wiring이 들어오면 이 경계는 제거되어야 한다
+
 ## 문서 목록
 
 - `session-handoff.md`

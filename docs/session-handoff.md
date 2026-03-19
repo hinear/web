@@ -2,7 +2,7 @@
 
 ## Current Branch
 
-- `codex/project-membership-issue-schema`
+- `main`
 
 ## What Was Completed
 
@@ -22,6 +22,20 @@
 - Supabase env/client helpers added under `src/lib/supabase/`
 - Supabase-backed repository implementations added for projects/issues
 - `@supabase/supabase-js` dependency added
+- `Biome` replaced the previous `eslint` setup
+- `husky + lint-staged` now run `biome check --write` on pre-commit
+- minimal app flow is now wired end-to-end
+  - `/projects/new`
+  - `/projects/[projectId]`
+  - `/projects/[projectId]/issues/[issueId]`
+- flow tests were added for:
+  - project creation flow
+  - issue creation flow
+  - project create screen
+  - project workspace screen
+  - issue detail screen
+- GitHub Actions CI is enabled
+- Vercel deployment is expected to use Git Integration instead of GitHub CLI deploy workflows
 
 ## Key Files
 
@@ -39,6 +53,13 @@
 - [src/lib/supabase/server-client.ts](/Users/choiho/zerone/hinear/src/lib/supabase/server-client.ts)
 - [src/features/projects/repositories/supabase-projects-repository.ts](/Users/choiho/zerone/hinear/src/features/projects/repositories/supabase-projects-repository.ts)
 - [src/features/issues/repositories/supabase-issues-repository.ts](/Users/choiho/zerone/hinear/src/features/issues/repositories/supabase-issues-repository.ts)
+- [src/features/projects/lib/create-project-flow.ts](/Users/choiho/zerone/hinear/src/features/projects/lib/create-project-flow.ts)
+- [src/features/issues/lib/create-issue-flow.ts](/Users/choiho/zerone/hinear/src/features/issues/lib/create-issue-flow.ts)
+- [src/features/projects/actions/create-project-action.ts](/Users/choiho/zerone/hinear/src/features/projects/actions/create-project-action.ts)
+- [src/features/issues/actions/create-issue-action.ts](/Users/choiho/zerone/hinear/src/features/issues/actions/create-issue-action.ts)
+- [src/app/projects/new/page.tsx](/Users/choiho/zerone/hinear/src/app/projects/new/page.tsx)
+- [src/app/projects/[projectId]/page.tsx](/Users/choiho/zerone/hinear/src/app/projects/[projectId]/page.tsx)
+- [src/app/projects/[projectId]/issues/[issueId]/page.tsx](/Users/choiho/zerone/hinear/src/app/projects/[projectId]/issues/[issueId]/page.tsx)
 
 ## Checks Last Run
 
@@ -47,6 +68,7 @@ These passed before handoff:
 - `biome check .`
 - `tsc --noEmit`
 - `vitest run`
+- `next build`
 
 In this environment, `pnpm` was not on PATH in the later session, so checks were run via:
 
@@ -63,6 +85,11 @@ In this environment, `pnpm` was not on PATH in the later session, so checks were
   - `schema_lint_fixes`
 - security advisor warnings are cleared
 - performance advisor currently shows only `unused_index` information
+- main app flow currently works as:
+  - create project
+  - land on project workspace
+  - create issue
+  - land on full-page issue detail route
 
 ## Current Risk
 
@@ -76,6 +103,7 @@ Required next action:
 
 - move request-bound data access to a session-aware server client
 - keep service-role usage narrow and explicit
+- remove temporary actor fallback env usage from user-facing request paths
 
 ## Next Session Priority
 
@@ -92,24 +120,27 @@ Goal:
 - add client helpers under `src/lib/supabase/`
 - connect them to real `.env.local`
 - add session-aware server usage
+- replace temporary `HINEAR_ACTOR_ID` usage with authenticated user context
 
-### 3. Implement repositories
+### 3. Harden the existing flow
 
-- integrate the existing repository implementations into actual app flows
+- keep the current project -> issue -> issue detail flow
+- narrow the repository access path so app requests stop defaulting to service-role
 
 Minimum methods to implement first:
 
-- connect `createProjectWithOwner`
-- connect `createIssueDraft`
+- replace server-action actor lookup with auth-bound actor lookup
 - verify `getProjectById`
 - verify `getIssueById`
+- add error handling and user-visible failure states
 
-### 4. Build minimal UI flow
+### 4. Fill the missing issue-detail depth
 
-- project creation page
-- project entry page
-- issue creation action
-- issue detail shell
+- labels
+- assignee selector
+- priority mutation
+- activity log richness
+- comment persistence and render depth
 
 ## Open Notes
 
@@ -117,9 +148,10 @@ Minimum methods to implement first:
 - no GitHub issue was created for this branch because GitHub API auth failed earlier
 - remote git push works through `git@github-zerone:devzerone/hinear.git`
 - TODO details are tracked in [docs/todo.md](/Users/choiho/zerone/hinear/docs/todo.md)
+- `.env.local` currently needs `HINEAR_ACTOR_ID` in addition to Supabase values for the temporary server-action flow
 
 ## Suggested First Prompt For Next Session
 
 ```text
-Continue from docs/session-handoff.md and docs/todo.md on branch codex/project-membership-issue-schema. Keep the current Supabase schema, replace service-role-first repository usage with session-aware server wiring, and connect the minimal project/issue creation flow.
+Continue from docs/session-handoff.md and docs/todo.md on branch main. Keep the current project -> issue -> detail flow working, replace service-role-first repository usage with session-aware server wiring, and remove the temporary HINEAR_ACTOR_ID actor fallback.
 ```

@@ -82,6 +82,13 @@ Linear 스타일의 이슈 상세 페이지를 구현해서, 프로젝트 이슈
 - compact drawer는 같은 필드 규칙을 공유하지만, recent activity와 compact fields만 우선 노출한다
 - issue create modal은 지원 흐름이며, 생성 성공 후 기본 진입은 full page detail route다
 
+현재 앱 구현 기준:
+
+- 홈에서 `/projects/new`로 진입 가능
+- 프로젝트 생성 후 `/projects/[projectId]`로 이동
+- 이슈 생성 후 `/projects/[projectId]/issues/[issueId]` full-page route로 이동
+- 현재 issue detail은 shell + metadata + empty comments/activity 표현까지 구현됨
+
 ## 브레이크포인트 기준
 
 ### Desktop `>= 1280px`

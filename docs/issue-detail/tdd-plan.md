@@ -48,6 +48,8 @@ UI부터 만들지 않는다. 먼저 도메인 규칙과 저장 동작을 테스
 - 제목 수정이 저장된다
 - 상태 변경이 저장된다
 - 코멘트 작성 시 새 코멘트가 추가된다
+- 프로젝트 생성 후 project route가 반환된다
+- 이슈 생성 후 full-page detail route가 반환된다
 
 ### 3. 컴포넌트 테스트
 
@@ -69,6 +71,9 @@ UI부터 만들지 않는다. 먼저 도메인 규칙과 저장 동작을 테스
 - full page에서 metadata와 activity log가 함께 렌더링됨
 - tablet drawer에서 `open full page` action이 보임
 - mobile issue detail이 full-page card stack으로 렌더링됨
+- project create screen이 최소 입력 필드를 렌더링함
+- project workspace screen이 issue create form을 렌더링함
+- issue detail shell이 metadata / comments / activity empty state를 렌더링함
 
 ### 4. E2E 테스트
 
@@ -93,8 +98,8 @@ UI부터 만들지 않는다. 먼저 도메인 규칙과 저장 동작을 테스
 1. 계약 타입과 mock repository를 정의한다.
 2. 도메인 테스트를 먼저 통과시킨다.
 3. 서비스 테스트를 추가한다.
-4. 최소 UI를 만든다.
-5. full page route를 우선 통과시킨다.
+4. project create / issue create / issue detail 최소 흐름 테스트를 먼저 추가한다.
+5. 최소 UI와 full-page route를 통과시킨다.
 6. 컴포넌트 테스트를 통과시킨다.
 7. Playwright로 핵심 흐름 하나를 잠근다.
 
@@ -117,6 +122,12 @@ UI부터 만들지 않는다. 먼저 도메인 규칙과 저장 동작을 테스
 - activity log가 테스트로 보장된다
 - full page detail route가 source of truth로 테스트된다
 - 핵심 triage 흐름 E2E 1개 이상이 존재한다
+
+## 현재 구현 기준
+
+- 도메인 테스트는 통과 중
+- project create / issue create / issue detail shell 테스트도 통과 중
+- 현재 앱 플로우는 임시 actor env에 의존하므로, 다음 단계 TDD는 auth/session 경계 테스트로 내려가야 함
 
 ## 관련 스펙
 

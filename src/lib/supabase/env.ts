@@ -23,3 +23,7 @@ export function getSupabasePublicEnv(): SupabasePublicEnv {
 export function getSupabaseServiceRoleKey(): string {
   return readRequiredEnv("SUPABASE_SERVICE_ROLE_KEY");
 }
+
+export function getHinearActorId(): string {
+  return readRequiredEnv("HINEAR_ACTOR_ID");
+}
