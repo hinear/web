@@ -4,6 +4,8 @@
 
 상위 문서는 범위와 아키텍처를 설명하고, 여기 문서는 실제 구현 단위의 요구사항과 테스트 포인트를 정의한다.
 
+현재 데스크탑 기준에서 이 피처 문서들은 `Issue Detail / Full page`를 우선 기준으로 읽는다. `drawer`가 존재하면 같은 detail model을 재사용하되, compact 표현과 recent-only 정보만 책임진다.
+
 ## 문서 목록
 
 - `title.md`

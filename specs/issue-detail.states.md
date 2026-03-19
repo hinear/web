@@ -2,6 +2,10 @@
 
 ## Page States
 
+The primary V1 page state model targets the independent full-page issue detail route.
+
+A compact drawer may exist later, but it should reuse the same persisted issue state and defer full history / full metadata to the full-page route.
+
 ### Loading
 
 - Issue data is being fetched.
@@ -11,6 +15,7 @@
 
 - Issue data is loaded successfully.
 - All editable controls reflect persisted state.
+- Full-page route shows the main editable content plus metadata and activity history.
 
 ### Saving
 
@@ -22,6 +27,7 @@
 
 - Initial issue fetch failed or a mutation failed.
 - The UI displays an actionable error message.
+- If optimistic UI was used, the failed field rolls back to the last persisted value.
 
 ### Not Found
 
@@ -89,3 +95,36 @@ Reverse transitions may be allowed by product policy. The first implementation s
 - visible error feedback is shown
 - optimistic UI changes are rolled back to the last persisted state
 - no success activity log entry is appended
+
+## Layout States
+
+### Full Page Detail
+
+- Primary desktop implementation surface.
+- Shows editable issue content, metadata, and full activity history together.
+
+### Compact Drawer
+
+- Secondary exploration surface.
+- Shows compact fields first.
+- May show recent activity only.
+- Must provide a clear action to open the full-page route.
+
+## Breakpoint Layout States
+
+### Desktop
+
+- Uses the full-page detail layout as the primary state.
+- May include an exploration drawer, but the drawer is not the primary route state.
+
+### Tablet
+
+- Uses compact drawer as the first board-linked state.
+- Keeps metadata summary and recent activity only.
+- Escalates to full-page detail for full history and long-form editing.
+
+### Mobile
+
+- Uses a compact full-page detail stack.
+- Avoids drawer-first navigation for issue detail.
+- Uses a mobile full-page create form that resolves to full-page detail on success.

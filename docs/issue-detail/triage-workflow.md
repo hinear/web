@@ -4,7 +4,9 @@
 
 `Triage`는 새로 들어온 이슈를 실행 가능한 작업으로 정리하는 첫 상태다.
 
-초기 구현에서는 별도 페이지나 복잡한 모드가 아니라, `issue detail` 안의 기본 상태로 다룬다.
+초기 구현에서는 별도 복잡한 모드가 아니라, 독립 `issue detail` full page route 안의 기본 상태로 다룬다.
+
+드로어가 다시 붙더라도 triage의 source of truth는 full page detail이다. 드로어는 compact entry 또는 board exploration 용도로만 사용한다.
 
 ## 상태 집합
 
@@ -20,6 +22,7 @@
 - `Triage`에서는 제목, 우선순위, 담당자, 라벨, 설명을 정리한다.
 - 정리가 끝나면 `Backlog` 또는 `Todo`로 넘긴다.
 - 모든 상태 변경은 activity log에 남는다.
+- desktop baseline에서는 full page에서 metadata와 activity log를 함께 보면서 triage를 끝낼 수 있어야 한다.
 
 ## 권장 전이
 

@@ -18,6 +18,7 @@
 - 프로젝트별 이슈 관리
 - 프로젝트별 identifier 발급
   - `PROJECTKEY-n`
+- 독립 `Issue Detail / Full page` route
 - 이슈 제목 수정
 - 상태 변경
   - `Triage`
@@ -29,17 +30,22 @@
 - 설명 편집
 - 코멘트 작성
 - 활동 로그 표시
+- metadata 표시
 - 활동 로그의 `actor`, `field`, `from`, `to`, `createdAt`, `summary`
 - 신규 이슈 기본 상태 `Triage`
 - `Triage -> Backlog`
 - `Triage -> Todo`
+- create issue 성공 후 full page detail 진입
 - PWA 설치 가능
+- 브레이크포인트별 issue detail route 기준 정리
 
 완료 기준:
 
 - 개인 프로젝트 하나로 실제 이슈를 생성하고 관리할 수 있다
 - 상태 변경과 설명/코멘트 흐름이 문제없이 동작한다
 - activity log로 변경 이력을 읽을 수 있다
+- full page detail route가 desktop source of truth로 동작한다
+- tablet과 mobile에서도 issue open / create 흐름이 일관되게 동작한다
 
 ## MVP 2차
 
@@ -91,6 +97,8 @@
 ## 나중 기능
 
 - 보드 뷰
+- compact issue drawer
+- breakpoint별 고도화된 정보 밀도 조정
 - 고급 검색
 - 필터와 정렬 고도화
 - 실시간 동시 편집
@@ -105,10 +113,13 @@
 
 1. 개인 프로젝트 + issue detail
 2. activity log 완성
-3. 팀 프로젝트 + 초대
-4. assignee + labels
-5. 웹 푸시
-6. reminder
+3. create issue -> full page detail 흐름 고정
+4. breakpoint별 route rule 고정
+5. 팀 프로젝트 + 초대
+6. assignee + labels
+7. 보드 + compact drawer
+8. 웹 푸시
+9. reminder
 
 ## 관련 문서
 

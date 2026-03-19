@@ -8,6 +8,8 @@
 
 상위 도메인 구조는 `project -> issue`를 기준으로 한다.
 
+SQL 스키마 초안은 [supabase/migrations/0001_initial_project_issue_schema.sql](/Users/choiho/zerone/hinear/supabase/migrations/0001_initial_project_issue_schema.sql)와 [supabase-schema](/Users/choiho/zerone/hinear/docs/issue-detail/supabase-schema.md)에 정리되어 있다.
+
 ## 상위 도메인
 
 ### Project

@@ -22,6 +22,7 @@
 ### Component Tests
 
 - issue detail shows loading state before issue data resolves
+- full-page issue detail route renders metadata and activity sidebar
 - title can be edited inline and saved
 - failed title save rolls back to the previous value
 - status selector includes `Triage`, `Backlog`, `Todo`, `In Progress`, `Done`
@@ -34,12 +35,18 @@
 - comment form rejects empty submission
 - successful comment appears in the thread
 - activity log renders all supported event types
+- compact drawer, if implemented, exposes a clear `open full page` action
+- tablet drawer renders recent activity only and metadata summary
+- mobile detail renders as a full-page stacked layout
 
 ### E2E Tests
 
+- create issue, land on the full-page issue detail route, verify the created issue is visible
 - open issue detail, move issue from `Triage` to `Todo`, verify activity log entry
 - open issue detail, update title and description, reload, verify persistence
 - open issue detail, add comment, verify comment and activity log entry
+- on tablet, tap issue from board, open compact drawer, then open full-page detail
+- on mobile, tap issue from list and land on full-page detail directly
 
 ## Suggested First Red-Green Cycle
 
@@ -55,3 +62,5 @@
 - triage-first workflow is covered by at least one E2E scenario
 - failed mutations are explicitly tested
 - activity log behavior is explicitly tested
+- the full-page detail route is treated as the primary tested surface
+- breakpoint-specific route behavior is explicitly tested

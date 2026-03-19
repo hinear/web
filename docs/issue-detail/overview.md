@@ -6,6 +6,8 @@ Linear 스타일의 이슈 상세 페이지를 구현해서, 프로젝트 이슈
 
 초기 버전은 전체 이슈 관리 제품을 만들지 않는다. 우선 `issue detail` 화면 하나에 집중한다.
 
+현재 데스크탑 기준 MVP 표현은 독립 `Issue Detail / Full page` route다. 보드 위 `drawer`는 같은 detail model을 공유하는 compact exploration으로만 다룬다.
+
 앱은 `Next.js` 기반으로 구현하고, 설치 가능한 `PWA`로 제공한다. 데이터와 인증은 `Supabase`를 사용하고, 웹 푸시 알림은 `Firebase Cloud Messaging`만 사용한다.
 
 시스템의 최상위 경계는 `workspace`가 아니라 `project`다. 각 프로젝트는 개인용 또는 팀용으로 운영될 수 있다.
@@ -15,6 +17,7 @@ Linear 스타일의 이슈 상세 페이지를 구현해서, 프로젝트 이슈
 - TDD로 다루기 좋은 단일 경계다.
 - 상태 변경과 입력 편집이 많아 도메인 테스트 가치가 높다.
 - 나중에 리스트, 필터, 보드 뷰를 추가해도 상세 화면은 그대로 재사용된다.
+- 드로어가 다시 들어오더라도 full page route를 source of truth로 유지한다.
 
 ## 핵심 범위
 
@@ -58,6 +61,7 @@ Linear 스타일의 이슈 상세 페이지를 구현해서, 프로젝트 이슈
 - 우선순위
 - 담당자
 - 라벨
+- full page / drawer가 같은 헤더 모델을 공유한다
 
 ### 본문
 
@@ -68,6 +72,38 @@ Linear 스타일의 이슈 상세 페이지를 구현해서, 프로젝트 이슈
 
 - 활동 로그
 - 생성일, 수정일 같은 메타데이터
+- 실패/rollback 메모 같은 운영성 정보
+
+## 데스크탑 기준
+
+- MVP 1 기본 화면은 독립 full page detail route
+- full page는 `main column + right column` 구조를 사용한다
+- right column에는 metadata, full activity log, failure/rollback memo를 둔다
+- compact drawer는 같은 필드 규칙을 공유하지만, recent activity와 compact fields만 우선 노출한다
+- issue create modal은 지원 흐름이며, 생성 성공 후 기본 진입은 full page detail route다
+
+## 브레이크포인트 기준
+
+### Desktop `>= 1280px`
+
+- 기본 issue detail surface는 독립 `Issue Detail / Full page`
+- full page가 desktop source of truth다
+- `Issue Detail / Drawer`는 exploration으로만 둔다
+- create issue는 모달로 열 수 있지만, 생성 성공 후 기본 진입은 full page detail route다
+
+### Tablet `768px - 1279px`
+
+- issue list / board에서 issue를 열면 compact drawer를 먼저 보여준다
+- drawer는 editable core fields, 짧은 설명, recent activity, metadata summary만 우선 노출한다
+- full metadata, full activity history, 긴 편집은 `Open full page`로 넘긴다
+- create issue는 모달로 열고, 생성 성공 후 drawer가 아니라 full page detail route로 이동한다
+
+### Mobile `< 768px`
+
+- issue detail은 compact full page card stack으로 본다
+- issue tap 시 drawer가 아니라 full page detail로 직접 이동한다
+- create issue도 mobile 전용 full page form을 사용하고, 생성 성공 후 full page detail로 이동한다
+- mobile에서는 metadata와 activity를 한 화면에 모두 펼치기보다, detail flow를 끊지 않는 정보 밀도를 우선한다
 
 ## 기본 UX 원칙
 
@@ -75,6 +111,8 @@ Linear 스타일의 이슈 상세 페이지를 구현해서, 프로젝트 이슈
 - 필드 저장 실패 시 마지막 저장값으로 롤백
 - 설명과 코멘트가 비어 있어도 페이지는 usable 해야 함
 - 모든 성공적인 변경은 activity log에 남아야 함
+- full page가 detail의 source of truth가 되어야 함
+- drawer가 존재하더라도 full page보다 더 많은 정보를 요구하지 않아야 함
 - 설치 가능한 PWA 경험을 제공한다
 - 알림 권한 요청은 반드시 사용자 액션 이후에만 수행한다
 

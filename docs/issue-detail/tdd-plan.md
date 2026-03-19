@@ -6,6 +6,18 @@ UI부터 만들지 않는다. 먼저 도메인 규칙과 저장 동작을 테스
 
 핵심은 "보이는 것"보다 "행동이 맞는가"를 먼저 고정하는 것이다.
 
+현재 데스크탑 기준에서는 `Issue Detail / Full page`를 1차 테스트 대상 화면으로 본다. `drawer`는 같은 detail model을 공유하는 compact exploration이므로, 초기에 full page 기준 테스트를 먼저 잠근다.
+
+브레이크포인트별 테스트 기준은 아래와 같다.
+
+- Desktop
+  - full-page detail route 우선 검증
+- Tablet
+  - compact drawer -> `open full page` 연결 검증
+- Mobile
+  - issue tap -> full-page detail
+  - create success -> full-page detail
+
 ## 테스트 레이어
 
 ### 1. 도메인 테스트
@@ -45,6 +57,8 @@ UI부터 만들지 않는다. 먼저 도메인 규칙과 저장 동작을 테스
 - 필드 편집
 - optimistic update와 rollback
 - activity log 렌더링
+- metadata 렌더링
+- breakpoint별 route / layout rule
 
 첫 테스트:
 
@@ -52,6 +66,9 @@ UI부터 만들지 않는다. 먼저 도메인 규칙과 저장 동작을 테스
 - 제목 저장 실패 시 rollback
 - `Triage`에서 `Backlog`로 상태 변경
 - 코멘트 작성 성공
+- full page에서 metadata와 activity log가 함께 렌더링됨
+- tablet drawer에서 `open full page` action이 보임
+- mobile issue detail이 full-page card stack으로 렌더링됨
 
 ### 4. E2E 테스트
 
@@ -63,10 +80,13 @@ UI부터 만들지 않는다. 먼저 도메인 규칙과 저장 동작을 테스
 첫 테스트:
 
 1. 이슈 상세 페이지 진입
-2. 상태를 `Triage`에서 `Todo`로 변경
-3. 제목과 설명 수정
-4. 코멘트 작성
-5. activity log 확인
+2. metadata와 activity log 영역 확인
+3. 상태를 `Triage`에서 `Todo`로 변경
+4. 제목과 설명 수정
+5. 코멘트 작성
+6. activity log 확인
+7. tablet drawer에서 full page 진입 확인
+8. mobile create 후 full page detail 진입 확인
 
 ## 구현 순서
 
@@ -74,8 +94,9 @@ UI부터 만들지 않는다. 먼저 도메인 규칙과 저장 동작을 테스
 2. 도메인 테스트를 먼저 통과시킨다.
 3. 서비스 테스트를 추가한다.
 4. 최소 UI를 만든다.
-5. 컴포넌트 테스트를 통과시킨다.
-6. Playwright로 핵심 흐름 하나를 잠근다.
+5. full page route를 우선 통과시킨다.
+6. 컴포넌트 테스트를 통과시킨다.
+7. Playwright로 핵심 흐름 하나를 잠근다.
 
 ## 추천 스택
 
@@ -94,6 +115,7 @@ UI부터 만들지 않는다. 먼저 도메인 규칙과 저장 동작을 테스
 - 핵심 필드 편집이 테스트로 보장된다
 - 실패 시 rollback이 테스트로 보장된다
 - activity log가 테스트로 보장된다
+- full page detail route가 source of truth로 테스트된다
 - 핵심 triage 흐름 E2E 1개 이상이 존재한다
 
 ## 관련 스펙

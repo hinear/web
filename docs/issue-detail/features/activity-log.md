@@ -24,6 +24,26 @@
 
 - 각 로그는 actor, summary, time 정보를 포함해야 한다.
 - 중요한 상태 전이는 즉시 식별 가능해야 한다.
+- full page에서는 metadata 옆에 full activity log를 둔다.
+- compact drawer가 존재하면 recent activity만 먼저 보여주고, full history는 full page route로 위임한다.
+
+## 브레이크포인트 기준
+
+### Desktop `>= 1280px`
+
+- full activity log를 metadata 옆 secondary column에 둔다.
+- triage와 실행 전환을 하면서도 전체 이력을 바로 읽을 수 있어야 한다.
+
+### Tablet `768px - 1279px`
+
+- drawer에서는 recent activity만 우선 노출한다.
+- recent activity는 빠른 스캔용이며, full history는 full page route에서 확인한다.
+- metadata도 summary 수준으로만 함께 둔다.
+
+### Mobile `< 768px`
+
+- mobile full page에서는 activity log를 핵심 편집 흐름보다 뒤에 두거나 축약해도 된다.
+- mobile에서는 issue 읽기/수정/코멘트 흐름을 방해하지 않는 정보 밀도를 우선한다.
 
 ## 저장 규칙
 
@@ -96,3 +116,5 @@
 - title/status/priority/assignee/labels/description/comment 변경이 로그에 남는다
 - status 변경 시 `from/to`가 기록된다
 - `Todo -> In Progress -> Done` 같은 연속 상태 변경도 순서대로 추적된다
+- tablet drawer에서는 recent activity만 먼저 보인다
+- desktop full page에서는 metadata와 activity log가 함께 보인다

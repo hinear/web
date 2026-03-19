@@ -4,6 +4,19 @@
 
 `issue detail` 한 화면으로 프로젝트 이슈를 운영 가능한 수준까지 올린다.
 
+현재 데스크탑 구현 기준은 `Issue Detail / Full page` route다. `Issue Detail / Drawer`는 같은 detail model을 공유하는 compact exploration으로 취급한다.
+
+현재 브레이크포인트별 구현 기준은 아래와 같다.
+
+- Desktop
+  - full page detail 우선
+- Tablet
+  - board-linked compact drawer 우선
+  - full history / metadata / long-form editing은 full page로 이관
+- Mobile
+  - compact full-page detail 우선
+  - create success도 full page detail로 귀결
+
 제품 형태는 설치 가능한 `PWA`이며, 데이터와 인증은 `Supabase`, 웹 푸시는 `Firebase Cloud Messaging`을 사용한다.
 
 도메인 최상위 경계는 `workspace`가 아니라 `project`다.
@@ -94,6 +107,7 @@
 
 ### 6. 핵심 issue detail UI 구현
 
+- full page detail route를 기준 화면으로 고정
 - 제목 수정
 - 상태 변경
 - 우선순위 변경
@@ -102,10 +116,18 @@
 - 설명 편집
 - 코멘트 작성
 - 활동 로그 표시
+- metadata 표시
+- failure / rollback memo와 에러 안내 위치 확정
+- create issue 성공 후 full page route 진입
+- breakpoint별 정보 밀도와 route model 정리
 
 완료 조건:
 
 - 한 화면에서 triage와 실행 전환이 가능하다
+- 데스크탑 full page에서 `main column + right column` 구조가 성립한다
+- full page가 detail source of truth로 동작한다
+- drawer exploration이 존재하더라도 full page보다 많은 정보를 책임지지 않는다
+- tablet drawer와 mobile full-page 흐름이 문서와 디자인에서 일치한다
 
 ### 7. 알림 구현
 
@@ -145,8 +167,10 @@
 - 팀 프로젝트 생성 가능
 - 프로젝트별 멤버 접근 제어 가능
 - issue detail CRUD 가능
+- desktop full-page issue detail route
 - 코멘트 가능
 - activity log 가능
+- metadata 표시 가능
 - `Triage` 기본 상태 가능
 - 알림 opt-in 가능
 - 이슈 변경 또는 리마인더 푸시 가능
@@ -156,6 +180,7 @@
 - 실시간 동시 편집
 - 고급 검색
 - 보드 뷰
+- board-first drawer workflow
 - 오프라인 동기화 충돌 해결
 - 네이티브 앱 수준의 알림 제어
 
@@ -166,20 +191,24 @@
 3. PWA 기본 설정
 4. Supabase Auth/Postgres
 5. 프로젝트/멤버/identifier 모델
-6. mock repository 기반 issue detail
+6. mock repository 기반 full-page issue detail
 7. Supabase repository 전환
-8. FCM 토큰 저장 및 알림 opt-in
-9. Supabase Edge Function 기반 알람 전송
-10. E2E 정리
+8. breakpoint별 surface 정리
+9. compact drawer exploration
+10. FCM 토큰 저장 및 알림 opt-in
+11. Supabase Edge Function 기반 알람 전송
+12. E2E 정리
 
 ## 첫 스프린트 목표
 
 - 앱 기동
 - personal/team project 모델 스캐폴드
-- `issue detail` 화면 스캐폴드
+- `Issue Detail / Full page` 화면 스캐폴드
 - mock data 기반 제목, 상태, 설명, 코멘트
 - `Triage -> Todo` 동작
 - 기본 activity log
+- metadata 우측 컬럼
+- desktop / tablet / mobile route rule 정리
 
 ## 두 번째 스프린트 목표
 
@@ -188,10 +217,14 @@
 - Supabase Auth
 - Supabase 저장
 - assignee, labels, priority
+- create issue -> full page detail route 연결
+- tablet drawer -> open full page 연결
 - notification permission + FCM token 등록
 
 ## 세 번째 스프린트 목표
 
+- board-linked compact drawer exploration
+- mobile detail / create polish
 - reminder 데이터 모델
 - Supabase Cron
 - background notification
