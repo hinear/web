@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title>Hinear</title>
+  <rect width="128" height="128" rx="28" fill="#172126"/>
+  <path d="M32 30h18v28h28V30h18v68H78V74H50v24H32V30Z" fill="#F3EFE7"/>
+  <path d="M92 30h4c8.837 0 16 7.163 16 16v52H94c-1.105 0-2-.895-2-2V30Z" fill="#145C56"/>
+</svg>
