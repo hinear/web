@@ -62,11 +62,24 @@
     - `BoardAddCard`
     - `Avatar`
   - 구현 기준 및 사용 규칙은 `docs/ui-primitives.md`에 정리
+- **Atomic component restructure and pen section rollout** (2026-03-20)
+  - `src/components/primitives/*`를 `src/components/atoms`, `src/components/molecules`, `src/components/organisms`로 재구성
+  - `CountBadge`, `BoardColumnHeader`, `MobileIssueListAppBar` 추가
+  - `LinearDashboardHeader`, `MobileIssueSections`를 실제 board 화면에 연결
+  - board drag/drop 상태를 `8BMOL` 기준으로 overlay / hover lane / placeholder까지 보강
+  - reference/story 단계 organism 추가:
+    - `DrawerIssueDetailPanel`
+    - `CreateIssueTabletModal`
+    - `AuthForm`
+    - `IssueDetailStateVariations`
+    - `CreateProjectSection`
+    - `ProjectOperationsSection`
 
 ## Key Files
 
 - [docs/todo.md](/Users/choiho/zerone/hinear/docs/todo.md)
 - [docs/ui-primitives.md](/Users/choiho/zerone/hinear/docs/ui-primitives.md)
+- [docs/logs/2026-03-20.md](/Users/choiho/zerone/hinear/docs/logs/2026-03-20.md)
 - [docs/issue-detail/project-model.md](/Users/choiho/zerone/hinear/docs/issue-detail/project-model.md)
 - [docs/issue-detail/contracts.md](/Users/choiho/zerone/hinear/docs/issue-detail/contracts.md)
 - [docs/issue-detail/supabase-schema.md](/Users/choiho/zerone/hinear/docs/issue-detail/supabase-schema.md)
@@ -106,6 +119,8 @@ In this environment, `pnpm` was not on PATH in the later session, so checks were
 Additional UI check run in this session:
 
 - `npm run build-storybook`
+- later UI refactor/implementation turns were verified with:
+  - `git diff --check`
 
 ## Current State
 
@@ -124,6 +139,9 @@ Additional UI check run in this session:
 - Storybook is now part of the UI workflow for primitive verification
 - current primitive source of truth is `pen/components.pen`
 - token source of truth is `pen/components.pen` + `pen/Hinear.pen`
+- desktop project workspace now uses the pen-based dashboard header
+- mobile board has dedicated app bar + section list rendering
+- several pen nodes are implemented as reference organisms in Storybook but are not yet wired into routes
 
 ## Current Risk
 
@@ -151,10 +169,11 @@ Goal:
 
 First targets:
 
-- project workspace header
 - project switcher/sidebar
 - issue card metadata rows
 - create project / create issue form controls
+- issue detail full-page state handling
+- operations / invitations sections route integration
 
 ### 2. Replace service-role-first wiring
 

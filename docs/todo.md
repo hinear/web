@@ -100,9 +100,14 @@
   - [x] lucide-react 아이콘 라이브러리 추가
   - [x] clsx + tailwind-merge 유틸리티 추가
 - [ ] project workspace 화면에 primitive 실제 치환
+- [x] project workspace board header에 `cmpHeaderLinearDashboard` 적용
 - [ ] create project 화면에 primitive 실제 치환
 - [ ] create issue 화면에 primitive 실제 치환
-- [ ] Create Issue Modal 컴포넌트
+- [x] mobile board 섹션 / app bar 적용
+- [x] Create Issue Modal 컴포넌트 reference 구현
+- [x] auth form reference 구현
+- [x] issue detail state variation reference 구현
+- [x] create project / project operations section reference 구현
 - [ ] mutation 실패 UI
 - [ ] not-found / empty / loading polish
 - [ ] issue detail 실제 편집 컨트롤 연결
@@ -124,6 +129,7 @@
 - [ ] activity log 추가 시점과 정책 정리
 - [ ] invitation token 생성 규칙과 만료 정책 검토
 - [ ] labels / profiles / issue_labels 후속 스키마 설계
+- [ ] board를 `sortable` 구조로 올려 카드 간 정확한 reorder / insertion animation 지원
 
 ## Key Files
 
