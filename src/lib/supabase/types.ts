@@ -77,6 +77,7 @@ export interface Database {
           title: string;
           updated_at: string;
           updated_by: string;
+          version: number;
         };
         Insert: {
           assignee_id?: string | null;
@@ -92,8 +93,47 @@ export interface Database {
           title: string;
           updated_at?: string;
           updated_by: string;
+          version?: number;
         };
         Update: Partial<Database["public"]["Tables"]["issues"]["Insert"]>;
+        Relationships: [];
+      };
+      issue_labels: {
+        Row: {
+          created_at: string;
+          issue_id: string;
+          label_id: string;
+          project_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          issue_id: string;
+          label_id: string;
+          project_id: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["issue_labels"]["Insert"]>;
+        Relationships: [];
+      };
+      labels: {
+        Row: {
+          color: string;
+          created_at: string;
+          created_by: string;
+          id: string;
+          name: string;
+          name_key: string;
+          project_id: string;
+        };
+        Insert: {
+          color?: string;
+          created_at?: string;
+          created_by: string;
+          id?: string;
+          name: string;
+          name_key: string;
+          project_id: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["labels"]["Insert"]>;
         Relationships: [];
       };
       project_invitations: {
@@ -199,3 +239,5 @@ export type TableRow<Name extends TableName> =
   Database["public"]["Tables"][Name]["Row"];
 export type TableInsert<Name extends TableName> =
   Database["public"]["Tables"][Name]["Insert"];
+export type TableUpdate<Name extends TableName> =
+  Database["public"]["Tables"][Name]["Update"];

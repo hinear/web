@@ -12,10 +12,7 @@ import type {
   ProjectInvitation,
   ProjectMember,
 } from "@/features/projects/types";
-import {
-  type AppSupabaseServerClient,
-  createServiceRoleSupabaseClient,
-} from "@/lib/supabase/server-client";
+import type { AppSupabaseServerClient } from "@/lib/supabase/server-client";
 import type { TableInsert, TableRow } from "@/lib/supabase/types";
 
 function assertQuerySucceeded(
@@ -89,9 +86,7 @@ function createInvitationDraft(
 }
 
 export class SupabaseProjectsRepository implements ProjectsRepository {
-  constructor(
-    private readonly client: AppSupabaseServerClient = createServiceRoleSupabaseClient()
-  ) {}
+  constructor(private readonly client: AppSupabaseServerClient) {}
 
   async createProject(input: CreateProjectInput): Promise<Project> {
     const { data, error } = await this.client

@@ -1,6 +1,8 @@
 import "server-only";
 
+import { createServerClient as createSsrServerClient } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
 
 import {
   getSupabasePublicEnv,
@@ -10,7 +12,7 @@ import type { Database } from "@/lib/supabase/types";
 
 export type AppSupabaseServerClient = SupabaseClient<Database>;
 
-function createServerClient(
+function createApiKeyServerClient(
   apiKey: string,
   accessToken?: string
 ): AppSupabaseServerClient {
@@ -36,9 +38,31 @@ export function createServerSupabaseClient(
 ): AppSupabaseServerClient {
   const { anonKey } = getSupabasePublicEnv();
 
-  return createServerClient(anonKey, accessToken);
+  return createApiKeyServerClient(anonKey, accessToken);
 }
 
 export function createServiceRoleSupabaseClient(): AppSupabaseServerClient {
-  return createServerClient(getSupabaseServiceRoleKey());
+  return createApiKeyServerClient(getSupabaseServiceRoleKey());
+}
+
+export async function createRequestSupabaseServerClient(): Promise<AppSupabaseServerClient> {
+  const cookieStore = await cookies();
+  const { anonKey, url } = getSupabasePublicEnv();
+
+  return createSsrServerClient<Database>(url, anonKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet) {
+        try {
+          for (const { name, options, value } of cookiesToSet) {
+            cookieStore.set(name, value, options);
+          }
+        } catch {
+          // Server Components can't mutate cookies directly.
+        }
+      },
+    },
+  });
 }
