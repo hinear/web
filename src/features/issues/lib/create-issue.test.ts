@@ -15,11 +15,14 @@ describe("createIssueDraft", () => {
         createdBy: "user-1",
       })
     ).toEqual({
-      projectId: "project-1",
-      title: "Add invite acceptance flow",
-      description: "Accept token and create member row",
       assigneeId: null,
       createdBy: "user-1",
+      description: "Accept token and create member row",
+      labels: [],
+      priority: "No Priority",
+      projectId: "project-1",
+      status: "Triage",
+      title: "Add invite acceptance flow",
     });
   });
 
@@ -31,6 +34,34 @@ describe("createIssueDraft", () => {
         createdBy: "user-1",
       })
     ).toThrowError("Issue title is required.");
+  });
+
+  it("keeps explicit status and priority when provided", () => {
+    expect(
+      createIssueDraft({
+        createdBy: "user-1",
+        priority: "High",
+        projectId: "project-1",
+        status: "In Progress",
+        title: "Improve issue create flow",
+      })
+    ).toMatchObject({
+      priority: "High",
+      status: "In Progress",
+    });
+  });
+
+  it("normalizes and deduplicates labels", () => {
+    expect(
+      createIssueDraft({
+        createdBy: "user-1",
+        labels: [" UI ", "docs", "ui", " docs "],
+        projectId: "project-1",
+        title: "Improve issue create flow",
+      })
+    ).toMatchObject({
+      labels: ["UI", "docs"],
+    });
   });
 });
 

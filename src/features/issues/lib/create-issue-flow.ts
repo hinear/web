@@ -4,10 +4,13 @@ import { getIssuePath } from "@/features/projects/lib/paths";
 
 export interface CreateIssueFlowInput {
   actorId: string;
-  projectId: string;
-  title: string;
-  description?: string;
   assigneeId?: string | null;
+  description?: string;
+  labels?: string[];
+  priority?: "No Priority" | "Low" | "Medium" | "High" | "Urgent";
+  projectId: string;
+  status?: "Triage" | "Backlog" | "Todo" | "In Progress" | "Done" | "Canceled";
+  title: string;
 }
 
 export async function createIssueFlow(
@@ -15,11 +18,14 @@ export async function createIssueFlow(
   input: CreateIssueFlowInput
 ): Promise<string> {
   const draft = createIssueDraft({
-    projectId: input.projectId,
-    title: input.title,
-    description: input.description,
     assigneeId: input.assigneeId,
     createdBy: input.actorId,
+    description: input.description,
+    labels: input.labels,
+    priority: input.priority,
+    projectId: input.projectId,
+    status: input.status,
+    title: input.title,
   });
 
   const issue = await repository.createIssue(draft);

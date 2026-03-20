@@ -15,11 +15,13 @@ describe("createIssueFlow", () => {
         status: "Triage",
         priority: "No Priority",
         assigneeId: null,
+        labels: [],
         description: "Need a full-page route.",
         createdBy: "user-1",
         updatedBy: "user-1",
         createdAt: "2026-03-20T00:00:00.000Z",
         updatedAt: "2026-03-20T00:00:00.000Z",
+        version: 1,
       }),
       createComment: vi.fn(),
       appendActivityLog: vi.fn().mockResolvedValue({
@@ -35,21 +37,29 @@ describe("createIssueFlow", () => {
         createdAt: "2026-03-20T00:00:00.000Z",
       }),
       getIssueById: vi.fn(),
+      updateIssue: vi.fn(),
     };
 
     const issuePath = await createIssueFlow(repository, {
       actorId: "user-1",
-      projectId: "project-1",
-      title: "  Add issue detail page ",
+      assigneeId: "user-9",
       description: " Need a full-page route. ",
+      labels: ["Auth", "Backend"],
+      priority: "High",
+      projectId: "project-1",
+      status: "Backlog",
+      title: "  Add issue detail page ",
     });
 
     expect(repository.createIssue).toHaveBeenCalledWith({
-      projectId: "project-1",
-      title: "Add issue detail page",
-      description: "Need a full-page route.",
-      assigneeId: null,
+      assigneeId: "user-9",
       createdBy: "user-1",
+      description: "Need a full-page route.",
+      labels: ["Auth", "Backend"],
+      priority: "High",
+      projectId: "project-1",
+      status: "Backlog",
+      title: "Add issue detail page",
     });
     expect(repository.appendActivityLog).toHaveBeenCalledWith({
       issueId: "issue-1",
