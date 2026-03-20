@@ -1,15 +1,18 @@
 "use client";
 
 import {
+  closestCorners,
   DndContext,
   type DragEndEvent,
+  type DragOverEvent,
   DragOverlay,
   type DragStartEvent,
   PointerSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { useEffect, useState } from "react";
+import { arrayMove } from "@dnd-kit/sortable";
+import { useEffect, useMemo, useState } from "react";
 import type { Issue, IssueStatus } from "@/specs/issue-detail.contract";
 import { IssueCard } from "./IssueCard";
 import { KanbanColumn } from "./KanbanColumn";
@@ -25,61 +28,180 @@ const COLUMNS: IssueStatus[] = [
 
 interface KanbanBoardProps {
   issues: Issue[];
-  onIssueUpdate?: (issueId: string, updates: Partial<Issue>) => void;
+  onIssueUpdate?: (
+    issueId: string,
+    updates: Partial<
+      Pick<Issue, "description" | "priority" | "status" | "title">
+    > & {
+      assigneeId?: string | null;
+    }
+  ) => void;
+}
+
+function mergeIssuesPreservingOrder(previous: Issue[], next: Issue[]): Issue[] {
+  const nextById = new Map(next.map((issue) => [issue.id, issue]));
+  const ordered = previous
+    .map((issue) => nextById.get(issue.id))
+    .filter((issue): issue is Issue => Boolean(issue));
+  const seen = new Set(ordered.map((issue) => issue.id));
+
+  for (const issue of next) {
+    if (!seen.has(issue.id)) {
+      ordered.push(issue);
+    }
+  }
+
+  return ordered;
+}
+
+function isColumnId(id: string): id is IssueStatus {
+  return COLUMNS.includes(id as IssueStatus);
 }
 
 export function KanbanBoard({ issues, onIssueUpdate }: KanbanBoardProps) {
   const [activeIssue, setActiveIssue] = useState<Issue | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [orderedIssues, setOrderedIssues] = useState(issues);
 
-  // 클라이언트 사이드 마운트 후 dnd-kit 활성화
+  useEffect(() => {
+    setOrderedIssues((current) => mergeIssuesPreservingOrder(current, issues));
+  }, [issues]);
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // 드래그앤드롭 센서 설정
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // 8px 이상 드래그해야 드래그로 인식
+        distance: 8,
       },
     })
   );
 
-  // 이슈를 컬럼별로 그룹화
-  const getIssuesByStatus = (status: IssueStatus) => {
-    return issues.filter((issue) => issue.status === status);
+  const issuesByStatus = useMemo(
+    () =>
+      COLUMNS.reduce<Record<IssueStatus, Issue[]>>(
+        (result, status) => {
+          result[status] = orderedIssues.filter(
+            (issue) => issue.status === status
+          );
+          return result;
+        },
+        {} as Record<IssueStatus, Issue[]>
+      ),
+    [orderedIssues]
+  );
+
+  const getIssuesByStatus = (status: IssueStatus) => issuesByStatus[status];
+
+  const findIssueById = (issueId: string) =>
+    orderedIssues.find((issue) => issue.id === issueId);
+
+  const getInsertIndex = (
+    nextIssues: Issue[],
+    overId: string,
+    targetStatus: IssueStatus
+  ) => {
+    if (!isColumnId(overId)) {
+      const overIndex = nextIssues.findIndex((issue) => issue.id === overId);
+      if (overIndex >= 0) {
+        return overIndex;
+      }
+    }
+
+    const lastIndexInColumn = nextIssues.reduce((lastIndex, issue, index) => {
+      if (issue.status === targetStatus) {
+        return index;
+      }
+
+      return lastIndex;
+    }, -1);
+
+    return lastIndexInColumn + 1;
   };
 
-  // 드래그 시작 핸들러
   const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    const issue = issues.find((i) => i.id === active.id);
+    const issue = findIssueById(event.active.id as string);
     if (issue) {
       setActiveIssue(issue);
     }
   };
 
   const handleDragCancel = () => {
+    setOrderedIssues((current) => mergeIssuesPreservingOrder(current, issues));
     setActiveIssue(null);
   };
 
-  // 드래그 종료 핸들러
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+
+    if (!over) {
+      return;
+    }
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    setOrderedIssues((current) => {
+      const activeIndex = current.findIndex((issue) => issue.id === activeId);
+
+      if (activeIndex < 0 || activeId === overId) {
+        return current;
+      }
+
+      const activeItem = current[activeIndex];
+      const overStatus = isColumnId(overId)
+        ? overId
+        : (current.find((issue) => issue.id === overId)?.status ?? null);
+
+      if (!overStatus) {
+        return current;
+      }
+
+      if (!isColumnId(overId) && activeItem.status === overStatus) {
+        const overIndex = current.findIndex((issue) => issue.id === overId);
+
+        if (overIndex < 0 || overIndex === activeIndex) {
+          return current;
+        }
+
+        return arrayMove(current, activeIndex, overIndex);
+      }
+
+      const nextIssues = current.slice();
+      nextIssues.splice(activeIndex, 1);
+
+      const movedIssue: Issue = {
+        ...activeItem,
+        status: overStatus,
+      };
+      const insertIndex = getInsertIndex(nextIssues, overId, overStatus);
+      nextIssues.splice(insertIndex, 0, movedIssue);
+
+      return nextIssues;
+    });
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    const draggedIssue = activeIssue;
     setActiveIssue(null);
 
-    if (!over) return;
+    if (!draggedIssue || !over) {
+      return;
+    }
 
-    const issueId = active.id as string;
-    const newStatus = over.id as IssueStatus;
+    const overId = over.id as string;
+    const newStatus = isColumnId(overId)
+      ? overId
+      : (findIssueById(overId)?.status ?? null);
 
-    // 상태가 실제로 변경되었는지 확인
-    const issue = issues.find((i) => i.id === issueId);
-    if (!issue || issue.status === newStatus) return;
+    if (!newStatus || draggedIssue.status === newStatus) {
+      return;
+    }
 
-    // 이슈 상태 업데이트
-    onIssueUpdate?.(issueId, { status: newStatus });
+    onIssueUpdate?.(active.id as string, { status: newStatus });
   };
 
   if (!mounted) {
@@ -101,10 +223,12 @@ export function KanbanBoard({ issues, onIssueUpdate }: KanbanBoardProps) {
   return (
     <div className="h-full overflow-x-auto">
       <DndContext
+        collisionDetection={closestCorners}
         sensors={sensors}
         onDragCancel={handleDragCancel}
-        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
+        onDragOver={handleDragOver}
+        onDragStart={handleDragStart}
       >
         <div className="flex min-h-full gap-3 p-4">
           {COLUMNS.map((status) => (
@@ -118,7 +242,6 @@ export function KanbanBoard({ issues, onIssueUpdate }: KanbanBoardProps) {
           ))}
         </div>
 
-        {/* 드래그 중인 이슈 오버레이 */}
         <DragOverlay>
           {activeIssue && (
             <div className="origin-center opacity-95">

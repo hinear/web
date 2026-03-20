@@ -1,6 +1,7 @@
 "use client";
 
-import { useDraggable } from "@dnd-kit/core";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { BoardIssueCard } from "@/components/organisms/BoardIssueCard";
 import { cn } from "@/lib/utils";
 import type { Issue } from "@/specs/issue-detail.contract";
@@ -16,9 +17,20 @@ export function IssueCard({
   issue,
   preview = false,
 }: IssueCardProps) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    isDragging,
+    transform,
+    transition,
+  } = useSortable({
     id: issue.id,
     disabled: preview,
+    data: {
+      type: "issue",
+      issue,
+    },
   });
 
   return (
@@ -38,6 +50,10 @@ export function IssueCard({
       labels={issue.labels}
       priority={issue.priority}
       ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
       aria-grabbed={preview ? undefined : isDragging}
       {...attributes}
       {...listeners}

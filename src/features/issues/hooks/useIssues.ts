@@ -3,6 +3,12 @@
 import { useEffect, useState } from "react";
 import type { Issue } from "@/specs/issue-detail.contract";
 
+type IssueUpdateInput = Partial<
+  Pick<Issue, "description" | "priority" | "status" | "title">
+> & {
+  assigneeId?: string | null;
+};
+
 export function useIssues(projectId: string) {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState(true);
@@ -12,9 +18,14 @@ export function useIssues(projectId: string) {
     async function fetchIssues() {
       try {
         setLoading(true);
-        const response = await fetch(`/api/projects/${projectId}/issues`);
+        setError(null);
+        const response = await fetch(`/internal/projects/${projectId}/issues`);
 
         if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error("Authentication required.");
+          }
+
           throw new Error(`Failed to fetch issues: ${response.statusText}`);
         }
 
@@ -30,9 +41,9 @@ export function useIssues(projectId: string) {
     fetchIssues();
   }, [projectId]);
 
-  const updateIssue = async (issueId: string, updates: Partial<Issue>) => {
+  const updateIssue = async (issueId: string, updates: IssueUpdateInput) => {
     try {
-      const response = await fetch(`/api/issues/${issueId}`, {
+      const response = await fetch(`/internal/issues/${issueId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -41,6 +52,10 @@ export function useIssues(projectId: string) {
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Authentication required.");
+        }
+
         throw new Error(`Failed to update issue: ${response.statusText}`);
       }
 
