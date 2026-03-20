@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
-import { Field } from "@/components/primitives/Field";
+import { Field } from "@/components/atoms/Field";
 
 function FieldPreview() {
   return (

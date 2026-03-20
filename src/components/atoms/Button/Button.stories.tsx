@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
-import { Button } from "@/components/primitives/Button";
+import { Button } from "@/components/atoms/Button";
 
 function ButtonPairPreview() {
   return (

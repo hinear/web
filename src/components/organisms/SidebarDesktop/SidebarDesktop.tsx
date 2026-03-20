@@ -1,10 +1,13 @@
 import * as React from "react";
 
-import { OpenDashboardLink, ProjectSwitcher } from "@/components/ProjectSelect";
+import {
+  OpenDashboardLink,
+  ProjectSwitcher,
+} from "@/components/molecules/ProjectSelect";
 import {
   SidebarItem,
   type SidebarItemVariant,
-} from "@/components/primitives/SidebarItem";
+} from "@/components/molecules/SidebarItem";
 import { cn } from "@/lib/utils";
 
 export interface SidebarDesktopProps

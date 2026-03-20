@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
-import { BoardAddCard } from "@/components/primitives/BoardAddCard";
+import { BoardAddCard } from "@/components/molecules/BoardAddCard";
 
 function BoardAddCardPreview() {
   return (

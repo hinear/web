@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { SidebarDesktop } from "@/components/SidebarDesktop";
+import { SidebarDesktop } from "@/components/organisms/SidebarDesktop";
 
 const meta = {
   component: SidebarDesktop,

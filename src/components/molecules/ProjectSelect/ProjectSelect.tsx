@@ -1,6 +1,6 @@
 import { ChevronDown, Folder, LayoutDashboard } from "lucide-react";
 import * as React from "react";
-import { SidebarItem } from "@/components/primitives/SidebarItem";
+import { SidebarItem } from "@/components/molecules/SidebarItem";
 import { cn } from "@/lib/utils";
 
 export interface ProjectSelectProps

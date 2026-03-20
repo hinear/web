@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
-import { Chip } from "@/components/primitives/Chip";
+import { Chip } from "@/components/atoms/Chip";
 
 function ChipRowPreview() {
   return (
@@ -11,9 +11,6 @@ function ChipRowPreview() {
       <Chip variant="danger">1 blocked</Chip>
       <Chip size="sm" variant="violet">
         Copy
-      </Chip>
-      <Chip size="sm" variant="count">
-        2
       </Chip>
     </div>
   );
@@ -59,14 +56,6 @@ export const Danger: Story = {
   args: {
     children: "1 blocked",
     variant: "danger",
-  },
-};
-
-export const CountSmall: Story = {
-  args: {
-    children: "2",
-    size: "sm",
-    variant: "count",
   },
 };
 

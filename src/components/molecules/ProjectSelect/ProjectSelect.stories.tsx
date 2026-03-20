@@ -4,7 +4,7 @@ import {
   OpenDashboardLink,
   ProjectSelect,
   ProjectSwitcher,
-} from "@/components/ProjectSelect";
+} from "@/components/molecules/ProjectSelect";
 
 function ProjectSelectPreview() {
   return (

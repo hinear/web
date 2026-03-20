@@ -1,7 +1,7 @@
 import * as React from "react";
 
-import { Avatar } from "@/components/Avatar";
-import { Chip } from "@/components/primitives/Chip";
+import { Avatar } from "@/components/atoms/Avatar";
+import { Chip } from "@/components/atoms/Chip";
 import { cn } from "@/lib/utils";
 import type {
   IssuePriority,

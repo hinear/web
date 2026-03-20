@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { Button } from "@/components/primitives/Button";
-import { Field } from "@/components/primitives/Field";
+import { Button } from "@/components/atoms/Button";
+import { Field } from "@/components/atoms/Field";
 import type {
   ProjectInvitationStatus,
   ProjectMemberRole,

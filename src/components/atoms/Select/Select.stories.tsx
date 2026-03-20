@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
-import { Select } from "@/components/primitives/Select";
+import { Select } from "@/components/atoms/Select";
 
 function SelectPreview() {
   return (

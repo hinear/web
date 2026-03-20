@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Folder } from "lucide-react";
 
-import { SidebarItem } from "@/components/primitives/SidebarItem";
+import { SidebarItem } from "@/components/molecules/SidebarItem";
 
 function SidebarItemPreview() {
   return (

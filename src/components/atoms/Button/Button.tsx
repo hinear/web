@@ -13,7 +13,7 @@ const buttonVariantClassNames = {
 
 const buttonSizeClassNames = {
   sm: "rounded-[10px] px-[14px] py-[9px] text-[13px] leading-[13px]",
-  md: "min-h-11 rounded-[var(--app-radius-12)] px-[var(--app-space-16)] text-[var(--app-font-size-14)]",
+  md: "min-h-11 rounded-[var(--app-radius-12)] px-[var(--app-space-16)]",
 } as const;
 
 type ButtonVariant = keyof typeof buttonVariantClassNames;

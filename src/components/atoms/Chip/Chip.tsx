@@ -9,8 +9,6 @@ const chipVariantClassNames = {
     "border-transparent bg-[var(--app-color-brand-50)] text-[var(--color-indigo-600)] font-[var(--app-font-weight-500)]",
   outline:
     "border-[var(--app-color-border-soft)] bg-[var(--color-surface-50)] text-[var(--app-color-ink-900)] font-[var(--app-font-weight-600)]",
-  count:
-    "border-[var(--app-color-border-soft)] bg-[var(--app-color-white)] text-[var(--app-color-gray-500)] font-[var(--app-font-weight-600)]",
   danger:
     "border-transparent bg-[var(--color-red-50)] text-[var(--color-red-700)] font-[var(--app-font-weight-600)]",
   violet:

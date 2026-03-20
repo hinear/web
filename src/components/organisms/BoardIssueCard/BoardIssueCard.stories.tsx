@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
-import { BoardIssueCard } from "@/components/BoardIssueCard";
+import { BoardIssueCard } from "@/components/organisms/BoardIssueCard";
 
 const sampleLabels = [
   { id: "label-1", name: "Docs", color: "#6B7280" },

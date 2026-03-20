@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import {
   HeaderAction,
   HeaderSearchField,
-} from "@/components/primitives/HeaderAction";
+} from "@/components/molecules/HeaderAction";
 
 function HeaderActionRowPreview() {
   return (
