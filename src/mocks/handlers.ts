@@ -234,7 +234,7 @@ export const handlers = [
           `상태를 "${issue.status}"에서 "${updates.status}"(으)로 변경했습니다`
         )
       );
-      issue.status = updates.status;
+      issue.status = updates.status as Issue["status"];
     }
 
     if (updates.priority && updates.priority !== issue.priority) {
@@ -245,7 +245,7 @@ export const handlers = [
           `우선순위를 "${issue.priority}"에서 "${updates.priority}"(으)로 변경했습니다`
         )
       );
-      issue.priority = updates.priority;
+      issue.priority = updates.priority as Issue["priority"];
     }
 
     if (
@@ -305,4 +305,240 @@ export const handlers = [
 
     return HttpResponse.json({ comment: newComment }, { status: 201 });
   }),
+
+  // PATCH /internal/issues/:issueId/detail - Update issue details (with optimistic locking)
+  http.patch(
+    "/internal/issues/:issueId/detail",
+    async ({ request, params }) => {
+      const { issueId } = params;
+      const issue = findIssueById(issueId as string);
+
+      if (!issue) {
+        return HttpResponse.json({ error: "Issue not found" }, { status: 404 });
+      }
+
+      const body = await request.json();
+      const { version, title, description, status, priority, assigneeId } =
+        body as {
+          version?: number;
+          title?: string;
+          description?: string;
+          status?: string;
+          priority?: string;
+          assigneeId?: string | null;
+        };
+
+      // Simulate optimistic locking conflict if version doesn't match
+      // For testing purposes, we'll treat version 1 as current, version 2 as conflicting
+      if (version && version === 1) {
+        // Simulate successful update
+        const actor = { id: "user-1", name: "Choi" };
+
+        if (title && title !== issue.title) {
+          issue.activityLog.unshift(
+            createActivityLogEntry(
+              "issue.title.updated",
+              actor,
+              `제목을 "${issue.title}"에서 "${title}"(으)로 변경했습니다`
+            )
+          );
+          issue.title = title;
+        }
+
+        if (description !== undefined && description !== issue.description) {
+          issue.activityLog.unshift(
+            createActivityLogEntry(
+              "issue.description.updated",
+              actor,
+              "설명을 업데이트했습니다"
+            )
+          );
+          issue.description = description;
+        }
+
+        if (status && status !== issue.status) {
+          issue.activityLog.unshift(
+            createActivityLogEntry(
+              "issue.status.updated",
+              actor,
+              `상태를 "${issue.status}"에서 "${status}"(으)로 변경했습니다`
+            )
+          );
+          issue.status = status as Issue["status"];
+        }
+
+        if (priority && priority !== issue.priority) {
+          issue.activityLog.unshift(
+            createActivityLogEntry(
+              "issue.priority.updated",
+              actor,
+              `우선순위를 "${issue.priority}"에서 "${priority}"(으)로 변경했습니다`
+            )
+          );
+          issue.priority = priority as Issue["priority"];
+        }
+
+        if (assigneeId !== undefined && assigneeId !== issue.assignee?.id) {
+          issue.activityLog.unshift(
+            createActivityLogEntry(
+              "issue.assignee.updated",
+              actor,
+              assigneeId ? "담당자를 배정했습니다" : "담당자를 해제했습니다"
+            )
+          );
+          if (assigneeId) {
+            issue.assignee = {
+              id: assigneeId,
+              name: "User",
+              avatarUrl: undefined,
+            };
+          } else {
+            issue.assignee = null;
+          }
+        }
+
+        issue.updatedAt = new Date().toISOString();
+
+        return HttpResponse.json({
+          issue: { ...issue, version: 2 },
+          activityLog: issue.activityLog,
+        });
+      }
+
+      // Simulate conflict if version is not 1
+      if (version && version !== 1) {
+        return HttpResponse.json(
+          {
+            type: "CONFLICT",
+            currentIssue: { ...issue, version: 2 },
+            currentVersion: 2,
+            requestedVersion: version,
+            message: "This issue has changed since you loaded it.",
+          },
+          { status: 409 }
+        );
+      }
+
+      // Default successful update without version check
+      const actor = { id: "user-1", name: "Choi" };
+
+      if (title && title !== issue.title) {
+        issue.activityLog.unshift(
+          createActivityLogEntry(
+            "issue.title.updated",
+            actor,
+            `제목을 "${issue.title}"에서 "${title}"(으)로 변경했습니다`
+          )
+        );
+        issue.title = title;
+      }
+
+      if (description !== undefined && description !== issue.description) {
+        issue.activityLog.unshift(
+          createActivityLogEntry(
+            "issue.description.updated",
+            actor,
+            "설명을 업데이트했습니다"
+          )
+        );
+        issue.description = description;
+      }
+
+      if (status && status !== issue.status) {
+        issue.activityLog.unshift(
+          createActivityLogEntry(
+            "issue.status.updated",
+            actor,
+            `상태를 "${issue.status}"에서 "${status}"(으)로 변경했습니다`
+          )
+        );
+        issue.status = status as Issue["status"];
+      }
+
+      if (priority && priority !== issue.priority) {
+        issue.activityLog.unshift(
+          createActivityLogEntry(
+            "issue.priority.updated",
+            actor,
+            `우선순위를 "${issue.priority}"에서 "${priority}"(으)로 변경했습니다`
+          )
+        );
+        issue.priority = priority as Issue["priority"];
+      }
+
+      if (assigneeId !== undefined && assigneeId !== issue.assignee?.id) {
+        issue.activityLog.unshift(
+          createActivityLogEntry(
+            "issue.assignee.updated",
+            actor,
+            assigneeId ? "담당자를 배정했습니다" : "담당자를 해제했습니다"
+          )
+        );
+        if (assigneeId) {
+          issue.assignee = {
+            id: assigneeId,
+            name: "User",
+            avatarUrl: undefined,
+          };
+        } else {
+          issue.assignee = null;
+        }
+      }
+
+      issue.updatedAt = new Date().toISOString();
+
+      return HttpResponse.json({
+        issue: { ...issue, version: 2 },
+        activityLog: issue.activityLog,
+      });
+    }
+  ),
+
+  // POST /internal/issues/:issueId/comments - Create comment
+  http.post(
+    "/internal/issues/:issueId/comments",
+    async ({ request, params }) => {
+      const { issueId } = params;
+      const issue = findIssueById(issueId as string);
+
+      if (!issue) {
+        return HttpResponse.json({ error: "Issue not found" }, { status: 404 });
+      }
+
+      const body = await request.json();
+      const { body: commentBody } = body as { body?: string };
+
+      if (!commentBody || commentBody.trim().length === 0) {
+        return HttpResponse.json(
+          { error: "Comment body cannot be empty" },
+          { status: 400 }
+        );
+      }
+
+      const newComment = {
+        id: `comment-${Date.now()}`,
+        body: commentBody,
+        author: { id: "user-1", name: "Choi" },
+        createdAt: new Date().toISOString(),
+      };
+
+      issue.comments.push(newComment);
+
+      const activityEntry = createActivityLogEntry(
+        "issue.comment.created",
+        { id: "user-1", name: "Choi" },
+        "코멘트를 작성했습니다"
+      );
+      issue.activityLog.unshift(activityEntry);
+      issue.updatedAt = new Date().toISOString();
+
+      return HttpResponse.json(
+        {
+          comment: newComment,
+          activityEntry,
+        },
+        { status: 201 }
+      );
+    }
+  ),
 ];
