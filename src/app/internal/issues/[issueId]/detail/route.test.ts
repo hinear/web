@@ -41,6 +41,28 @@ describe("PATCH /internal/issues/[issueId]/detail", () => {
     );
 
     expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toEqual({
+      code: "AUTH_REQUIRED",
+      error: "Authentication required.",
+    });
+  });
+
+  it("returns 422 when the title is blank", async () => {
+    getAuthenticatedActorIdOrNullMock.mockResolvedValue("user-1");
+
+    const response = await PATCH(
+      new Request("https://hinear.test/internal", {
+        method: "PATCH",
+        body: JSON.stringify({ title: "   ", version: 2 }),
+      }),
+      { params: Promise.resolve({ issueId: "issue-1" }) }
+    );
+
+    expect(response.status).toBe(422);
+    await expect(response.json()).resolves.toEqual({
+      code: "INVALID_TITLE",
+      error: "Issue title is required.",
+    });
   });
 
   it("returns updated issue detail payload", async () => {
@@ -145,5 +167,33 @@ describe("PATCH /internal/issues/[issueId]/detail", () => {
 
     expect(response.status).toBe(409);
     await expect(response.json()).resolves.toEqual(conflictError);
+  });
+
+  it("returns 403 when the repository reports a permission failure", async () => {
+    getAuthenticatedActorIdOrNullMock.mockResolvedValue("user-1");
+    getServerIssuesRepositoryMock.mockResolvedValue({
+      listActivityLogByIssueId: listActivityLogByIssueIdMock,
+      updateIssue: updateIssueMock,
+    });
+    updateIssueMock.mockRejectedValue(
+      new Error(
+        "Failed to update issue: new row violates row-level security policy"
+      )
+    );
+
+    const response = await PATCH(
+      new Request("https://hinear.test/internal", {
+        method: "PATCH",
+        body: JSON.stringify({ title: "Blocked", version: 1 }),
+      }),
+      { params: Promise.resolve({ issueId: "issue-1" }) }
+    );
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({
+      code: "FORBIDDEN",
+      error:
+        "Failed to update issue: new row violates row-level security policy",
+    });
   });
 });

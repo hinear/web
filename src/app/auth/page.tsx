@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { AuthForm } from "@/components/organisms/AuthForm";
 import { startEmailAuthAction } from "@/features/auth/actions/start-email-auth-action";
+import { getDefaultPostAuthPath } from "@/features/auth/lib/default-post-auth-path";
 import {
   type AuthRedirectReason,
   normalizeNextPath,
@@ -35,10 +36,10 @@ function getNoticeMessage(
 
 export default async function AuthPage({ searchParams }: AuthPageProps) {
   const params = await searchParams;
-  const next = normalizeNextPath(params.next, "/projects/new");
+  const next = normalizeNextPath(params.next, "/");
 
   if (await getAuthenticatedActorIdOrNull()) {
-    redirect(next);
+    redirect(params.next ? next : await getDefaultPostAuthPath());
   }
 
   return (

@@ -2,6 +2,8 @@ import type * as React from "react";
 
 import { Button } from "@/components/atoms/Button";
 import { Field } from "@/components/atoms/Field";
+import { GoogleAuthButton } from "@/features/auth/components/google-auth-button";
+import type { AuthRedirectReason } from "@/features/auth/lib/next-path";
 import { cn } from "@/lib/utils";
 
 type AuthFormVariant = "desktop" | "tablet" | "mobile";
@@ -25,9 +27,8 @@ export interface AuthFormProps
   errorMessage?: string;
   next?: string;
   noticeMessage?: string;
-  onGoogleClick?: React.ButtonHTMLAttributes<HTMLButtonElement>["onClick"];
   onSignUpClick?: React.ButtonHTMLAttributes<HTMLButtonElement>["onClick"];
-  reason?: string;
+  reason?: AuthRedirectReason;
   submitLabel?: string;
   subtitle?: string;
   title?: string;
@@ -41,7 +42,6 @@ export function AuthForm({
   errorMessage,
   next = "/projects/new",
   noticeMessage,
-  onGoogleClick,
   onSignUpClick,
   reason,
   submitLabel = "Send magic link",
@@ -118,19 +118,7 @@ export function AuthForm({
           <div className="h-px flex-1 bg-[var(--app-color-border-soft)]" />
         </div>
 
-        <button
-          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[10px] border border-[var(--app-color-border-soft)] bg-[var(--app-color-white)] px-4"
-          disabled={!onGoogleClick}
-          onClick={onGoogleClick}
-          type="button"
-        >
-          <span className="text-[16px] leading-none font-[var(--app-font-weight-700)] text-[var(--app-color-black)]">
-            G
-          </span>
-          <span className="text-[14px] leading-[14px] font-[var(--app-font-weight-500)] text-[var(--app-color-black)]">
-            Continue with Google
-          </span>
-        </button>
+        <GoogleAuthButton next={next} reason={reason} />
       </div>
 
       <div className="flex items-center justify-center gap-1">

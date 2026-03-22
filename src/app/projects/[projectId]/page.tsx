@@ -1,63 +1,57 @@
-import { redirect } from "next/navigation";
-
-import { buildAuthPath } from "@/features/auth/lib/next-path";
+import { createIssueAction } from "@/features/issues/actions/create-issue-action";
+import { inviteProjectMemberAction } from "@/features/projects/actions/invite-project-member-action";
+import { manageProjectInvitationAction } from "@/features/projects/actions/manage-project-invitation-action";
+import { manageProjectMemberAction } from "@/features/projects/actions/manage-project-member-action";
 import { ProjectWorkspaceScreen } from "@/features/projects/components/project-workspace-screen";
-import type { Project } from "@/features/projects/types";
-import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
+import { loadProjectWorkspace } from "@/features/projects/lib/load-project-workspace";
+import { getProjectPath } from "@/features/projects/lib/paths";
 
 interface ProjectPageProps {
   params: Promise<{
     projectId: string;
   }>;
+  searchParams: Promise<{
+    inviteAccepted?: string;
+    inviteEmail?: string;
+    inviteError?: string;
+    inviteNotice?: string;
+    inviteSent?: string;
+  }>;
 }
 
-// MSW 모킹 중이므로 mock 프로젝트 데이터 사용
-function getMockProject(projectId: string): Project | null {
-  // projectId 형식: "test-project" 또는 실제 프로젝트 ID
-  if (projectId === "test-project" || projectId.startsWith("proj-")) {
-    return {
-      id: projectId,
-      key: "WEB",
-      name: "Web App",
-      type: "personal",
-      issueSeq: 5,
-      createdBy: "user-1",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-  }
-  return null;
-}
-
-export default async function ProjectPage({ params }: ProjectPageProps) {
+export default async function ProjectPage({
+  params,
+  searchParams,
+}: ProjectPageProps) {
   const { projectId } = await params;
+  const query = await searchParams;
+  const { createdByLabel, invitations, members, project, summary } =
+    await loadProjectWorkspace(projectId, getProjectPath(projectId));
 
-  if (!(await getAuthenticatedActorIdOrNull())) {
-    redirect(buildAuthPath(`/projects/${projectId}`));
-  }
-
-  const project = getMockProject(projectId);
-
-  if (!project) {
-    // MSW 모킹 중이므로 기본 프로젝트 반환
-    const defaultProject: Project = {
-      id: projectId,
-      key: "WEB",
-      name: "Test Project",
-      type: "personal",
-      issueSeq: 0,
-      createdBy: "user-1",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    return (
-      <ProjectWorkspaceScreen
-        action={async () => {}}
-        project={defaultProject}
-      />
-    );
-  }
-
-  return <ProjectWorkspaceScreen action={async () => {}} project={project} />;
+  return (
+    <ProjectWorkspaceScreen
+      action={createIssueAction.bind(null, projectId)}
+      createdByLabel={createdByLabel}
+      inviteAction={inviteProjectMemberAction.bind(null, projectId)}
+      invitationAction={manageProjectInvitationAction.bind(null, projectId)}
+      memberAction={manageProjectMemberAction.bind(null, projectId)}
+      inviteErrorMessage={query.inviteError}
+      inviteNoticeMessage={
+        query.inviteNotice ??
+        (query.inviteSent === "1" && query.inviteEmail
+          ? `Invitation sent to ${query.inviteEmail}.`
+          : undefined)
+      }
+      inviteValue={query.inviteEmail}
+      invitations={invitations}
+      members={members}
+      project={project}
+      summary={summary}
+      workspaceNoticeMessage={
+        query.inviteAccepted === "1"
+          ? `You joined ${project.name}. The board and project access are ready.`
+          : undefined
+      }
+    />
+  );
 }

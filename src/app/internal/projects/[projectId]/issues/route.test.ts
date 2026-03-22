@@ -36,6 +36,7 @@ describe("GET /internal/projects/[projectId]/issues", () => {
 
     expect(response.status).toBe(401);
     await expect(response.json()).resolves.toEqual({
+      code: "AUTH_REQUIRED",
       error: "Authentication required.",
     });
   });
@@ -94,6 +95,29 @@ describe("GET /internal/projects/[projectId]/issues", () => {
         },
       ],
       total: 1,
+    });
+  });
+
+  it("returns a structured error payload when the repository throws", async () => {
+    getAuthenticatedActorIdOrNullMock.mockResolvedValue("user-1");
+    getServerIssuesRepositoryMock.mockResolvedValue({
+      listIssuesByProject: listIssuesByProjectMock,
+    });
+    listIssuesByProjectMock.mockRejectedValue(
+      new Error(
+        "Failed to load project issues: permission denied for table issues"
+      )
+    );
+
+    const response = await GET(new Request("https://hinear.test/internal"), {
+      params: Promise.resolve({ projectId: "project-1" }),
+    });
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({
+      code: "FORBIDDEN",
+      error:
+        "Failed to load project issues: permission denied for table issues",
     });
   });
 });

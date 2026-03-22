@@ -2,11 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
-// MSW initialization for development
-if (process.env.NEXT_PUBLIC_API_MOCKING === "enabled") {
-  require("@/mocks/init");
-}
-
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],

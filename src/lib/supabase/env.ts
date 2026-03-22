@@ -1,5 +1,12 @@
 function readRequiredEnv(name: string): string {
-  const value = process.env[name]?.trim();
+  const value =
+    name === "NEXT_PUBLIC_SUPABASE_URL"
+      ? process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+      : name === "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+        ? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+        : name === "SUPABASE_SERVICE_ROLE_KEY"
+          ? process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+          : undefined;
 
   if (!value) {
     throw new Error(`${name} is not set.`);

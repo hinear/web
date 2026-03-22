@@ -11,28 +11,24 @@ export interface CreateProjectSectionProps
   extends React.HTMLAttributes<HTMLDivElement> {
   action?: (formData: FormData) => void | Promise<void>;
   defaultType?: ProjectType;
+  errorMessage?: string;
 }
 
 export function CreateProjectSection({
   action,
   className,
   defaultType = "team",
+  errorMessage,
   ...props
 }: CreateProjectSectionProps) {
   return (
-    <section
-      className={cn(
-        "flex w-full flex-col gap-6 rounded-[28px] border border-[var(--app-color-border-muted,#E8EBF2)] bg-[#FBFBFD] p-8",
-        className
-      )}
-      {...props}
-    >
-      <h2 className="font-display text-[26px] leading-[1.1] font-[var(--app-font-weight-700)] text-[var(--app-color-ink-900)]">
-        Create Project Blocks
-      </h2>
-
+    <section className={cn("flex w-full flex-col", className)} {...props}>
       <div className="grid gap-6 xl:grid-cols-[728px_392px]">
-        <CreateProjectFormCard action={action} defaultType={defaultType} />
+        <CreateProjectFormCard
+          action={action}
+          defaultType={defaultType}
+          errorMessage={errorMessage}
+        />
         <CreateProjectNextStepsCard projectType={defaultType} />
       </div>
     </section>

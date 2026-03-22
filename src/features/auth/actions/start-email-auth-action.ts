@@ -14,6 +14,14 @@ function readEmail(formData: FormData): string {
   return String(formData.get("email") ?? "").trim();
 }
 
+function readNextPath(formData: FormData): string {
+  return normalizeNextPath(formData.get("next"), "/");
+}
+
+function readReason(formData: FormData): AuthRedirectReason | undefined {
+  return (formData.get("reason") as AuthRedirectReason | null) ?? undefined;
+}
+
 function buildAuthStatusPath({
   email,
   error,
@@ -52,9 +60,8 @@ function buildAuthStatusPath({
 
 export async function startEmailAuthAction(formData: FormData) {
   const email = readEmail(formData);
-  const next = normalizeNextPath(formData.get("next"), "/projects/new");
-  const reason =
-    (formData.get("reason") as AuthRedirectReason | null) ?? undefined;
+  const next = readNextPath(formData);
+  const reason = readReason(formData);
 
   if (!email) {
     return redirect(

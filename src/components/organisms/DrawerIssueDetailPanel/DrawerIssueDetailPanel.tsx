@@ -1,4 +1,5 @@
 import { ChevronDown } from "lucide-react";
+import Link from "next/link";
 import * as React from "react";
 
 import { Chip } from "@/components/atoms/Chip";
@@ -20,12 +21,14 @@ const PRIORITY_CLASS_NAMES: Record<IssuePriority, string> = {
 interface DrawerIssueDetailPanelProps
   extends React.HTMLAttributes<HTMLDivElement> {
   activityLog?: ActivityLogEntry[];
+  closeHref?: string;
   createdByName?: string;
   issue: Issue;
   lastEditedByName?: string;
   modeLabel?: string;
   onClose?: React.ButtonHTMLAttributes<HTMLButtonElement>["onClick"];
   onOpenFullPage?: React.ButtonHTMLAttributes<HTMLButtonElement>["onClick"];
+  openFullPageHref?: string;
 }
 
 function formatRelativeTime(value: string) {
@@ -155,12 +158,14 @@ export const DrawerIssueDetailPanel = React.forwardRef<
     {
       activityLog = [],
       className,
+      closeHref,
       createdByName,
       issue,
       lastEditedByName,
       modeLabel = "Inline edit",
       onClose,
       onOpenFullPage,
+      openFullPageHref,
       ...props
     },
     ref
@@ -194,20 +199,38 @@ export const DrawerIssueDetailPanel = React.forwardRef<
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            <button
-              className="rounded-[10px] bg-[var(--app-color-brand-50)] px-3 py-[9px] text-[12px] leading-[12px] font-[var(--app-font-weight-700)] text-[var(--app-color-brand-700)]"
-              onClick={onOpenFullPage}
-              type="button"
-            >
-              Open full page
-            </button>
-            <button
-              className="rounded-[10px] border border-[var(--app-color-border-soft)] bg-[var(--app-color-white)] px-3 py-[9px] text-[12px] leading-[12px] font-[var(--app-font-weight-600)] text-[var(--app-color-gray-700)]"
-              onClick={onClose}
-              type="button"
-            >
-              Close
-            </button>
+            {openFullPageHref ? (
+              <Link
+                className="rounded-[10px] bg-[var(--app-color-brand-50)] px-3 py-[9px] text-[12px] leading-[12px] font-[var(--app-font-weight-700)] text-[var(--app-color-brand-700)]"
+                href={openFullPageHref}
+              >
+                Open full page
+              </Link>
+            ) : (
+              <button
+                className="rounded-[10px] bg-[var(--app-color-brand-50)] px-3 py-[9px] text-[12px] leading-[12px] font-[var(--app-font-weight-700)] text-[var(--app-color-brand-700)]"
+                onClick={onOpenFullPage}
+                type="button"
+              >
+                Open full page
+              </button>
+            )}
+            {closeHref ? (
+              <Link
+                className="rounded-[10px] border border-[var(--app-color-border-soft)] bg-[var(--app-color-white)] px-3 py-[9px] text-[12px] leading-[12px] font-[var(--app-font-weight-600)] text-[var(--app-color-gray-700)]"
+                href={closeHref}
+              >
+                Close
+              </Link>
+            ) : (
+              <button
+                className="rounded-[10px] border border-[var(--app-color-border-soft)] bg-[var(--app-color-white)] px-3 py-[9px] text-[12px] leading-[12px] font-[var(--app-font-weight-600)] text-[var(--app-color-gray-700)]"
+                onClick={onClose}
+                type="button"
+              >
+                Close
+              </button>
+            )}
           </div>
         </header>
 
@@ -298,13 +321,22 @@ export const DrawerIssueDetailPanel = React.forwardRef<
               <span className="text-[11px] leading-[11px] font-[var(--app-font-weight-500)] text-[var(--app-color-gray-500)]">
                 Long-form editing moves to full page.
               </span>
-              <button
-                className="text-[12px] leading-[12px] font-[var(--app-font-weight-700)] text-[var(--app-color-brand-700)]"
-                onClick={onOpenFullPage}
-                type="button"
-              >
-                Open full page
-              </button>
+              {openFullPageHref ? (
+                <Link
+                  className="text-[12px] leading-[12px] font-[var(--app-font-weight-700)] text-[var(--app-color-brand-700)]"
+                  href={openFullPageHref}
+                >
+                  Open full page
+                </Link>
+              ) : (
+                <button
+                  className="text-[12px] leading-[12px] font-[var(--app-font-weight-700)] text-[var(--app-color-brand-700)]"
+                  onClick={onOpenFullPage}
+                  type="button"
+                >
+                  Open full page
+                </button>
+              )}
             </div>
           </PanelCard>
 
@@ -313,13 +345,22 @@ export const DrawerIssueDetailPanel = React.forwardRef<
               <h4 className="text-[14px] leading-[14px] font-[var(--app-font-weight-600)] text-[var(--app-color-ink-900)]">
                 Recent activity
               </h4>
-              <button
-                className="text-[12px] leading-[12px] font-[var(--app-font-weight-700)] text-[var(--app-color-brand-700)]"
-                onClick={onOpenFullPage}
-                type="button"
-              >
-                View full history
-              </button>
+              {openFullPageHref ? (
+                <Link
+                  className="text-[12px] leading-[12px] font-[var(--app-font-weight-700)] text-[var(--app-color-brand-700)]"
+                  href={openFullPageHref}
+                >
+                  View full history
+                </Link>
+              ) : (
+                <button
+                  className="text-[12px] leading-[12px] font-[var(--app-font-weight-700)] text-[var(--app-color-brand-700)]"
+                  onClick={onOpenFullPage}
+                  type="button"
+                >
+                  View full history
+                </button>
+              )}
             </div>
 
             <p className="text-[11px] leading-[1.45] font-[var(--app-font-weight-500)] text-[var(--app-color-gray-500)]">
@@ -370,13 +411,22 @@ export const DrawerIssueDetailPanel = React.forwardRef<
                 .join("\n")}
             </p>
 
-            <button
-              className="w-fit text-[12px] leading-[12px] font-[var(--app-font-weight-700)] text-[var(--app-color-brand-700)]"
-              onClick={onOpenFullPage}
-              type="button"
-            >
-              Open full page for full metadata
-            </button>
+            {openFullPageHref ? (
+              <Link
+                className="w-fit text-[12px] leading-[12px] font-[var(--app-font-weight-700)] text-[var(--app-color-brand-700)]"
+                href={openFullPageHref}
+              >
+                Open full page for full metadata
+              </Link>
+            ) : (
+              <button
+                className="w-fit text-[12px] leading-[12px] font-[var(--app-font-weight-700)] text-[var(--app-color-brand-700)]"
+                onClick={onOpenFullPage}
+                type="button"
+              >
+                Open full page for full metadata
+              </button>
+            )}
           </PanelCard>
         </div>
 
@@ -385,13 +435,22 @@ export const DrawerIssueDetailPanel = React.forwardRef<
             Scroll inside this drawer for more. Full page remains the source of
             truth.
           </p>
-          <button
-            className="shrink-0 rounded-[10px] bg-[var(--app-color-brand-500)] px-3 py-[9px] text-[12px] leading-[12px] font-[var(--app-font-weight-700)] text-[var(--app-color-white)]"
-            onClick={onOpenFullPage}
-            type="button"
-          >
-            Open full page
-          </button>
+          {openFullPageHref ? (
+            <Link
+              className="shrink-0 rounded-[10px] bg-[var(--app-color-brand-500)] px-3 py-[9px] text-[12px] leading-[12px] font-[var(--app-font-weight-700)] text-[var(--app-color-white)]"
+              href={openFullPageHref}
+            >
+              Open full page
+            </Link>
+          ) : (
+            <button
+              className="shrink-0 rounded-[10px] bg-[var(--app-color-brand-500)] px-3 py-[9px] text-[12px] leading-[12px] font-[var(--app-font-weight-700)] text-[var(--app-color-white)]"
+              onClick={onOpenFullPage}
+              type="button"
+            >
+              Open full page
+            </button>
+          )}
         </footer>
       </aside>
     );

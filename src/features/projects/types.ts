@@ -42,3 +42,24 @@ export interface ProjectInvitation {
   acceptedBy: string | null;
   createdAt: string;
 }
+
+export interface ProjectMemberSummary {
+  avatarUrl?: string | null;
+  id: string;
+  name: string;
+  role: ProjectMemberRole;
+  note: string;
+  isCurrentUser?: boolean;
+  canRemove?: boolean;
+}
+
+export interface ProjectInvitationSummary {
+  id: string;
+  email: string;
+  token: string;
+  invitedBy: string;
+  invitedByAvatarUrl?: string | null;
+  status: ProjectInvitationStatus;
+  expiresAt: string;
+  createdAt: string;
+}

@@ -12,10 +12,7 @@ function buildRedirectUrl(request: NextRequest, path: string): URL {
 
 export async function GET(request: NextRequest) {
   const { anonKey, url } = getSupabasePublicEnv();
-  const next = normalizeNextPath(
-    request.nextUrl.searchParams.get("next"),
-    "/projects/new"
-  );
+  const next = normalizeNextPath(request.nextUrl.searchParams.get("next"), "/");
   const tokenHash = request.nextUrl.searchParams.get("token_hash");
   const type = request.nextUrl.searchParams.get("type") as EmailOtpType | null;
 
@@ -43,6 +40,16 @@ export async function GET(request: NextRequest) {
       token_hash: tokenHash,
       type,
     });
+
+    if (!error) {
+      return response;
+    }
+  }
+
+  const code = request.nextUrl.searchParams.get("code");
+
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
       return response;

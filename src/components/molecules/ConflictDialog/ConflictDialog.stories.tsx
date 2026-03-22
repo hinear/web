@@ -21,8 +21,8 @@ export const Default: Story = {
     onDismiss: () => console.log("Dismissed"),
   },
   render: (args) => (
-    <div className="flex min-h-[400px] items-center justify-center rounded-[16px] bg-[var(--app-color-surface-0)] p-6">
-      <div className="w-full max-w-md">
+    <div className="flex min-h-[480px] items-center justify-center rounded-[24px] bg-[var(--app-color-surface-0)] p-8">
+      <div className="w-full max-w-[640px]">
         <ConflictDialog {...args} />
       </div>
     </div>
@@ -36,8 +36,8 @@ export const LargeVersionGap: Story = {
     onDismiss: () => console.log("Dismissed"),
   },
   render: (args) => (
-    <div className="flex min-h-[400px] items-center justify-center rounded-[16px] bg-[var(--app-color-surface-0)] p-6">
-      <div className="w-full max-w-md">
+    <div className="flex min-h-[480px] items-center justify-center rounded-[24px] bg-[var(--app-color-surface-0)] p-8">
+      <div className="w-full max-w-[640px]">
         <ConflictDialog {...args} />
       </div>
     </div>

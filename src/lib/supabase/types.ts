@@ -184,6 +184,28 @@ export interface Database {
         >;
         Relationships: [];
       };
+      profiles: {
+        Row: {
+          avatar_url: string | null;
+          created_at: string;
+          display_name: string | null;
+          email: string;
+          email_normalized: string;
+          id: string;
+          updated_at: string;
+        };
+        Insert: {
+          avatar_url?: string | null;
+          created_at?: string;
+          display_name?: string | null;
+          email: string;
+          email_normalized: string;
+          id: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
+        Relationships: [];
+      };
       projects: {
         Row: {
           created_at: string;
@@ -211,6 +233,14 @@ export interface Database {
     };
     Views: Record<string, never>;
     Functions: {
+      create_project_with_owner: {
+        Args: {
+          project_key: string;
+          project_name: string;
+          project_type: Database["public"]["Enums"]["project_type"];
+        };
+        Returns: Database["public"]["Tables"]["projects"]["Row"];
+      };
       is_project_member: {
         Args: {
           target_project_id: string;

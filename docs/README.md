@@ -61,6 +61,8 @@
   - 프로젝트 초대 흐름과 owner/member 권한 규칙
 - `issue-detail/invitations-ui.md`
   - 초대 목록, 재발송, 취소, 수락 화면 기준
+- `issue-detail/profiles-schema.md`
+  - 작성자/멤버 표시용 profile 테이블 초안과 RLS 방향
 - `issue-detail/members.md`
   - 프로젝트 멤버 목록, 역할 표시, 제거 규칙
 - `issue-detail/project-settings.md`

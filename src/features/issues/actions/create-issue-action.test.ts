@@ -85,7 +85,7 @@ describe("createIssueAction", () => {
     await createIssueAction("project-1", formData);
 
     expect(requireAuthRedirectMock).toHaveBeenCalledWith(
-      "/projects/project-1#new-issue-form"
+      "/projects/project-1/issues/new"
     );
     expect(createIssueFlowMock).not.toHaveBeenCalled();
   });

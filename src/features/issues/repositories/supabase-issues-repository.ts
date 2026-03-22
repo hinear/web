@@ -9,6 +9,10 @@ import type {
   UpdateIssueInput,
 } from "@/features/issues/contracts";
 import { createLabelKey, getLabelColor } from "@/features/issues/lib/labels";
+import {
+  createPostgrestRepositoryError,
+  createRepositoryError,
+} from "@/features/issues/lib/repository-errors";
 import type {
   ActivityLogEntry,
   Comment,
@@ -29,13 +33,16 @@ function assertQuerySucceeded(
   error: PostgrestError | null
 ): void {
   if (error) {
-    throw new Error(`${context}: ${error.message}`);
+    throw createPostgrestRepositoryError(context, error);
   }
 }
 
 function assertDataPresent<T>(context: string, data: T | null): T {
   if (!data) {
-    throw new Error(`${context}: query returned no rows.`);
+    throw createRepositoryError(
+      "UNKNOWN",
+      `${context}: query returned no rows.`
+    );
   }
 
   return data;
@@ -367,7 +374,7 @@ export class SupabaseIssuesRepository implements IssuesRepository {
     const currentIssue = await this.getIssueById(issueId);
 
     if (!currentIssue) {
-      throw new Error("Issue not found.");
+      throw createRepositoryError("ISSUE_NOT_FOUND", "Issue not found.");
     }
 
     const issueUpdates: TableUpdate<"issues"> = {
@@ -480,7 +487,7 @@ export class SupabaseIssuesRepository implements IssuesRepository {
       const latestIssue = await this.getIssueById(issueId);
 
       if (!latestIssue) {
-        throw new Error("Issue not found.");
+        throw createRepositoryError("ISSUE_NOT_FOUND", "Issue not found.");
       }
 
       const conflictError: ConflictError = {

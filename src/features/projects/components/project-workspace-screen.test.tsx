@@ -1,5 +1,4 @@
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProjectWorkspaceScreen } from "@/features/projects/components/project-workspace-screen";
@@ -23,9 +22,7 @@ describe("ProjectWorkspaceScreen", () => {
     vi.unstubAllGlobals();
   });
 
-  it("renders the project context and opens the issue creation modal", async () => {
-    const user = userEvent.setup();
-
+  it("renders the ETcEV-style board workspace shell", () => {
     render(
       <ProjectWorkspaceScreen
         action={vi.fn()}
@@ -43,21 +40,72 @@ describe("ProjectWorkspaceScreen", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: "Web Platform" })
+      screen.getByText(
+        "Exploration flow: card click opens the compact drawer. MVP 1 source of truth stays the full page detail route."
+      )
     ).toBeInTheDocument();
+    expect(screen.getByText("Web Platform")).toBeInTheDocument();
     expect(
-      screen.getByText("Create a new triage issue for WEB.")
+      screen.getByRole("heading", { name: "Issue board" })
     ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Manage access" })).toHaveAttribute(
+      "href",
+      "/projects/project-1/settings"
+    );
     expect(
-      screen.getByRole("button", { name: "Create issue" })
+      screen.getByText("This board is ready for the first issue.")
     ).toBeInTheDocument();
+  });
 
-    await user.click(screen.getByRole("button", { name: "Create issue" }));
+  it("renders a workspace notice when invitation acceptance completes", () => {
+    render(
+      <ProjectWorkspaceScreen
+        action={vi.fn()}
+        project={{
+          id: "project-1",
+          key: "WEB",
+          name: "Web Platform",
+          type: "team",
+          issueSeq: 1,
+          createdBy: "user-1",
+          createdAt: "2026-03-20T00:00:00.000Z",
+          updatedAt: "2026-03-20T00:00:00.000Z",
+        }}
+        workspaceNoticeMessage="You joined Web Platform. The board and project access are ready."
+      />
+    );
 
-    expect(
-      screen.getByRole("heading", { name: "Create issue" })
-    ).toBeInTheDocument();
-    expect(screen.getByLabelText("Title")).toBeInTheDocument();
-    expect(screen.getByLabelText("Description")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "You joined Web Platform. The board and project access are ready."
+    );
+  });
+
+  it("renders provided project summary metrics", () => {
+    render(
+      <ProjectWorkspaceScreen
+        action={vi.fn()}
+        project={{
+          id: "project-1",
+          key: "WEB",
+          name: "Web Platform",
+          type: "team",
+          issueSeq: 4,
+          createdBy: "user-1",
+          createdAt: "2026-03-20T00:00:00.000Z",
+          updatedAt: "2026-03-20T00:00:00.000Z",
+        }}
+        summary={{
+          activeIssueCount: 3,
+          doneIssueCount: 2,
+          memberCount: 4,
+          pendingInvitationCount: 1,
+          totalIssueCount: 6,
+        }}
+      />
+    );
+
+    expect(screen.getByText("6")).toBeInTheDocument();
+    expect(screen.getByText("3 active")).toBeInTheDocument();
+    expect(screen.getByText("2 done")).toBeInTheDocument();
   });
 });

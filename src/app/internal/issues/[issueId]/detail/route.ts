@@ -1,4 +1,8 @@
 import { NextResponse } from "next/server";
+import {
+  getMutationErrorStatus,
+  inferMutationErrorCode,
+} from "@/features/issues/lib/mutation-error-messages";
 import { getServerIssuesRepository } from "@/features/issues/repositories/server-issues-repository";
 import type { Issue } from "@/features/issues/types";
 import { ISSUE_PRIORITIES, ISSUE_STATUSES } from "@/features/issues/types";
@@ -62,7 +66,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   if (!actorId) {
     return NextResponse.json(
-      { error: "Authentication required." },
+      { code: "AUTH_REQUIRED", error: "Authentication required." },
       { status: 401 }
     );
   }
@@ -72,8 +76,18 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   if (Object.keys(updates).length === 0) {
     return NextResponse.json(
-      { error: "No supported issue fields were provided." },
+      {
+        code: "INVALID_ISSUE_UPDATE",
+        error: "No supported issue fields were provided.",
+      },
       { status: 400 }
+    );
+  }
+
+  if (updates.title !== undefined && updates.title.trim().length === 0) {
+    return NextResponse.json(
+      { code: "INVALID_TITLE", error: "Issue title is required." },
+      { status: 422 }
     );
   }
 
@@ -84,7 +98,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     if (version === undefined) {
       return NextResponse.json(
-        { error: "Version is required." },
+        { code: "VERSION_REQUIRED", error: "Version is required." },
         { status: 400 }
       );
     }
@@ -112,8 +126,9 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     const message =
       error instanceof Error ? error.message : "Failed to update issue.";
-    const status = message === "Issue not found." ? 404 : 500;
+    const code = inferMutationErrorCode(error);
+    const status = getMutationErrorStatus(code);
 
-    return NextResponse.json({ error: message }, { status });
+    return NextResponse.json({ code, error: message }, { status });
   }
 }

@@ -42,7 +42,11 @@ describe("POST /internal/issues/[issueId]/comments", () => {
       { params: Promise.resolve({ issueId: "issue-1" }) }
     );
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(422);
+    await expect(response.json()).resolves.toEqual({
+      code: "INVALID_COMMENT_BODY",
+      error: "Comment body is required.",
+    });
   });
 
   it("creates a comment and matching activity entry", async () => {
@@ -111,6 +115,30 @@ describe("POST /internal/issues/[issueId]/comments", () => {
     await expect(response.json()).resolves.toEqual({
       activityEntry,
       comment,
+    });
+  });
+
+  it("returns 404 when the issue no longer exists", async () => {
+    getAuthenticatedActorIdOrNullMock.mockResolvedValue("user-1");
+    getServerIssuesRepositoryMock.mockResolvedValue({
+      appendActivityLog: appendActivityLogMock,
+      createComment: createCommentMock,
+      getIssueById: getIssueByIdMock,
+    });
+    getIssueByIdMock.mockResolvedValue(null);
+
+    const response = await POST(
+      new Request("https://hinear.test/internal", {
+        method: "POST",
+        body: JSON.stringify({ body: "Looks good." }),
+      }),
+      { params: Promise.resolve({ issueId: "issue-1" }) }
+    );
+
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toEqual({
+      code: "ISSUE_NOT_FOUND",
+      error: "Issue not found.",
     });
   });
 });

@@ -1,0 +1,24 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - heading "Sign in to continue" [level=2] [ref=e6]
+        - paragraph [ref=e7]: Enter your work email and we will send you a magic link.
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - generic [ref=e10]: Email
+          - textbox "Email" [ref=e11]:
+            - /placeholder: you@company.com
+        - button "Send magic link" [ref=e12] [cursor=pointer]
+      - generic [ref=e13]: Login failed. Please request a new magic link.
+      - generic [ref=e14]:
+        - generic [ref=e17]: Or continue with Google later
+        - button "G Continue with Google" [disabled] [ref=e19]:
+          - generic [ref=e20]: G
+          - generic [ref=e21]: Continue with Google
+      - generic [ref=e22]:
+        - generic [ref=e23]: Don't have an account?
+        - button "Sign up" [ref=e24]
+  - button "Open Next.js Dev Tools" [ref=e30] [cursor=pointer]:
+    - img [ref=e31]
+  - alert [ref=e34]

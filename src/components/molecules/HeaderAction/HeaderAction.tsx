@@ -5,6 +5,7 @@ import {
   Plus,
   Search,
 } from "lucide-react";
+import Link from "next/link";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
@@ -41,6 +42,7 @@ const labelClassNames: Record<HeaderActionVariant, string> = {
 
 export interface HeaderActionProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  href?: string;
   icon?: HeaderActionIcon;
   label: string;
   variant?: HeaderActionVariant;
@@ -56,23 +58,27 @@ export const HeaderAction = React.forwardRef<
   HeaderActionProps
 >(
   (
-    { className, icon, label, type = "button", variant = "filter", ...props },
+    {
+      className,
+      href,
+      icon,
+      label,
+      type = "button",
+      variant = "filter",
+      ...props
+    },
     ref
   ) => {
     const Icon = (icon ? iconMap[icon] : null) as LucideIcon | null;
+    const classNames = cn(
+      "flex w-fit items-center gap-2 rounded-[10px] border px-3 py-[9px] text-left",
+      "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-color-brand-300)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+      variantClassNames[variant],
+      className
+    );
 
-    return (
-      <button
-        className={cn(
-          "flex w-fit items-center gap-2 rounded-[10px] border px-3 py-[9px] text-left",
-          "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-color-brand-300)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
-          variantClassNames[variant],
-          className
-        )}
-        ref={ref}
-        type={type}
-        {...props}
-      >
+    const content = (
+      <>
         {Icon ? (
           <Icon
             aria-hidden="true"
@@ -87,6 +93,20 @@ export const HeaderAction = React.forwardRef<
         >
           {label}
         </span>
+      </>
+    );
+
+    if (href) {
+      return (
+        <Link className={classNames} href={href}>
+          {content}
+        </Link>
+      );
+    }
+
+    return (
+      <button className={classNames} ref={ref} type={type} {...props}>
+        {content}
       </button>
     );
   }

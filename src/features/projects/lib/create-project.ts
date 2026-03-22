@@ -43,13 +43,5 @@ export async function createProjectWithOwner(
   input: CreateProjectInput
 ) {
   const draft = createProjectDraft(input);
-  const project = await repository.createProject(draft);
-  const ownerMembership = createInitialProjectMembership(
-    project.id,
-    draft.createdBy
-  );
-
-  await repository.addProjectMember(ownerMembership);
-
-  return project;
+  return repository.createProject(draft);
 }

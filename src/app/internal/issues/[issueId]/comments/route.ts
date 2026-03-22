@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 
+import {
+  getMutationErrorStatus,
+  inferMutationErrorCode,
+} from "@/features/issues/lib/mutation-error-messages";
 import { getServerIssuesRepository } from "@/features/issues/repositories/server-issues-repository";
 import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
 
@@ -29,7 +33,7 @@ export async function POST(request: Request, context: RouteContext) {
 
   if (!actorId) {
     return NextResponse.json(
-      { error: "Authentication required." },
+      { code: "AUTH_REQUIRED", error: "Authentication required." },
       { status: 401 }
     );
   }
@@ -38,8 +42,8 @@ export async function POST(request: Request, context: RouteContext) {
 
   if (!commentBody) {
     return NextResponse.json(
-      { error: "Comment body is required." },
-      { status: 400 }
+      { code: "INVALID_COMMENT_BODY", error: "Comment body is required." },
+      { status: 422 }
     );
   }
 
@@ -49,7 +53,10 @@ export async function POST(request: Request, context: RouteContext) {
     const issue = await repository.getIssueById(issueId);
 
     if (!issue) {
-      return NextResponse.json({ error: "Issue not found." }, { status: 404 });
+      return NextResponse.json(
+        { code: "ISSUE_NOT_FOUND", error: "Issue not found." },
+        { status: 404 }
+      );
     }
 
     const comment = await repository.createComment({
@@ -79,7 +86,9 @@ export async function POST(request: Request, context: RouteContext) {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to create comment.";
+    const code = inferMutationErrorCode(error);
+    const status = getMutationErrorStatus(code);
 
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ code, error: message }, { status });
   }
 }

@@ -14,10 +14,20 @@ export interface SidebarDesktopProps
   extends React.HTMLAttributes<HTMLDivElement> {
   appName?: string;
   dashboardLabel?: string;
+  dashboardHref?: string;
+  defaultProjects?: Array<{
+    active?: boolean;
+    href?: string;
+    label: string;
+  }>;
+  navigationHrefs?: Partial<Record<SidebarItemVariant, string>>;
   projectLabel?: string;
+  projectHref?: string;
   projectSubtitle?: string;
   projectTitle?: string;
   primaryNavigation?: SidebarItemVariant[];
+  settingsActive?: boolean;
+  settingsHref?: string;
 }
 
 const defaultPrimaryNavigation: SidebarItemVariant[] = [
@@ -36,10 +46,16 @@ export const SidebarDesktop = React.forwardRef<
       appName = "Hinear",
       className,
       dashboardLabel = "Open dashboard",
+      dashboardHref,
+      defaultProjects,
+      navigationHrefs,
       primaryNavigation = defaultPrimaryNavigation,
       projectLabel = "Project",
+      projectHref,
       projectSubtitle = "Personal Project",
       projectTitle = "Web App",
+      settingsActive = false,
+      settingsHref,
       ...props
     },
     ref
@@ -47,7 +63,7 @@ export const SidebarDesktop = React.forwardRef<
     return (
       <aside
         className={cn(
-          "flex min-h-[900px] w-[240px] flex-col gap-7 border-r border-[var(--color-ink-850)] bg-[var(--color-ink-900)] px-4 pt-6 pb-6 font-[var(--app-font-family-base)]",
+          "flex h-full w-[240px] flex-col gap-7 self-stretch border-r border-[var(--color-ink-850)] bg-[var(--color-ink-900)] px-4 pt-6 pb-6 font-[var(--app-font-family-base)]",
           className
         )}
         ref={ref}
@@ -60,21 +76,36 @@ export const SidebarDesktop = React.forwardRef<
           </span>
         </div>
 
-        <div className="flex w-full flex-col gap-4">
+        <div className="flex h-full w-full flex-col gap-4">
           <div className="flex w-full flex-col gap-[10px]">
             <ProjectSwitcher
-              defaultProjects={[]}
+              defaultProjects={defaultProjects}
               label={projectLabel}
+              projectHref={projectHref}
               subtitle={projectSubtitle}
               title={projectTitle}
             />
-            <OpenDashboardLink label={dashboardLabel} />
+            <OpenDashboardLink href={dashboardHref} label={dashboardLabel} />
           </div>
 
           <div className="flex w-full flex-col gap-1">
             {primaryNavigation.map((item) => (
-              <SidebarItem className="w-full" key={item} variant={item} />
+              <SidebarItem
+                className="w-full"
+                href={navigationHrefs?.[item]}
+                key={item}
+                variant={item}
+              />
             ))}
+          </div>
+
+          <div className="mt-auto flex w-full flex-col gap-1 pt-4">
+            <SidebarItem
+              active={settingsActive}
+              className="w-full"
+              href={settingsHref}
+              variant="settings"
+            />
           </div>
         </div>
       </aside>

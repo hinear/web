@@ -28,6 +28,7 @@ const COLUMNS: IssueStatus[] = [
 
 interface KanbanBoardProps {
   issues: Issue[];
+  onAddCard?: (status: IssueStatus) => void;
   onIssueUpdate?: (
     issueId: string,
     updates: Partial<
@@ -35,7 +36,8 @@ interface KanbanBoardProps {
     > & {
       assigneeId?: string | null;
     }
-  ) => void;
+  ) => Promise<Issue | undefined> | Issue | undefined;
+  projectId?: string;
 }
 
 function mergeIssuesPreservingOrder(previous: Issue[], next: Issue[]): Issue[] {
@@ -58,7 +60,12 @@ function isColumnId(id: string): id is IssueStatus {
   return COLUMNS.includes(id as IssueStatus);
 }
 
-export function KanbanBoard({ issues, onIssueUpdate }: KanbanBoardProps) {
+export function KanbanBoard({
+  issues,
+  onAddCard,
+  onIssueUpdate,
+  projectId,
+}: KanbanBoardProps) {
   const [activeIssue, setActiveIssue] = useState<Issue | null>(null);
   const [mounted, setMounted] = useState(false);
   const [orderedIssues, setOrderedIssues] = useState(issues);
@@ -201,16 +208,28 @@ export function KanbanBoard({ issues, onIssueUpdate }: KanbanBoardProps) {
       return;
     }
 
-    onIssueUpdate?.(active.id as string, { status: newStatus });
+    const updateResult = onIssueUpdate?.(active.id as string, {
+      status: newStatus,
+    });
+
+    if (updateResult instanceof Promise) {
+      void updateResult.catch(() => {
+        setOrderedIssues((current) =>
+          mergeIssuesPreservingOrder(current, issues)
+        );
+      });
+    }
   };
 
   if (!mounted) {
     return (
       <div className="h-full overflow-x-auto">
-        <div className="flex min-h-full gap-3 p-4">
+        <div className="flex h-full min-h-full items-stretch gap-3 p-4">
           {COLUMNS.map((status) => (
             <KanbanColumn
               key={status}
+              onAddCard={onAddCard}
+              projectId={projectId}
               status={status}
               issues={getIssuesByStatus(status)}
             />
@@ -230,12 +249,14 @@ export function KanbanBoard({ issues, onIssueUpdate }: KanbanBoardProps) {
         onDragOver={handleDragOver}
         onDragStart={handleDragStart}
       >
-        <div className="flex min-h-full gap-3 p-4">
+        <div className="flex h-full min-h-full items-stretch gap-3 p-4">
           {COLUMNS.map((status) => (
             <KanbanColumn
               activeIssue={activeIssue}
               isDragging={activeIssue !== null}
               key={status}
+              onAddCard={onAddCard}
+              projectId={projectId}
               status={status}
               issues={getIssuesByStatus(status)}
             />

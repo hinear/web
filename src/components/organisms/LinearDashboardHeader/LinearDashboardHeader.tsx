@@ -18,16 +18,22 @@ function isBlockedIssue(issue: Issue) {
 
 export interface LinearDashboardHeaderProps
   extends React.HTMLAttributes<HTMLDivElement> {
+  boardHref?: string;
+  dashboardHref?: string;
   eyebrow?: string;
   issues?: Issue[];
+  onCreateClick?: React.ButtonHTMLAttributes<HTMLButtonElement>["onClick"];
   subtitle?: string;
   title?: string;
 }
 
 export function LinearDashboardHeader({
+  boardHref,
   className,
+  dashboardHref,
   eyebrow = "Workspace / Board",
   issues = [],
+  onCreateClick,
   subtitle = "Focused view of triage, build, and shipped work.",
   title = "Issue board",
   ...props
@@ -56,11 +62,26 @@ export function LinearDashboardHeader({
         </div>
 
         <div className="flex flex-wrap items-center gap-[10px]">
-          <HeaderAction icon="board" label="Dashboard" variant="filter" />
+          <HeaderAction
+            href={dashboardHref}
+            icon="board"
+            label="Dashboard"
+            variant="filter"
+          />
           <HeaderSearchField label="Search" />
           <HeaderAction icon="filter" label="Filter" variant="filter" />
-          <HeaderAction icon="board" label="Board" variant="board" />
-          <HeaderAction icon="plus" label="New issue" variant="primary" />
+          <HeaderAction
+            href={boardHref}
+            icon="board"
+            label="Board"
+            variant="board"
+          />
+          <HeaderAction
+            icon="plus"
+            label="New issue"
+            onClick={onCreateClick}
+            variant="primary"
+          />
         </div>
       </div>
 

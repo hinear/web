@@ -1,0 +1,42 @@
+[ 4535045ms] [ERROR] ./src/features/issues/components/issue-detail-screen.tsx:160:10
+the name `ConflictDialog` is defined multiple times
+  158 | }
+  159 |
+> 160 | function ConflictDialog({
+      |          ^^^^^^^^^^^^^^
+  161 |   currentVersion,
+  162 |   requestedVersion,
+  163 |   onDismiss,
+
+Ecmascript file had an error
+
+Import traces:
+  #1 [Server Component]:
+    ./src/features/issues/components/issue-detail-screen.tsx
+    ./src/app/projects/[projectId]/issues/[issueId]/loading.tsx
+
+  #2 [Server Component]:
+    ./src/features/issues/components/issue-detail-screen.tsx
+    ./src/app/projects/[projectId]/issues/[issueId]/page.tsx
+
+  #3 [Client Component Browser]:
+    ./src/features/issues/components/issue-detail-screen.tsx [Client Component Browser]
+    ./src/app/projects/[projectId]/issues/[issueId]/error.tsx [Client Component Browser]
+    ./src/app/projects/[projectId]/issues/[issueId]/error.tsx [Server Component]
+
+  #4 [Client Component Browser]:
+    ./src/features/issues/components/issue-detail-screen.tsx [Client Component Browser]
+    ./src/app/projects/[projectId]/issues/[issueId]/not-found.tsx [Client Component Browser]
+    ./src/app/projects/[projectId]/issues/[issueId]/not-found.tsx [Server Component]
+
+  #5 [Client Component SSR]:
+    ./src/features/issues/components/issue-detail-screen.tsx [Client Component SSR]
+    ./src/app/projects/[projectId]/issues/[issueId]/error.tsx [Client Component SSR]
+    ./src/app/projects/[projectId]/issues/[issueId]/error.tsx [Server Component]
+
+  #6 [Client Component SSR]:
+    ./src/features/issues/components/issue-detail-screen.tsx [Client Component SSR]
+    ./src/app/projects/[projectId]/issues/[issueId]/not-found.tsx [Client Component SSR]
+    ./src/app/projects/[projectId]/issues/[issueId]/not-found.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/0w4n_next_dist_0_cxz4v._.js:3272
+[10136365ms] [ERROR] Failed to load resource: the server responded with a status of 408 (Request Timeout) @ http://localhost:3000/auth?error=Login%20failed.%20Please%20request%20a%20new%20magic%20link.&next=%2Fprojects%2Fc5df28bc-7827-48b1-89a3-da51139366f1%2Fissues%2F01d41429-3952-481c-a6d8-b5b222a426be&_rsc=1886g#access_token=eyJhbGciOiJFUzI1NiIsImtpZCI6Ijc5ZjY1MTZlLTFlYTMtNDRmNi1hMTE0LWI3OGE4MTMyMDY1NSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3BteXJyY2traW9tandqcW50eW1yLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiJiMjJmZTMzNC0zZGNiLTRkMGItYTJkZi02NzMwYjYyNDk4ZDIiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzc0MDIzMzI4LCJpYXQiOjE3NzQwMTk3MjgsImVtYWlsIjoiY29kZXgtYWxpY2UraGluZWFyQGV4YW1wbGUuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbF92ZXJpZmllZCI6dHJ1ZX0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoib3RwIiwidGltZXN0YW1wIjoxNzc0MDE5NzI4fV0sInNlc3Npb25faWQiOiI0YTA0NDFiNS02YThiLTRjZTktYjhlNy0zNjdlYzMyMzUyNTgiLCJpc19hbm9ueW1vdXMiOmZhbHNlfQ.ZNem_WNmCtUwJWrmy3z2x1Eu8ECY-6wjo0ySh1Z279AZvvKLbySmh32w7zHaDDUJSXxmU6bXOrCs9xhBj3ZgOg&expires_at=1774023328&expires_in=3600&refresh_token=jxjlf2ddcqkm&sb=&token_type=bearer&type=magiclink:0
+[10137283ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:3000/auth?error=Login%20failed.%20Please%20request%20a%20new%20magic%20link.&next=%2Fprojects%2Fc5df28bc-7827-48b1-89a3-da51139366f1%2Fissues%2F01d41429-3952-481c-a6d8-b5b222a426be&_rsc=1886g#access_token=eyJhbGciOiJFUzI1NiIsImtpZCI6Ijc5ZjY1MTZlLTFlYTMtNDRmNi1hMTE0LWI3OGE4MTMyMDY1NSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3BteXJyY2traW9tandqcW50eW1yLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiJiMjJmZTMzNC0zZGNiLTRkMGItYTJkZi02NzMwYjYyNDk4ZDIiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzc0MDIzMzI4LCJpYXQiOjE3NzQwMTk3MjgsImVtYWlsIjoiY29kZXgtYWxpY2UraGluZWFyQGV4YW1wbGUuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbF92ZXJpZmllZCI6dHJ1ZX0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoib3RwIiwidGltZXN0YW1wIjoxNzc0MDE5NzI4fV0sInNlc3Npb25faWQiOiI0YTA0NDFiNS02YThiLTRjZTktYjhlNy0zNjdlYzMyMzUyNTgiLCJpc19hbm9ueW1vdXMiOmZhbHNlfQ.ZNem_WNmCtUwJWrmy3z2x1Eu8ECY-6wjo0ySh1Z279AZvvKLbySmh32w7zHaDDUJSXxmU6bXOrCs9xhBj3ZgOg&expires_at=1774023328&expires_in=3600&refresh_token=jxjlf2ddcqkm&sb=&token_type=bearer&type=magiclink:0

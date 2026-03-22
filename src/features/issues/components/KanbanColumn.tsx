@@ -15,6 +15,8 @@ interface KanbanColumnProps {
   activeIssue?: Issue | null;
   forceDropTarget?: boolean;
   isDragging?: boolean;
+  onAddCard?: (status: IssueStatus) => void;
+  projectId?: string;
   status: IssueStatus;
   issues: Issue[];
 }
@@ -32,6 +34,8 @@ export function KanbanColumn({
   activeIssue = null,
   forceDropTarget = false,
   isDragging = false,
+  onAddCard,
+  projectId,
   status,
   issues,
 }: KanbanColumnProps) {
@@ -49,11 +53,11 @@ export function KanbanColumn({
   const issueIds = issues.map((issue) => issue.id);
 
   return (
-    <div className="w-[232px] flex-shrink-0">
+    <div className="flex h-full w-[232px] flex-shrink-0">
       <div
         ref={setNodeRef}
         className={cn(
-          "flex min-h-[520px] flex-col gap-[10px] rounded-[14px] border p-3 transition-[background-color,border-color,box-shadow,transform] duration-200 ease-out",
+          "flex h-full min-h-[520px] flex-1 flex-col gap-[10px] rounded-[14px] border p-3 transition-[background-color,border-color,box-shadow,transform] duration-200 ease-out",
           isDropTarget
             ? "border-[var(--app-color-brand-300)] bg-[var(--app-color-brand-50)] shadow-[inset_0_0_0_1px_var(--app-color-brand-200)]"
             : "border-[var(--app-color-surface-150,#ECEEF2)] bg-[var(--app-color-surface-100,#F7F8FA)]"
@@ -68,9 +72,14 @@ export function KanbanColumn({
           items={issueIds}
           strategy={verticalListSortingStrategy}
         >
-          <div className="flex flex-1 flex-col gap-[10px]">
+          <div className="flex min-h-0 flex-1 flex-col gap-[10px]">
             {issues.map((issue) => (
-              <IssueCard className="w-full" key={issue.id} issue={issue} />
+              <IssueCard
+                className="w-full"
+                issue={issue}
+                key={issue.id}
+                projectId={projectId}
+              />
             ))}
 
             {showPlaceholder ? (
@@ -88,7 +97,11 @@ export function KanbanColumn({
               </div>
             )}
 
-            <BoardAddCard className="mt-auto w-full" label="Add card" />
+            <BoardAddCard
+              className="mt-auto w-full"
+              label="Add card"
+              onClick={() => onAddCard?.(status)}
+            />
           </div>
         </SortableContext>
       </div>

@@ -7,8 +7,11 @@ describe("ProjectCreateScreen", () => {
   it("renders the project creation form with the expected fields", () => {
     render(<ProjectCreateScreen action={vi.fn()} />);
 
+    expect(screen.getByText("Hinear")).toBeInTheDocument();
+    expect(screen.getByText("Project setup")).toBeInTheDocument();
+    expect(screen.getByText("Project Setup")).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "Create a project" })
+      screen.getByRole("heading", { name: "Create a new project" })
     ).toBeInTheDocument();
     expect(screen.getByLabelText("Project name")).toBeInTheDocument();
     expect(screen.getByLabelText("Project key")).toBeInTheDocument();

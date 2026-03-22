@@ -1,6 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
+import {
+  getMutationErrorCode,
+  getMutationErrorFallbackMessage,
+  getMutationErrorMessage,
+} from "@/features/issues/lib/mutation-error-messages";
 import type { Issue } from "@/specs/issue-detail.contract";
 
 type IssueUpdateInput = Partial<
@@ -9,10 +15,32 @@ type IssueUpdateInput = Partial<
   assigneeId?: string | null;
 };
 
+function getIssueListPayload(value: unknown): Issue[] {
+  if (
+    value &&
+    typeof value === "object" &&
+    "issues" in value &&
+    Array.isArray((value as { issues?: unknown }).issues)
+  ) {
+    return (value as { issues: Issue[] }).issues;
+  }
+
+  return [];
+}
+
+function getUpdatedIssuePayload(value: unknown): Issue | null {
+  if (value && typeof value === "object" && "issue" in value) {
+    return (value as { issue: Issue }).issue;
+  }
+
+  return null;
+}
+
 export function useIssues(projectId: string) {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [mutationError, setMutationError] = useState<Error | null>(null);
 
   useEffect(() => {
     async function fetchIssues() {
@@ -20,17 +48,20 @@ export function useIssues(projectId: string) {
         setLoading(true);
         setError(null);
         const response = await fetch(`/internal/projects/${projectId}/issues`);
+        const payload = await response.json().catch(() => null);
 
         if (!response.ok) {
-          if (response.status === 401) {
-            throw new Error("Authentication required.");
-          }
-
-          throw new Error(`Failed to fetch issues: ${response.statusText}`);
+          throw new Error(
+            getMutationErrorMessage({
+              actionLabel: "board",
+              code: getMutationErrorCode(payload),
+              fallbackMessage: getMutationErrorFallbackMessage(payload),
+              status: response.status,
+            })
+          );
         }
 
-        const data = await response.json();
-        setIssues(data.issues || []);
+        setIssues(getIssueListPayload(payload));
       } catch (err) {
         setError(err instanceof Error ? err : new Error("Unknown error"));
       } finally {
@@ -43,6 +74,7 @@ export function useIssues(projectId: string) {
 
   const updateIssue = async (issueId: string, updates: IssueUpdateInput) => {
     try {
+      setMutationError(null);
       const response = await fetch(`/internal/issues/${issueId}`, {
         method: "PUT",
         headers: {
@@ -50,26 +82,33 @@ export function useIssues(projectId: string) {
         },
         body: JSON.stringify(updates),
       });
+      const payload = await response.json().catch(() => null);
 
       if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error("Authentication required.");
-        }
-
-        throw new Error(`Failed to update issue: ${response.statusText}`);
+        throw new Error(
+          getMutationErrorMessage({
+            actionLabel: "board",
+            code: getMutationErrorCode(payload),
+            fallbackMessage: getMutationErrorFallbackMessage(payload),
+            status: response.status,
+          })
+        );
       }
 
-      const data = await response.json();
-      setIssues((prev) =>
-        prev.map((issue) => (issue.id === issueId ? data.issue : issue))
-      );
+      const updatedIssue = getUpdatedIssuePayload(payload);
 
-      return data.issue;
+      if (updatedIssue) {
+        setIssues((prev) =>
+          prev.map((issue) => (issue.id === issueId ? updatedIssue : issue))
+        );
+      }
+
+      return updatedIssue ?? undefined;
     } catch (err) {
-      console.error("Error updating issue:", err);
+      setMutationError(err instanceof Error ? err : new Error("Unknown error"));
       throw err;
     }
   };
 
-  return { issues, loading, error, updateIssue };
+  return { issues, loading, error, mutationError, updateIssue };
 }

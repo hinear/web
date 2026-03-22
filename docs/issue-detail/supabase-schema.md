@@ -68,6 +68,15 @@
 - 초기 버전의 역할은 항상 `member`
 - pending 상태의 초대는 같은 이메일 기준 중복되지 않게 관리
 
+### profiles
+
+역할:
+
+- `auth.users`와 1:1로 연결되는 앱 표시용 프로필 테이블
+- issue detail, comments, members, invitations에서 사람이 읽을 수 있는 이름/아바타를 제공
+
+상세 설계는 [profiles-schema.md](/Users/choiho/zerone/hinear/docs/issue-detail/profiles-schema.md) 참조
+
 ### issues
 
 핵심 필드:
@@ -204,6 +213,7 @@ identifier는 앱에서 임의 문자열을 생성하지 않고, DB에서 프로
 - 프로젝트
 - 멤버십
 - 초대
+- 프로필
 - 이슈
 - 라벨
 - 이슈-라벨 연결

@@ -1,80 +1,116 @@
 import Link from "next/link";
 
-import { ProjectOperationsSection } from "@/components/organisms/ProjectOperationsSection";
+import { getButtonClassName } from "@/components/atoms/Button";
+import { SidebarDesktop } from "@/components/organisms/SidebarDesktop";
 import { KanbanBoardView } from "@/features/issues/components/KanbanBoardView";
-import { ProjectIssueCreatePanel } from "@/features/projects/components/project-issue-create-panel";
-import type { Project } from "@/features/projects/types";
+import {
+  getProjectDashboardPath,
+  getProjectPath,
+  getProjectSettingsPath,
+} from "@/features/projects/lib/paths";
+import type {
+  Project,
+  ProjectInvitationSummary,
+  ProjectMemberSummary,
+} from "@/features/projects/types";
 
 interface ProjectWorkspaceScreenProps {
   action: (formData: FormData) => void | Promise<void>;
+  createdByLabel?: string;
+  inviteAction?: (formData: FormData) => void | Promise<void>;
+  invitationAction?: (formData: FormData) => void | Promise<void>;
+  memberAction?: (formData: FormData) => void | Promise<void>;
+  inviteErrorMessage?: string;
+  inviteNoticeMessage?: string;
+  inviteValue?: string;
+  invitations?: ProjectInvitationSummary[];
+  members?: ProjectMemberSummary[];
   project: Project;
+  summary?: {
+    activeIssueCount: number;
+    doneIssueCount: number;
+    memberCount: number;
+    pendingInvitationCount: number;
+    totalIssueCount: number;
+  };
+  workspaceNoticeMessage?: string;
 }
 
 export function ProjectWorkspaceScreen({
   action,
+  members,
   project,
+  workspaceNoticeMessage,
 }: ProjectWorkspaceScreenProps) {
+  const projectSubtitle =
+    project.type === "team" ? "Team Project" : "Personal Project";
+  const assigneeOptions = [
+    { label: "Assign to...", value: "" },
+    ...(members ?? []).map((member) => ({
+      label: member.name,
+      value: member.id,
+    })),
+  ];
+
   return (
-    <main className="app-shell">
-      <div className="app-stack">
-        <section className="app-panel">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p className="app-kicker">{project.key}</p>
-              <h1 className="app-title">{project.name}</h1>
-              <p className="app-muted">
-                Create a new triage issue for {project.key}.
-              </p>
+    <main className="min-h-screen bg-[var(--app-color-surface-0)] md:flex">
+      <div className="hidden md:flex md:self-stretch">
+        <SidebarDesktop
+          defaultProjects={[
+            {
+              active: true,
+              href: getProjectPath(project.id),
+              label: project.name,
+            },
+            { label: "Mobile App" },
+          ]}
+          dashboardHref={getProjectDashboardPath(project.id)}
+          dashboardLabel="Open dashboard"
+          navigationHrefs={{
+            issues: getProjectPath(project.id),
+          }}
+          projectHref={getProjectPath(project.id)}
+          projectSubtitle={projectSubtitle}
+          projectTitle={project.name}
+          settingsHref={getProjectSettingsPath(project.id)}
+        />
+      </div>
+
+      <div className="min-w-0 flex flex-1 flex-col self-stretch">
+        <div className="flex min-h-screen w-full flex-1 flex-col gap-5 bg-[#FCFCFD] p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 md:hidden">
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-[var(--app-color-brand-500)]" />
+              <span className="text-[16px] font-[var(--app-font-weight-600)] text-[var(--app-color-ink-900)]">
+                Hinear
+              </span>
             </div>
-            <Link href="/" className="app-link !mt-0">
+            <Link className={getButtonClassName("ghost")} href="/">
               Back to home
             </Link>
           </div>
-        </section>
 
-        <section className="app-grid app-grid-two">
-          <section className="app-panel" id="new-issue-form">
-            <ProjectIssueCreatePanel action={action} projectKey={project.key} />
+          {workspaceNoticeMessage ? (
+            <div
+              className="rounded-[12px] border border-[#BFDBFE] bg-[#EFF6FF] px-[14px] py-3 text-[12px] leading-5 font-[var(--app-font-weight-600)] text-[#1D4ED8]"
+              role="status"
+            >
+              {workspaceNoticeMessage}
+            </div>
+          ) : null}
+
+          <section className="min-w-0 flex-1">
+            <KanbanBoardView
+              assigneeOptions={assigneeOptions}
+              boardHref={getProjectPath(project.id)}
+              createIssueAction={action}
+              dashboardHref={getProjectDashboardPath(project.id)}
+              projectId={project.id}
+              projectKey={project.key}
+              projectName={project.name}
+            />
           </section>
-
-          <aside className="app-panel">
-            <h2 className="app-section-title">Project summary</h2>
-            <dl className="app-meta-list">
-              <div>
-                <dt>Type</dt>
-                <dd>{project.type}</dd>
-              </div>
-              <div>
-                <dt>Next issue number</dt>
-                <dd>{project.issueSeq + 1}</dd>
-              </div>
-              <div>
-                <dt>Created by</dt>
-                <dd>{project.createdBy}</dd>
-              </div>
-            </dl>
-            <p className="app-muted">
-              The board stays primary, but project operations remain visible in
-              the same flow.
-            </p>
-          </aside>
-        </section>
-
-        <section className="app-panel">
-          <KanbanBoardView
-            projectId={project.id}
-            projectKey={project.key}
-            projectName={project.name}
-          />
-        </section>
-
-        {project.type === "team" && (
-          <ProjectOperationsSection
-            acceptHref={`/projects/${project.id}`}
-            projectName={project.name}
-            projectType={project.type}
-          />
-        )}
+        </div>
       </div>
     </main>
   );

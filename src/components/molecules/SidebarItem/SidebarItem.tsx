@@ -1,4 +1,5 @@
-import { Circle, Inbox, Layers, Map as MapIcon } from "lucide-react";
+import { Circle, Inbox, Layers, Map as MapIcon, Settings } from "lucide-react";
+import Link from "next/link";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
@@ -9,7 +10,8 @@ export type SidebarItemVariant =
   | "triage"
   | "active"
   | "backlog"
-  | "roadmap";
+  | "roadmap"
+  | "settings";
 
 const sidebarItemVariantMap: Record<
   SidebarItemVariant,
@@ -46,11 +48,17 @@ const sidebarItemVariantMap: Record<
     kind: "nav",
     label: "Roadmap",
   },
+  settings: {
+    icon: <Settings className="h-4 w-4" />,
+    kind: "nav",
+    label: "Settings",
+  },
 };
 
 export interface SidebarItemProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   active?: boolean;
+  href?: string;
   icon?: React.ReactNode;
   kind?: SidebarItemKind;
   label?: string;
@@ -65,6 +73,7 @@ export const SidebarItem = React.forwardRef<
     {
       active = false,
       className,
+      href,
       icon,
       kind = "nav",
       label,
@@ -80,22 +89,17 @@ export const SidebarItem = React.forwardRef<
     const resolvedKind = preset?.kind ?? kind;
     const resolvedLabel = preset?.label ?? label;
     const isProject = resolvedKind === "project";
-
-    return (
-      <button
-        className={cn(
-          "flex w-[216px] items-center gap-2 rounded-[10px] px-3 py-2 text-left transition-colors",
-          "font-[var(--app-font-family-base)]",
-          resolvedActive
-            ? "border border-[var(--color-slate-800)] bg-[var(--color-ink-800)]"
-            : "border border-transparent bg-[var(--color-ink-900)]",
-          "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-color-brand-300)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
-          className
-        )}
-        ref={ref}
-        type={type}
-        {...props}
-      >
+    const classNames = cn(
+      "flex w-[216px] items-center gap-2 rounded-[10px] px-3 py-2 text-left transition-colors",
+      "font-[var(--app-font-family-base)]",
+      resolvedActive
+        ? "border border-[var(--color-slate-800)] bg-[var(--color-ink-800)]"
+        : "border border-transparent bg-[var(--color-ink-900)]",
+      "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-color-brand-300)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+      className
+    );
+    const content = (
+      <>
         <span
           className={cn(
             "flex h-4 w-4 shrink-0 items-center justify-center",
@@ -118,6 +122,20 @@ export const SidebarItem = React.forwardRef<
         >
           {resolvedLabel}
         </span>
+      </>
+    );
+
+    if (href) {
+      return (
+        <Link className={classNames} href={href}>
+          {content}
+        </Link>
+      );
+    }
+
+    return (
+      <button className={classNames} ref={ref} type={type} {...props}>
+        {content}
       </button>
     );
   }

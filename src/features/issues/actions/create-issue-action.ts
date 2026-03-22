@@ -6,6 +6,7 @@ import { requireAuthRedirect } from "@/features/auth/actions/start-email-auth-ac
 import { createIssueFlow } from "@/features/issues/lib/create-issue-flow";
 import { parseLabelInput } from "@/features/issues/lib/labels";
 import { getServerIssuesRepository } from "@/features/issues/repositories/server-issues-repository";
+import { getProjectIssueCreatePath } from "@/features/projects/lib/paths";
 import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
 
 function readOptionalFormValue(
@@ -25,7 +26,7 @@ export async function createIssueAction(projectId: string, formData: FormData) {
   const actorId = await getAuthenticatedActorIdOrNull();
 
   if (!actorId) {
-    return requireAuthRedirect(`/projects/${projectId}#new-issue-form`);
+    return requireAuthRedirect(getProjectIssueCreatePath(projectId));
   }
 
   const path = await createIssueFlow(await getServerIssuesRepository(), {

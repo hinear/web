@@ -1,16 +1,22 @@
 import "server-only";
 
 import type { PostgrestError } from "@supabase/supabase-js";
-
+import {
+  createPostgrestRepositoryError,
+  createRepositoryError,
+} from "@/features/issues/lib/repository-errors";
 import type {
   CreateProjectInput,
   InviteProjectMemberInput,
   ProjectsRepository,
+  UpdateProjectInput,
 } from "@/features/projects/contracts";
 import type {
   Project,
   ProjectInvitation,
+  ProjectInvitationSummary,
   ProjectMember,
+  ProjectMemberSummary,
 } from "@/features/projects/types";
 import type { AppSupabaseServerClient } from "@/lib/supabase/server-client";
 import type { TableInsert, TableRow } from "@/lib/supabase/types";
@@ -20,13 +26,16 @@ function assertQuerySucceeded(
   error: PostgrestError | null
 ): void {
   if (error) {
-    throw new Error(`${context}: ${error.message}`);
+    throw createPostgrestRepositoryError(context, error);
   }
 }
 
 function assertDataPresent<T>(context: string, data: T | null): T {
   if (!data) {
-    throw new Error(`${context}: query returned no rows.`);
+    throw createRepositoryError(
+      "UNKNOWN",
+      `${context}: query returned no rows.`
+    );
   }
 
   return data;
@@ -85,24 +94,76 @@ function createInvitationDraft(
   };
 }
 
+function formatRelativeProjectDate(iso: string): string {
+  const date = new Date(iso);
+
+  if (Number.isNaN(date.getTime())) {
+    return iso;
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+  }).format(date);
+}
+
+function getProfileDisplayName(
+  profile: TableRow<"profiles"> | undefined
+): string | null {
+  const value = profile?.display_name?.trim();
+  return value && value.length > 0 ? value : null;
+}
+
+async function listProfilesByIds(
+  client: AppSupabaseServerClient,
+  ids: string[]
+): Promise<Map<string, TableRow<"profiles">>> {
+  const uniqueIds = [...new Set(ids.filter(Boolean))];
+
+  if (uniqueIds.length === 0) {
+    return new Map();
+  }
+
+  const { data, error } = await client
+    .from("profiles")
+    .select()
+    .in("id", uniqueIds);
+
+  assertQuerySucceeded("Failed to load profiles", error);
+
+  return new Map((data ?? []).map((row) => [row.id, row]));
+}
+
 export class SupabaseProjectsRepository implements ProjectsRepository {
   constructor(private readonly client: AppSupabaseServerClient) {}
 
   async createProject(input: CreateProjectInput): Promise<Project> {
-    const { data, error } = await this.client
-      .from("projects")
-      .insert({
-        key: input.key,
-        name: input.name,
-        type: input.type,
-        created_by: input.createdBy,
-      })
-      .select()
-      .single();
+    const { data, error } = await this.client.rpc("create_project_with_owner", {
+      project_key: input.key,
+      project_name: input.name,
+      project_type: input.type,
+    });
 
     assertQuerySucceeded("Failed to create project", error);
 
     return mapProject(assertDataPresent("Failed to create project", data));
+  }
+
+  async updateProject(input: UpdateProjectInput): Promise<Project> {
+    const { data, error } = await this.client
+      .from("projects")
+      .update({
+        key: input.key,
+        name: input.name,
+        type: input.type,
+      })
+      .eq("id", input.projectId)
+      .select()
+      .single();
+
+    assertQuerySucceeded("Failed to update project", error);
+
+    return mapProject(assertDataPresent("Failed to update project", data));
   }
 
   async addProjectMember(member: ProjectMember): Promise<ProjectMember> {
@@ -150,5 +211,189 @@ export class SupabaseProjectsRepository implements ProjectsRepository {
     assertQuerySucceeded("Failed to load project", error);
 
     return data ? mapProject(data) : null;
+  }
+
+  async listProjectMembers(projectId: string): Promise<ProjectMemberSummary[]> {
+    const { data, error } = await this.client
+      .from("project_members")
+      .select()
+      .eq("project_id", projectId);
+
+    assertQuerySucceeded("Failed to load project members", error);
+
+    const rows = data ?? [];
+    const profilesById = await listProfilesByIds(
+      this.client,
+      rows.map((row) => row.user_id)
+    );
+
+    return rows.map((row) => ({
+      avatarUrl: profilesById.get(row.user_id)?.avatar_url ?? null,
+      canRemove: row.role !== "owner",
+      id: row.user_id,
+      isCurrentUser: false,
+      name: getProfileDisplayName(profilesById.get(row.user_id)) ?? row.user_id,
+      note:
+        row.role === "owner"
+          ? `Owner since ${formatRelativeProjectDate(row.created_at)}`
+          : `Joined ${formatRelativeProjectDate(row.created_at)}`,
+      role: row.role,
+    }));
+  }
+
+  async listPendingProjectInvitations(
+    projectId: string
+  ): Promise<ProjectInvitationSummary[]> {
+    const { data, error } = await this.client
+      .from("project_invitations")
+      .select()
+      .eq("project_id", projectId)
+      .eq("status", "pending");
+
+    assertQuerySucceeded("Failed to load project invitations", error);
+
+    const rows = data ?? [];
+    const profilesById = await listProfilesByIds(
+      this.client,
+      rows.map((row) => row.invited_by)
+    );
+
+    return rows.map((row) => ({
+      createdAt: row.created_at,
+      email: row.email,
+      expiresAt: row.expires_at,
+      id: row.id,
+      token: row.token,
+      invitedBy:
+        getProfileDisplayName(profilesById.get(row.invited_by)) ??
+        row.invited_by,
+      invitedByAvatarUrl: profilesById.get(row.invited_by)?.avatar_url ?? null,
+      status: row.status,
+    }));
+  }
+
+  async removeProjectMember(projectId: string, userId: string): Promise<void> {
+    const { error } = await this.client
+      .from("project_members")
+      .delete()
+      .eq("project_id", projectId)
+      .eq("user_id", userId);
+
+    assertQuerySucceeded("Failed to remove project member", error);
+  }
+
+  async getProjectInvitationByToken(
+    token: string
+  ): Promise<ProjectInvitation | null> {
+    const { data, error } = await this.client
+      .from("project_invitations")
+      .select()
+      .eq("token", token)
+      .maybeSingle();
+
+    assertQuerySucceeded("Failed to load project invitation", error);
+
+    return data ? mapProjectInvitation(data) : null;
+  }
+
+  async acceptProjectInvitation(
+    token: string,
+    actorId: string
+  ): Promise<ProjectInvitation> {
+    const invitation = await this.getProjectInvitationByToken(token);
+
+    if (!invitation) {
+      throw createRepositoryError("UNKNOWN", "Invitation not found.");
+    }
+
+    if (invitation.status !== "pending") {
+      return invitation;
+    }
+
+    if (new Date(invitation.expiresAt).getTime() <= Date.now()) {
+      const { data, error } = await this.client
+        .from("project_invitations")
+        .update({
+          status: "expired",
+        })
+        .eq("id", invitation.id)
+        .select()
+        .single();
+
+      assertQuerySucceeded("Failed to expire project invitation", error);
+
+      return mapProjectInvitation(
+        assertDataPresent("Failed to expire project invitation", data)
+      );
+    }
+
+    const { error: memberError } = await this.client
+      .from("project_members")
+      .insert({
+        project_id: invitation.projectId,
+        role: "member",
+        user_id: actorId,
+      });
+
+    if (memberError && memberError.code !== "23505") {
+      assertQuerySucceeded("Failed to add invited project member", memberError);
+    }
+
+    const { data, error } = await this.client
+      .from("project_invitations")
+      .update({
+        accepted_by: actorId,
+        status: "accepted",
+      })
+      .eq("id", invitation.id)
+      .select()
+      .single();
+
+    assertQuerySucceeded("Failed to accept project invitation", error);
+
+    return mapProjectInvitation(
+      assertDataPresent("Failed to accept project invitation", data)
+    );
+  }
+
+  async resendProjectInvitation(
+    invitationId: string
+  ): Promise<ProjectInvitation> {
+    const { data, error } = await this.client
+      .from("project_invitations")
+      .update({
+        expires_at: new Date(
+          Date.now() + 7 * 24 * 60 * 60 * 1000
+        ).toISOString(),
+        token: crypto.randomUUID(),
+      })
+      .eq("id", invitationId)
+      .select()
+      .single();
+
+    assertQuerySucceeded("Failed to resend project invitation", error);
+
+    return mapProjectInvitation(
+      assertDataPresent("Failed to resend project invitation", data)
+    );
+  }
+
+  async revokeProjectInvitation(
+    invitationId: string
+  ): Promise<ProjectInvitation> {
+    const { data, error } = await this.client
+      .from("project_invitations")
+      .update({
+        status: "revoked",
+      })
+      .eq("id", invitationId)
+      .select()
+      .single();
+
+    assertQuerySucceeded("Failed to revoke project invitation", error);
+
+    return mapProjectInvitation(
+      assertDataPresent("Failed to revoke project invitation", data)
+    );
   }
 }

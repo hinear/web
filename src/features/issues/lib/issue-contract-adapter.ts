@@ -1,7 +1,13 @@
 import type { Issue } from "@/features/issues/types";
 import type { Issue as BoardIssue } from "@/specs/issue-detail.contract";
 
-export function toBoardIssue(issue: Issue): BoardIssue {
+export function toBoardIssue(
+  issue: Issue,
+  assignee?: {
+    avatarUrl?: string | null;
+    name: string;
+  } | null
+): BoardIssue {
   return {
     id: issue.id,
     identifier: issue.identifier,
@@ -11,7 +17,8 @@ export function toBoardIssue(issue: Issue): BoardIssue {
     assignee: issue.assigneeId
       ? {
           id: issue.assigneeId,
-          name: "Assigned",
+          avatarUrl: assignee?.avatarUrl ?? undefined,
+          name: assignee?.name ?? issue.assigneeId,
         }
       : null,
     labels: issue.labels,

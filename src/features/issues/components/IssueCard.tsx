@@ -2,6 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useRouter } from "next/navigation";
 import { BoardIssueCard } from "@/components/organisms/BoardIssueCard";
 import { cn } from "@/lib/utils";
 import type { Issue } from "@/specs/issue-detail.contract";
@@ -9,14 +10,17 @@ import type { Issue } from "@/specs/issue-detail.contract";
 interface IssueCardProps {
   className?: string;
   issue: Issue;
+  projectId?: string;
   preview?: boolean;
 }
 
 export function IssueCard({
   className,
   issue,
+  projectId,
   preview = false,
 }: IssueCardProps) {
+  const router = useRouter();
   const {
     attributes,
     listeners,
@@ -33,6 +37,10 @@ export function IssueCard({
     },
   });
 
+  const detailHref = projectId
+    ? `/projects/${projectId}/issues/${issue.id}`
+    : undefined;
+
   return (
     <BoardIssueCard
       assignee={issue.assignee}
@@ -48,12 +56,31 @@ export function IssueCard({
       issueKey={issue.identifier}
       issueTitle={issue.title}
       labels={issue.labels}
+      onClick={
+        !preview && detailHref
+          ? () => {
+              router.push(detailHref);
+            }
+          : undefined
+      }
       priority={issue.priority}
       ref={setNodeRef}
+      role={detailHref ? "button" : undefined}
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
       }}
+      tabIndex={detailHref ? 0 : undefined}
+      onKeyDown={
+        !preview && detailHref
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                router.push(detailHref);
+              }
+            }
+          : undefined
+      }
       aria-grabbed={preview ? undefined : isDragging}
       {...attributes}
       {...listeners}

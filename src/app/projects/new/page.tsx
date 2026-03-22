@@ -5,10 +5,25 @@ import { createProjectAction } from "@/features/projects/actions/create-project-
 import { ProjectCreateScreen } from "@/features/projects/components/project-create-screen";
 import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
 
-export default async function NewProjectPage() {
+interface NewProjectPageProps {
+  searchParams: Promise<{
+    error?: string;
+  }>;
+}
+
+export default async function NewProjectPage({
+  searchParams,
+}: NewProjectPageProps) {
   if (!(await getAuthenticatedActorIdOrNull())) {
     redirect(buildAuthPath("/projects/new"));
   }
 
-  return <ProjectCreateScreen action={createProjectAction} />;
+  const params = await searchParams;
+
+  return (
+    <ProjectCreateScreen
+      action={createProjectAction}
+      errorMessage={params.error}
+    />
+  );
 }

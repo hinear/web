@@ -8,6 +8,11 @@ import { Chip } from "@/components/atoms/Chip";
 import { Field } from "@/components/atoms/Field";
 import { Select } from "@/components/atoms/Select";
 import { ConflictDialog } from "@/components/molecules/ConflictDialog";
+import {
+  getMutationErrorCode,
+  getMutationErrorFallbackMessage,
+  getMutationErrorMessage,
+} from "@/features/issues/lib/mutation-error-messages";
 import type {
   ActivityLogEntry,
   Comment,
@@ -40,21 +45,8 @@ interface CommentCreateResponse {
   comment: Comment;
 }
 
-function getMutationErrorMessage(
-  status: number,
-  fallbackMessage: string,
-  actionLabel: "comment" | "issue"
-): string {
-  if (status === 401) {
-    return "Your session expired. Sign in again and retry.";
-  }
-
-  if (status === 404) {
-    return "This issue no longer exists. Return to the board and refresh your list.";
-  }
-
-  return fallbackMessage || `Failed to update ${actionLabel}.`;
-}
+const EMPTY_COMMENTS: Comment[] = [];
+const EMPTY_ACTIVITY_LOG: ActivityLogEntry[] = [];
 
 function isIssueUpdateResponse(value: unknown): value is IssueUpdateResponse {
   return Boolean(
@@ -185,13 +177,15 @@ export function IssueDetailLoadingScreen() {
     <main className="app-shell">
       <div className="app-stack">
         <IssueStateCard title="Loading">
-          <p className="text-[13px] font-medium leading-5 text-[#4B5563]">
-            Issue data is being fetched. Replace controls with skeletons and
-            disable edits.
+          <p
+            className="text-[13px] font-medium leading-5 text-[#4B5563]"
+            role="status"
+          >
+            We&apos;re loading the latest issue details and activity.
           </p>
-          <div className="h-[14px] w-[180px] rounded-full bg-[#E5E7EB]" />
-          <div className="h-11 w-full rounded-[12px] bg-[#F3F4F6]" />
-          <div className="h-[180px] w-full rounded-[16px] border border-[#E6E8EC] bg-[#F8FAFC]" />
+          <div className="h-[14px] w-[180px] animate-pulse rounded-full bg-[#E5E7EB]" />
+          <div className="h-11 w-full animate-pulse rounded-[12px] bg-[#F3F4F6]" />
+          <div className="h-[180px] w-full animate-pulse rounded-[16px] border border-[#E6E8EC] bg-[#F8FAFC]" />
         </IssueStateCard>
       </div>
     </main>
@@ -231,8 +225,8 @@ export function IssueDetailErrorScreen({
               We couldn&apos;t load this issue
             </p>
             <p className="mt-2 text-[13px] font-medium leading-5 text-[#7C2D12]">
-              Show retry and back-to-board actions. Roll back optimistic edits
-              before allowing further changes.
+              Refresh the detail view to try again, or return to the board and
+              open another issue.
             </p>
           </div>
         </IssueStateCard>
@@ -270,8 +264,8 @@ export function IssueDetailNotFoundScreen({
           title="Not Found"
         >
           <p className="text-[13px] font-medium leading-5 text-[#4B5563]">
-            The requested issue no longer exists. Offer a clear way back to the
-            board and a replacement create path.
+            This issue may have been deleted or moved to a different project.
+            Return to the board to continue, or create a replacement issue.
           </p>
         </IssueStateCard>
       </div>
@@ -283,8 +277,8 @@ export function IssueDetailScreen({
   boardHref,
   createHref,
   issue,
-  comments = [],
-  activityLog = [],
+  comments = EMPTY_COMMENTS,
+  activityLog = EMPTY_ACTIVITY_LOG,
 }: IssueDetailScreenProps) {
   const [issueState, setIssueState] = useState(issue);
   const [commentsState, setCommentsState] = useState(comments);
@@ -360,13 +354,12 @@ export function IssueDetailScreen({
           }
 
           throw new Error(
-            getMutationErrorMessage(
-              response.status,
-              typeof data === "object" && data && "error" in data
-                ? String(data.error ?? "Failed to update issue.")
-                : "Failed to update issue.",
-              "issue"
-            )
+            getMutationErrorMessage({
+              actionLabel: "issue",
+              code: getMutationErrorCode(data),
+              fallbackMessage: getMutationErrorFallbackMessage(data),
+              status: response.status,
+            })
           );
         }
 
@@ -413,13 +406,12 @@ export function IssueDetailScreen({
 
         if (!response.ok) {
           throw new Error(
-            getMutationErrorMessage(
-              response.status,
-              typeof data === "object" && data && "error" in data
-                ? String(data.error ?? "Failed to create comment.")
-                : "Failed to create comment.",
-              "comment"
-            )
+            getMutationErrorMessage({
+              actionLabel: "comment",
+              code: getMutationErrorCode(data),
+              fallbackMessage: getMutationErrorFallbackMessage(data),
+              status: response.status,
+            })
           );
         }
 

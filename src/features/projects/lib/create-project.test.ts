@@ -68,7 +68,13 @@ describe("createProjectWithOwner", () => {
         createdAt: "2026-03-19T00:00:00.000Z",
       }),
       inviteProjectMember: vi.fn(),
+      updateProject: vi.fn(),
       getProjectById: vi.fn(),
+      listPendingProjectInvitations: vi.fn(),
+      listProjectMembers: vi.fn(),
+      removeProjectMember: vi.fn(),
+      resendProjectInvitation: vi.fn(),
+      revokeProjectInvitation: vi.fn(),
     };
 
     const project = await createProjectWithOwner(repository, {
@@ -84,13 +90,7 @@ describe("createProjectWithOwner", () => {
       type: "team",
       createdBy: "user-1",
     });
-    expect(repository.addProjectMember).toHaveBeenCalledWith(
-      expect.objectContaining({
-        projectId: "project-1",
-        userId: "user-1",
-        role: "owner",
-      })
-    );
+    expect(repository.addProjectMember).not.toHaveBeenCalled();
     expect(project.id).toBe("project-1");
   });
 });

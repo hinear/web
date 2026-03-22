@@ -34,6 +34,7 @@ vi.mock("@/lib/supabase/server-auth", () => ({
   getAuthenticatedActorIdOrNull: getAuthenticatedActorIdOrNullMock,
 }));
 
+import { createRepositoryError } from "@/features/issues/lib/repository-errors";
 import { createProjectAction } from "@/features/projects/actions/create-project-action";
 
 describe("createProjectAction", () => {
@@ -78,5 +79,26 @@ describe("createProjectAction", () => {
 
     expect(requireAuthRedirectMock).toHaveBeenCalledWith("/projects/new");
     expect(createProjectFlowMock).not.toHaveBeenCalled();
+  });
+
+  it("redirects back to the form with a duplicate-key message", async () => {
+    const repository = { createProject: vi.fn() };
+    const formData = new FormData();
+
+    formData.set("name", "Web Platform");
+    formData.set("key", "web");
+    formData.set("type", "team");
+
+    getServerProjectsRepositoryMock.mockResolvedValue(repository);
+    getAuthenticatedActorIdOrNullMock.mockResolvedValue("user-11");
+    createProjectFlowMock.mockRejectedValue(
+      createRepositoryError("PROJECT_KEY_TAKEN", "Project key already exists.")
+    );
+
+    await createProjectAction(formData);
+
+    expect(redirectMock).toHaveBeenCalledWith(
+      "/projects/new?error=That+project+key+is+already+in+use.+Choose+a+different+key."
+    );
   });
 });

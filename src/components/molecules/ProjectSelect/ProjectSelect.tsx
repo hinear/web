@@ -1,10 +1,12 @@
 import { ChevronDown, Folder, LayoutDashboard } from "lucide-react";
+import Link from "next/link";
 import * as React from "react";
 import { SidebarItem } from "@/components/molecules/SidebarItem";
 import { cn } from "@/lib/utils";
 
 export interface ProjectSelectProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  href?: string;
   subtitle: string;
   title: string;
 }
@@ -12,8 +14,10 @@ export interface ProjectSelectProps
 export interface ProjectSwitcherProps {
   defaultProjects?: Array<{
     active?: boolean;
+    href?: string;
     label: string;
   }>;
+  projectHref?: string;
   label?: string;
   open?: boolean;
   subtitle: string;
@@ -22,24 +26,21 @@ export interface ProjectSwitcherProps {
 
 export interface OpenDashboardLinkProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  href?: string;
   label?: string;
 }
 
 export const ProjectSelect = React.forwardRef<
   HTMLButtonElement,
   ProjectSelectProps
->(({ className, subtitle, title, type = "button", ...props }, ref) => {
-  return (
-    <button
-      className={cn(
-        "flex w-full items-center justify-between rounded-[12px] border border-[var(--color-slate-850)] bg-[var(--color-ink-875)] px-3 py-[10px] text-left",
-        "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-color-brand-300)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
-        className
-      )}
-      ref={ref}
-      type={type}
-      {...props}
-    >
+>(({ className, href, subtitle, title, type = "button", ...props }, ref) => {
+  const classNames = cn(
+    "flex w-full items-center justify-between rounded-[12px] border border-[var(--color-slate-850)] bg-[var(--color-ink-875)] px-3 py-[10px] text-left",
+    "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-color-brand-300)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+    className
+  );
+  const content = (
+    <>
       <span className="flex min-w-0 flex-col gap-[2px]">
         <span className="truncate text-[13px] leading-[13px] font-[var(--app-font-weight-600)] text-[var(--app-color-white)]">
           {title}
@@ -52,6 +53,20 @@ export const ProjectSelect = React.forwardRef<
         aria-hidden="true"
         className="h-4 w-4 shrink-0 text-[var(--app-color-gray-500)]"
       />
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link className={classNames} href={href}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button className={classNames} ref={ref} type={type} {...props}>
+      {content}
     </button>
   );
 });
@@ -65,6 +80,7 @@ export function ProjectSwitcher({
   ],
   label = "Project",
   open = true,
+  projectHref,
   subtitle,
   title,
 }: ProjectSwitcherProps) {
@@ -73,7 +89,7 @@ export function ProjectSwitcher({
       <span className="text-[12px] leading-[12px] font-[var(--app-font-weight-500)] text-[var(--app-color-gray-500)]">
         {label}
       </span>
-      <ProjectSelect subtitle={subtitle} title={title} />
+      <ProjectSelect href={projectHref} subtitle={subtitle} title={title} />
       {open ? (
         <div className="flex flex-col gap-1">
           {defaultProjects.map((project) => (
@@ -81,6 +97,7 @@ export function ProjectSwitcher({
               className="w-full"
               key={project.label}
               active={project.active}
+              href={project.href}
               icon={<Folder className="h-4 w-4" />}
               kind="project"
               label={project.label}
@@ -95,24 +112,39 @@ export function ProjectSwitcher({
 export const OpenDashboardLink = React.forwardRef<
   HTMLButtonElement,
   OpenDashboardLinkProps
->(({ className, label = "Open dashboard", type = "button", ...props }, ref) => {
-  return (
-    <button
-      className={cn(
-        "flex w-full items-center gap-2 rounded-[10px] bg-[var(--color-ink-900)] px-[10px] py-2 text-left",
-        "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-color-brand-300)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
-        className
-      )}
-      ref={ref}
-      type={type}
-      {...props}
-    >
-      <LayoutDashboard className="h-[14px] w-[14px] shrink-0 text-[var(--color-slate-400)]" />
-      <span className="text-[12px] leading-[12px] font-[var(--app-font-weight-500)] text-[var(--app-color-gray-350)]">
-        {label}
-      </span>
-    </button>
-  );
-});
+>(
+  (
+    { className, href, label = "Open dashboard", type = "button", ...props },
+    ref
+  ) => {
+    const classNames = cn(
+      "flex w-full items-center gap-2 rounded-[10px] bg-[var(--color-ink-900)] px-[10px] py-2 text-left",
+      "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-color-brand-300)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+      className
+    );
+    const content = (
+      <>
+        <LayoutDashboard className="h-[14px] w-[14px] shrink-0 text-[var(--color-slate-400)]" />
+        <span className="text-[12px] leading-[12px] font-[var(--app-font-weight-500)] text-[var(--app-color-gray-350)]">
+          {label}
+        </span>
+      </>
+    );
+
+    if (href) {
+      return (
+        <Link className={classNames} href={href}>
+          {content}
+        </Link>
+      );
+    }
+
+    return (
+      <button className={classNames} ref={ref} type={type} {...props}>
+        {content}
+      </button>
+    );
+  }
+);
 
 OpenDashboardLink.displayName = "OpenDashboardLink";
