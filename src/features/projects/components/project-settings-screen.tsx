@@ -63,7 +63,6 @@ export function ProjectSettingsScreen({
           navigationHrefs={{
             issues: getProjectPath(project.id),
           }}
-          projectHref={getProjectPath(project.id)}
           projectSubtitle={projectSubtitle}
           projectTitle={project.name}
           settingsActive

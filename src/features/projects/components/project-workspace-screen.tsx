@@ -26,6 +26,7 @@ interface ProjectWorkspaceScreenProps {
   invitations?: ProjectInvitationSummary[];
   members?: ProjectMemberSummary[];
   project: Project;
+  projects?: Project[];
   summary?: {
     activeIssueCount: number;
     doneIssueCount: number;
@@ -40,6 +41,7 @@ export function ProjectWorkspaceScreen({
   action,
   members,
   project,
+  projects,
   workspaceNoticeMessage,
 }: ProjectWorkspaceScreenProps) {
   const projectSubtitle =
@@ -56,20 +58,16 @@ export function ProjectWorkspaceScreen({
     <main className="min-h-screen bg-[var(--app-color-surface-0)] md:flex">
       <div className="hidden md:flex md:self-stretch">
         <SidebarDesktop
-          defaultProjects={[
-            {
-              active: true,
-              href: getProjectPath(project.id),
-              label: project.name,
-            },
-            { label: "Mobile App" },
-          ]}
+          defaultProjects={(projects ?? []).map((entry) => ({
+            active: entry.id === project.id,
+            href: getProjectPath(entry.id),
+            label: entry.name,
+          }))}
           dashboardHref={getProjectDashboardPath(project.id)}
           dashboardLabel="Open dashboard"
           navigationHrefs={{
             issues: getProjectPath(project.id),
           }}
-          projectHref={getProjectPath(project.id)}
           projectSubtitle={projectSubtitle}
           projectTitle={project.name}
           settingsHref={getProjectSettingsPath(project.id)}

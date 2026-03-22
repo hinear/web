@@ -23,10 +23,15 @@ import type {
 import { ISSUE_PRIORITIES, ISSUE_STATUSES } from "@/features/issues/types";
 
 interface IssueDetailFullPageScreenProps {
+  assigneeOptions?: Array<{
+    label: string;
+    value: string;
+  }>;
   boardHref?: string;
   issue: Issue;
   comments?: Comment[];
   activityLog?: ActivityLogEntry[];
+  memberNamesById?: Record<string, string>;
 }
 
 interface IssueUpdateResponse {
@@ -73,10 +78,16 @@ function isConflictError(value: unknown): value is ConflictError {
 }
 
 function formatTimestamp(value: string) {
-  return new Intl.DateTimeFormat("ko-KR", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
+  const date = new Date(value);
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const period = hours < 12 ? "오전" : "오후";
+  const hour12 = hours % 12 || 12;
+
+  return `${year}. ${month}. ${day}. ${period} ${hour12}:${minutes}`;
 }
 
 function getPriorityTone(priority: Issue["priority"]) {
@@ -99,9 +110,11 @@ function getFailureMemo(issue: Issue) {
 
 export function IssueDetailFullPageScreen({
   activityLog = EMPTY_ACTIVITY_LOG,
+  assigneeOptions = [],
   boardHref,
   comments = EMPTY_COMMENTS,
   issue,
+  memberNamesById = {},
 }: IssueDetailFullPageScreenProps) {
   const [issueState, setIssueState] = useState(issue);
   const [commentsState, setCommentsState] = useState(comments);
@@ -137,6 +150,12 @@ export function IssueDetailFullPageScreen({
     statusDraft !== issueState.status ||
     priorityDraft !== issueState.priority ||
     assigneeDraft.trim() !== (issueState.assigneeId ?? "");
+  const assigneeLabel =
+    memberNamesById[issueState.assigneeId ?? ""] ??
+    issueState.assigneeId ??
+    "Unassigned";
+  const lastEditedByLabel =
+    memberNamesById[issueState.updatedBy] ?? issueState.updatedBy;
 
   const saveAllChanges = () => {
     setErrorMessage(null);
@@ -396,11 +415,20 @@ export function IssueDetailFullPageScreen({
                   >
                     Assignee
                   </label>
-                  <Field
+                  <Select
                     id="full-issue-assignee"
-                    onChange={(event) => setAssigneeDraft(event.target.value)}
+                    onValueChange={setAssigneeDraft}
                     value={assigneeDraft}
-                  />
+                  >
+                    {assigneeOptions.map((option) => (
+                      <option
+                        key={option.value || "unassigned"}
+                        value={option.value}
+                      >
+                        {option.label}
+                      </option>
+                    ))}
+                  </Select>
                 </div>
               </div>
 
@@ -509,7 +537,8 @@ export function IssueDetailFullPageScreen({
                     >
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-[12px] font-[var(--app-font-weight-700)] text-[#111318]">
-                          {comment.authorId}
+                          {memberNamesById[comment.authorId] ??
+                            comment.authorId}
                         </span>
                         <span className="text-[11px] text-[#6B7280]">
                           {formatTimestamp(comment.createdAt)}
@@ -549,11 +578,8 @@ export function IssueDetailFullPageScreen({
                   toneClassName={getPriorityTone(issueState.priority)}
                   value={issueState.priority}
                 />
-                <MetadataRow
-                  label="Assignee"
-                  value={issueState.assigneeId || "Jane Smith"}
-                />
-                <MetadataRow label="Last editor" value={issueState.updatedBy} />
+                <MetadataRow label="Assignee" value={assigneeLabel} />
+                <MetadataRow label="Last editor" value={lastEditedByLabel} />
               </div>
             </section>
 
@@ -570,6 +596,9 @@ export function IssueDetailFullPageScreen({
                     <div key={entry.id}>
                       <p className="text-[12px] font-[var(--app-font-weight-700)] text-[#111318]">
                         {entry.summary}
+                      </p>
+                      <p className="mt-1 text-[11px] font-[var(--app-font-weight-600)] text-[#374151]">
+                        {memberNamesById[entry.actorId] ?? entry.actorId}
                       </p>
                       <p className="mt-1 text-[11px] text-[#6B7280]">
                         {formatTimestamp(entry.createdAt)}

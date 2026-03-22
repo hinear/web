@@ -31,6 +31,7 @@ interface IssueDetailDrawerScreenProps {
   fullPageHref: string;
   issue: Issue;
   lastEditedByName?: string;
+  memberNamesById?: Record<string, string>;
 }
 
 interface IssueUpdateResponse {
@@ -106,6 +107,7 @@ export function IssueDetailDrawerScreen({
   fullPageHref,
   issue,
   lastEditedByName,
+  memberNamesById = {},
 }: IssueDetailDrawerScreenProps) {
   const [issueState, setIssueState] = useState(issue);
   const [activityState, setActivityState] = useState(activityLog);
@@ -424,6 +426,9 @@ export function IssueDetailDrawerScreen({
                 >
                   <p className="text-[12px] leading-[12px] font-[var(--app-font-weight-700)] text-[#111318]">
                     {entry.summary}
+                  </p>
+                  <p className="mt-1 text-[11px] leading-[1.45] font-[var(--app-font-weight-600)] text-[#374151]">
+                    {memberNamesById[entry.actorId] ?? entry.actorId}
                   </p>
                   <p className="mt-1 text-[12px] leading-[1.45] text-[#6B7280]">
                     {formatRelativeTime(entry.createdAt)}

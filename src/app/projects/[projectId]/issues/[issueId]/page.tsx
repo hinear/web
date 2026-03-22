@@ -42,19 +42,7 @@ export default async function IssueDetailPage({
     repository.listCommentsByIssueId(issueId),
     repository.listActivityLogByIssueId(issueId),
   ]);
-
-  if (view === "full") {
-    return (
-      <IssueDetailFullPageScreen
-        activityLog={activityLog}
-        boardHref={getProjectPath(projectId)}
-        comments={comments}
-        issue={issue}
-      />
-    );
-  }
-
-  const membersById = new Map(
+  const memberNamesById = Object.fromEntries(
     workspace.members.map((member) => [member.id, member.name])
   );
   const assigneeOptions = [
@@ -64,6 +52,23 @@ export default async function IssueDetailPage({
       value: member.id,
     })),
   ];
+
+  if (view === "full") {
+    return (
+      <IssueDetailFullPageScreen
+        activityLog={activityLog}
+        assigneeOptions={assigneeOptions}
+        boardHref={getProjectPath(projectId)}
+        comments={comments}
+        issue={issue}
+        memberNamesById={memberNamesById}
+      />
+    );
+  }
+
+  const membersById = new Map(
+    workspace.members.map((member) => [member.id, member.name])
+  );
 
   return (
     <div className="relative min-h-screen bg-[#FCFCFD]">
@@ -97,6 +102,7 @@ export default async function IssueDetailPage({
             lastEditedByName={
               membersById.get(issue.updatedBy) ?? issue.updatedBy
             }
+            memberNamesById={memberNamesById}
           />
         </div>
       </div>

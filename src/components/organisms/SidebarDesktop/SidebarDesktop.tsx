@@ -22,7 +22,6 @@ export interface SidebarDesktopProps
   }>;
   navigationHrefs?: Partial<Record<SidebarItemVariant, string>>;
   projectLabel?: string;
-  projectHref?: string;
   projectSubtitle?: string;
   projectTitle?: string;
   primaryNavigation?: SidebarItemVariant[];
@@ -51,7 +50,6 @@ export const SidebarDesktop = React.forwardRef<
       navigationHrefs,
       primaryNavigation = defaultPrimaryNavigation,
       projectLabel = "Project",
-      projectHref,
       projectSubtitle = "Personal Project",
       projectTitle = "Web App",
       settingsActive = false,
@@ -81,7 +79,6 @@ export const SidebarDesktop = React.forwardRef<
             <ProjectSwitcher
               defaultProjects={defaultProjects}
               label={projectLabel}
-              projectHref={projectHref}
               subtitle={projectSubtitle}
               title={projectTitle}
             />

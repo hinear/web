@@ -25,8 +25,14 @@ export default async function ProjectPage({
 }: ProjectPageProps) {
   const { projectId } = await params;
   const query = await searchParams;
-  const { createdByLabel, invitations, members, project, summary } =
-    await loadProjectWorkspace(projectId, getProjectPath(projectId));
+  const {
+    accessibleProjects,
+    createdByLabel,
+    invitations,
+    members,
+    project,
+    summary,
+  } = await loadProjectWorkspace(projectId, getProjectPath(projectId));
 
   return (
     <ProjectWorkspaceScreen
@@ -46,6 +52,7 @@ export default async function ProjectPage({
       invitations={invitations}
       members={members}
       project={project}
+      projects={accessibleProjects}
       summary={summary}
       workspaceNoticeMessage={
         query.inviteAccepted === "1"
