@@ -21,6 +21,12 @@ vi.mock("@/lib/request-origin", () => ({
 }));
 
 vi.mock("@/lib/supabase/server-client", () => ({
+  createRequestSupabaseServerClient: async () => ({
+    auth: {
+      signInWithOAuth: signInWithOAuthMock,
+      signInWithOtp: signInWithOtpMock,
+    },
+  }),
   createServerSupabaseClient: () => ({
     auth: {
       signInWithOAuth: signInWithOAuthMock,

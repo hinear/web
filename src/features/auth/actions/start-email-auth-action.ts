@@ -8,7 +8,10 @@ import {
   normalizeNextPath,
 } from "@/features/auth/lib/next-path";
 import { getRequestOrigin } from "@/lib/request-origin";
-import { createServerSupabaseClient } from "@/lib/supabase/server-client";
+import {
+  createRequestSupabaseServerClient,
+  createServerSupabaseClient,
+} from "@/lib/supabase/server-client";
 
 function readEmail(formData: FormData): string {
   return String(formData.get("email") ?? "").trim();
@@ -103,7 +106,9 @@ export async function startGoogleAuthAction(formData: FormData) {
 
   redirectTo.searchParams.set("next", next);
 
-  const supabase = createServerSupabaseClient();
+  // OAuth starts with PKCE state that must be persisted on the request/response
+  // so the confirm callback can exchange the returned code for a session.
+  const supabase = await createRequestSupabaseServerClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     options: {
       redirectTo: redirectTo.toString(),
