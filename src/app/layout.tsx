@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Inter, Space_Grotesk } from "next/font/google";
 import { FaviconLinks } from "@/components/organisms/FaviconLinks";
-import { ServiceWorkerRegister } from "@/components/organisms/ServiceWorkerRegister";
 import "./globals.css";
 
 const inter = Inter({
@@ -27,7 +26,6 @@ export const metadata: Metadata = {
   },
   description: "Project-first issue tracking for personal and team workflows.",
   applicationName: "Hinear",
-  manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -74,7 +72,6 @@ export default function RootLayout({
     >
       <body>
         <FaviconLinks />
-        <ServiceWorkerRegister />
         {children}
       </body>
     </html>
