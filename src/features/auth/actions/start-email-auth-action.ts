@@ -96,6 +96,35 @@ export async function startEmailAuthAction(formData: FormData) {
   return redirect(buildAuthStatusPath({ email, next, reason, sent: true }));
 }
 
+export async function startGoogleAuthAction(formData: FormData) {
+  const next = readNextPath(formData);
+  const reason = readReason(formData);
+  const redirectTo = new URL("/auth/confirm", await getRequestOrigin());
+
+  redirectTo.searchParams.set("next", next);
+
+  const supabase = createServerSupabaseClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    options: {
+      redirectTo: redirectTo.toString(),
+    },
+    provider: "google",
+  });
+
+  if (error || !data.url) {
+    return redirect(
+      buildAuthStatusPath({
+        email: "",
+        error: "Google login could not be started.",
+        next,
+        reason,
+      })
+    );
+  }
+
+  return redirect(data.url);
+}
+
 export async function requireAuthRedirect(
   nextPath: string,
   reason: AuthRedirectReason = "auth_required"

@@ -1,69 +1,43 @@
 "use client";
 
-import { useTransition } from "react";
+import { useFormStatus } from "react-dom";
 
 import { Button } from "@/components/atoms/Button";
+import { startGoogleAuthAction } from "@/features/auth/actions/start-email-auth-action";
 import type { AuthRedirectReason } from "@/features/auth/lib/next-path";
-import { createBrowserSupabaseClient } from "@/lib/supabase/browser-client";
 
 interface GoogleAuthButtonProps {
   next: string;
   reason?: AuthRedirectReason;
 }
 
-function buildAuthErrorPath(next: string, reason?: AuthRedirectReason) {
-  const searchParams = new URLSearchParams();
-
-  searchParams.set("next", next);
-
-  if (reason) {
-    searchParams.set("reason", reason);
-  }
-
-  searchParams.set("error", "Google login could not be started.");
-
-  return `/auth?${searchParams.toString()}`;
-}
-
-export function GoogleAuthButton({ next, reason }: GoogleAuthButtonProps) {
-  const [isPending, startTransition] = useTransition();
+function GoogleAuthSubmitButton() {
+  const { pending } = useFormStatus();
 
   return (
     <Button
       className="w-full gap-2"
-      disabled={isPending}
-      onClick={() => {
-        startTransition(async () => {
-          const redirectTo = new URL("/auth/confirm", window.location.origin);
-
-          redirectTo.searchParams.set("next", next);
-
-          const supabase = createBrowserSupabaseClient();
-          const { data, error } = await supabase.auth.signInWithOAuth({
-            options: {
-              redirectTo: redirectTo.toString(),
-            },
-            provider: "google",
-          });
-
-          if (error || !data.url) {
-            window.location.assign(buildAuthErrorPath(next, reason));
-            return;
-          }
-
-          window.location.assign(data.url);
-        });
-      }}
+      disabled={pending}
       size="md"
-      type="button"
+      type="submit"
       variant="secondary"
     >
       <span className="text-[16px] leading-none font-[var(--app-font-weight-700)] text-[var(--app-color-black)]">
         G
       </span>
       <span className="text-[14px] leading-[14px] font-[var(--app-font-weight-500)] text-[var(--app-color-black)]">
-        {isPending ? "Redirecting to Google..." : "Continue with Google"}
+        {pending ? "Redirecting to Google..." : "Continue with Google"}
       </span>
     </Button>
+  );
+}
+
+export function GoogleAuthButton({ next, reason }: GoogleAuthButtonProps) {
+  return (
+    <form action={startGoogleAuthAction}>
+      <input name="next" type="hidden" value={next} />
+      {reason ? <input name="reason" type="hidden" value={reason} /> : null}
+      <GoogleAuthSubmitButton />
+    </form>
   );
 }

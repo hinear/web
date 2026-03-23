@@ -32,6 +32,7 @@ vi.mock("@/lib/supabase/server-client", () => ({
 import {
   requireAuthRedirect,
   startEmailAuthAction,
+  startGoogleAuthAction,
 } from "@/features/auth/actions/start-email-auth-action";
 
 describe("startEmailAuthAction", () => {
@@ -86,6 +87,47 @@ describe("startEmailAuthAction", () => {
 
     expect(redirectMock).toHaveBeenCalledWith(
       "/auth?next=%2Fprojects%2Ftest&reason=session_expired"
+    );
+  });
+
+  it("starts Google auth with the configured confirm callback", async () => {
+    const formData = new FormData();
+    formData.set("next", "/projects/new");
+    formData.set("reason", "auth_required");
+
+    getRequestOriginMock.mockResolvedValue("https://hinear.test");
+    signInWithOAuthMock.mockResolvedValue({
+      data: { url: "https://accounts.google.com/o/oauth2/v2/auth" },
+      error: null,
+    });
+
+    await startGoogleAuthAction(formData);
+
+    expect(signInWithOAuthMock).toHaveBeenCalledWith({
+      options: {
+        redirectTo: "https://hinear.test/auth/confirm?next=%2Fprojects%2Fnew",
+      },
+      provider: "google",
+    });
+    expect(redirectMock).toHaveBeenCalledWith(
+      "https://accounts.google.com/o/oauth2/v2/auth"
+    );
+  });
+
+  it("redirects back to auth when Google auth setup fails", async () => {
+    const formData = new FormData();
+    formData.set("next", "/projects/new");
+
+    getRequestOriginMock.mockResolvedValue("https://hinear.test");
+    signInWithOAuthMock.mockResolvedValue({
+      data: { url: null },
+      error: { message: "oauth failed" },
+    });
+
+    await startGoogleAuthAction(formData);
+
+    expect(redirectMock).toHaveBeenCalledWith(
+      "/auth?next=%2Fprojects%2Fnew&error=Google+login+could+not+be+started."
     );
   });
 });
