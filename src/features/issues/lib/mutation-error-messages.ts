@@ -99,7 +99,17 @@ export function getMutationErrorFallbackMessage(value: unknown): string | null {
 
 export function inferMutationErrorCode(error: unknown): MutationErrorCode {
   if (isRepositoryError(error)) {
-    return error.code;
+    // Map repository error codes to mutation error codes
+    if (error.code === "CONFLICT") {
+      return "VERSION_REQUIRED";
+    }
+    if (error.code === "FORBIDDEN") {
+      return "FORBIDDEN";
+    }
+    if (error.code === "ISSUE_NOT_FOUND") {
+      return "ISSUE_NOT_FOUND";
+    }
+    return "UNKNOWN";
   }
 
   if (!(error instanceof Error)) {

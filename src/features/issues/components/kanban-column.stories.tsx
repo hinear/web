@@ -16,6 +16,7 @@ const triageIssues: Issue[] = [
       { id: "label-2", name: "Copy", color: "#6D28D9" },
     ],
     description: "",
+    dueDate: null,
     comments: [],
     activityLog: [],
     createdAt: "2026-03-20T09:00:00Z",
@@ -33,6 +34,7 @@ const triageIssues: Issue[] = [
       { id: "label-4", name: "Analytics", color: "#6D28D9" },
     ],
     description: "",
+    dueDate: null,
     comments: [],
     activityLog: [],
     createdAt: "2026-03-20T10:00:00Z",
@@ -65,20 +67,6 @@ export const Empty: Story = {
 
 export const DropTarget: Story = {
   args: {
-    activeIssue: {
-      id: "issue-active",
-      identifier: "WEB-201",
-      title: "드롭 타겟 피드백 구체화",
-      status: "Backlog",
-      priority: "Medium",
-      assignee: null,
-      labels: [{ id: "label-active", name: "Blocked", color: "#DC2626" }],
-      description: "",
-      comments: [],
-      activityLog: [],
-      createdAt: "2026-03-20T11:00:00Z",
-      updatedAt: "2026-03-20T11:00:00Z",
-    },
     forceDropTarget: true,
     isDragging: true,
     issues: [],

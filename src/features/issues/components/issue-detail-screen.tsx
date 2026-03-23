@@ -315,7 +315,12 @@ export function IssueDetailScreen({
     updates: Partial<
       Pick<
         Issue,
-        "assigneeId" | "description" | "priority" | "status" | "title"
+        | "assigneeId"
+        | "description"
+        | "dueDate"
+        | "priority"
+        | "status"
+        | "title"
       >
     >,
     successMessage: string

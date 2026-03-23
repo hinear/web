@@ -102,6 +102,7 @@ export function createNewIssueDefaults(
     assignee: null,
     labels: [],
     description: "",
+    dueDate: null,
     comments: [],
     activityLog: [],
   };

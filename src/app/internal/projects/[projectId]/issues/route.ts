@@ -30,7 +30,11 @@ export async function GET(_request: Request, context: RouteContext) {
     const repository = await getServerIssuesRepository();
     const issues = await repository.listIssuesByProject(projectId);
     const assigneeIds = [
-      ...new Set(issues.map((issue) => issue.assigneeId).filter(Boolean)),
+      ...new Set(
+        issues
+          .map((issue) => issue.assigneeId)
+          .filter((id): id is string => id !== null)
+      ),
     ];
     const supabase = await createRequestSupabaseServerClient();
     const { data: profileRows } = assigneeIds.length

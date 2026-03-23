@@ -20,6 +20,7 @@ const issue: Issue = {
   ],
   description:
     "Google, GitHub 기반 OAuth2 로그인과 토큰 흐름을 정리합니다.\n- 소셜 로그인\n- 이메일 인증 fallback\n- 콜백 처리",
+  dueDate: null,
   comments: [],
   activityLog: [],
   createdAt: "2026-03-18T08:00:00Z",

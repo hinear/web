@@ -18,6 +18,7 @@ const mockIssues: Issue[] = [
     assignee: null,
     labels: [],
     description: "",
+    dueDate: null,
     comments: [],
     activityLog: [],
     createdAt: "2025-03-20T10:00:00Z",
@@ -42,6 +43,7 @@ const mockIssues: Issue[] = [
       },
     ],
     description: "Linear 스타일의 칸반 보드를 구현합니다.",
+    dueDate: null,
     comments: [],
     activityLog: [],
     createdAt: "2025-03-19T15:30:00Z",
@@ -62,6 +64,7 @@ const mockIssues: Issue[] = [
       },
     ],
     description: "",
+    dueDate: null,
     comments: [],
     activityLog: [],
     createdAt: "2025-03-18T11:00:00Z",
@@ -87,6 +90,7 @@ const mockIssues: Issue[] = [
     ],
     description:
       "dnd-kit을 사용하여 이슈 카드를 컬럼 간에 이동할 수 있게 합니다.",
+    dueDate: null,
     comments: [],
     activityLog: [],
     createdAt: "2025-03-17T14:20:00Z",
@@ -101,6 +105,7 @@ const mockIssues: Issue[] = [
     assignee: null,
     labels: [],
     description: "",
+    dueDate: null,
     comments: [],
     activityLog: [],
     createdAt: "2025-03-15T09:00:00Z",
@@ -181,6 +186,7 @@ export const handlers = [
       assignee: null,
       labels: [],
       description: description || "",
+      dueDate: null,
       comments: [],
       activityLog: [
         createActivityLogEntry(

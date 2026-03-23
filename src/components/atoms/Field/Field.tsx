@@ -3,10 +3,26 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 export interface FieldProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {}
+  extends Omit<
+    React.InputHTMLAttributes<HTMLInputElement>,
+    "value" | "defaultValue"
+  > {
+  value?: string;
+  defaultValue?: string;
+}
 
 export const Field = React.forwardRef<HTMLInputElement, FieldProps>(
-  ({ className, ...props }, ref) => {
+  ({ className, value, defaultValue, ...props }, ref) => {
+    // Prevent both value and defaultValue from being set
+    const hasValue = value !== undefined;
+    const hasDefaultValue = defaultValue !== undefined;
+
+    if (hasValue && hasDefaultValue) {
+      console.warn(
+        "Field: Both 'value' and 'defaultValue' were provided. Using 'value' (controlled component)."
+      );
+    }
+
     return (
       <input
         className={cn(
@@ -16,6 +32,7 @@ export const Field = React.forwardRef<HTMLInputElement, FieldProps>(
         )}
         ref={ref}
         {...props}
+        {...(hasValue ? { value } : { defaultValue })}
       />
     );
   }

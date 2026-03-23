@@ -2,6 +2,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 
 export type RepositoryErrorCode =
   | "AUTH_REQUIRED"
+  | "CONFLICT"
   | "FORBIDDEN"
   | "ISSUE_NOT_FOUND"
   | "PROJECT_KEY_TAKEN"
