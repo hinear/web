@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Inter, Space_Grotesk } from "next/font/google";
-import { FaviconLinks } from "@/components/organisms/FaviconLinks";
 import "./globals.css";
 
 const inter = Inter({
@@ -26,14 +25,25 @@ export const metadata: Metadata = {
   },
   description: "Project-first issue tracking for personal and team workflows.",
   applicationName: "Hinear",
+  icons: {
+    icon: [
+      {
+        url: "/favicon.png",
+        type: "image/png",
+      },
+    ],
+    apple: [
+      {
+        url: "/favicon.png",
+        type: "image/png",
+      },
+    ],
+    shortcut: ["/favicon.png"],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "Hinear",
-  },
-  icons: {
-    icon: "/favicon.png",
-    apple: "/favicon.png",
   },
 };
 
@@ -51,10 +61,7 @@ export default function RootLayout({
       lang="ko"
       className={`${inter.variable} ${geistMono.variable} ${spaceGrotesk.variable}`}
     >
-      <body>
-        <FaviconLinks />
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
