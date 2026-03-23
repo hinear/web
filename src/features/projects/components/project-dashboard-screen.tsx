@@ -130,6 +130,12 @@ export function ProjectDashboardScreen({
           </div>
 
           <div className="mt-auto flex flex-col gap-1 pt-4">
+            <Link
+              className={getButtonClassName("ghost", "sm")}
+              href="/projects/new"
+            >
+              + New Project
+            </Link>
             <SidebarItem
               className="w-full"
               href={getProjectSettingsPath(project.id)}
@@ -155,6 +161,12 @@ export function ProjectDashboardScreen({
             </div>
 
             <div className="flex items-center gap-3">
+              <Link
+                className={getButtonClassName("secondary", "sm")}
+                href="/projects/new"
+              >
+                + New Project
+              </Link>
               <Link
                 className={getButtonClassName("secondary", "sm")}
                 href={getProjectPath(project.id)}
