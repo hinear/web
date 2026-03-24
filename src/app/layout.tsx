@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { ServiceWorkerRegister } from "@/components/organisms/ServiceWorkerRegister";
+import { QueryClientProvider } from "@/lib/react-query/providers";
 import "./globals.css";
 
 const PRIMARY_COLOR = "#5e6ad2";
@@ -51,10 +52,15 @@ export const metadata: Metadata = {
         type: "image/png",
         sizes: "512x512",
       },
+      {
+        url: "/icon-192.png",
+        type: "image/png",
+        sizes: "192x192",
+      },
     ],
     apple: [
       {
-        url: "/apple-icon-180-transparent.png",
+        url: "/apple-icon-180.png",
         type: "image/png",
         sizes: "180x180",
       },
@@ -66,6 +72,7 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Hinear",
   },
+  manifest: "/manifest.json",
 };
 
 export const viewport: Viewport = {
@@ -80,8 +87,10 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <ServiceWorkerRegister />
-        {children}
+        <QueryClientProvider>
+          <ServiceWorkerRegister />
+          {children}
+        </QueryClientProvider>
       </body>
     </html>
   );
