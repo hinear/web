@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+const PRIMARY_COLOR = "#5e6ad2";
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Hinear",
@@ -8,8 +10,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "Project-first issue tracking for personal and team workflows.",
     start_url: "/",
     display: "standalone",
-    background_color: "#f3efe7",
-    theme_color: "#f3efe7",
+    background_color: PRIMARY_COLOR,
+    theme_color: PRIMARY_COLOR,
     icons: [
       {
         src: "/icon-192-transparent.png",

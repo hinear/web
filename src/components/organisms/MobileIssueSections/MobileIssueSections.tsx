@@ -34,7 +34,7 @@ function getChipVariant(label: Label) {
   return "neutral" as const;
 }
 
-interface MobileIssueSectionsProps {
+export interface MobileIssueSectionsProps {
   issues: Issue[];
   projectId: string;
   statuses?: IssueStatus[];

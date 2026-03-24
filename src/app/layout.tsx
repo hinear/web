@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { ServiceWorkerRegister } from "@/components/organisms/ServiceWorkerRegister";
 import "./globals.css";
 
+const PRIMARY_COLOR = "#5e6ad2";
+
 function getMetadataBase() {
   const origin =
     process.env.APP_ORIGIN?.trim() ||
@@ -67,7 +69,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f3efe7",
+  themeColor: PRIMARY_COLOR,
 };
 
 export default function RootLayout({

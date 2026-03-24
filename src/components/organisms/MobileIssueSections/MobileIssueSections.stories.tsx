@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
 import { MobileIssueSections } from "@/components/organisms/MobileIssueSections";
 import type { Issue } from "@/specs/issue-detail.contract";
+import type { MobileIssueSectionsProps } from "./MobileIssueSections";
 
 const issues: Issue[] = [
   {
@@ -57,15 +58,17 @@ const issues: Issue[] = [
   },
 ];
 
+const defaultArgs = {
+  issues,
+} satisfies MobileIssueSectionsProps;
+
 const meta = {
   component: MobileIssueSections,
   tags: ["autodocs"],
   parameters: {
     layout: "centered",
   },
-  args: {
-    issues,
-  },
+  args: defaultArgs,
   decorators: [
     (Story) => (
       <div className="w-[361px] rounded-[24px] bg-[var(--app-color-surface-0)] p-4">
@@ -78,7 +81,9 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  args: defaultArgs,
+};
 
 export const Empty: Story = {
   args: {
