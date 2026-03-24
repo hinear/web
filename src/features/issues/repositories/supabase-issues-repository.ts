@@ -372,7 +372,7 @@ export class SupabaseIssuesRepository implements IssuesRepository {
       .update({ body: updates.body })
       .eq("id", commentId)
       .select()
-      .single();
+      .maybeSingle();
 
     assertQuerySucceeded("Failed to update comment", error);
 
