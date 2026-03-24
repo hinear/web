@@ -1,3 +1,14 @@
+// PWA 자동 업데이트 설정
+self.addEventListener("install", (event) => {
+  // 새 서비스 워커가 설치되면 즉시 활성화
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  // 활성화되면 즉시 모든 클라이언트를 제어
+  event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener("push", (event) => {
   let notificationData = {
     title: "Hinear 알림",

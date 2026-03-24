@@ -4,55 +4,56 @@ import { useEffect } from "react";
 
 export function ServiceWorkerRegister() {
   useEffect(() => {
+    // 개발 모드에서는 SW 등록 안 함
+    if (process.env.NODE_ENV === "development") {
+      return;
+    }
+
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
       return;
     }
 
-    let hasAttached = false;
-    const attachListeners = () => {
-      if (hasAttached || window.workbox === undefined) {
-        return false;
-      }
-
-      const wb = window.workbox;
-      hasAttached = true;
-
-      wb.addEventListener("controlling", () => {
-        window.location.reload();
-      });
-
-      wb.addEventListener("waiting", () => {
-        wb.messageSkipWaiting();
-      });
-
-      return true;
+    // 서비스 워커 업데이트 감지
+    const handleControllerChange = () => {
+      console.log("[PWA] 새로운 버전이 적용되었습니다.");
+      window.location.reload();
     };
 
-    if (attachListeners()) {
-      return;
-    }
+    // 서비스 워커 등록 및 업데이트 체크
+    navigator.serviceWorker.ready.then((registration) => {
+      // 컨트롤러 변경 감지 (새 SW가 활성화될 때)
+      navigator.serviceWorker.addEventListener(
+        "controllerchange",
+        handleControllerChange
+      );
 
-    const intervalId = window.setInterval(() => {
-      if (attachListeners()) {
-        window.clearInterval(intervalId);
-      }
-    }, 250);
+      // 주기적으로 업데이트 확인 (1시간마다)
+      const intervalId = setInterval(
+        () => {
+          registration.update();
+        },
+        60 * 60 * 1000
+      );
 
-    return () => {
-      window.clearInterval(intervalId);
-    };
+      return () => {
+        navigator.serviceWorker.removeEventListener(
+          "controllerchange",
+          handleControllerChange
+        );
+        clearInterval(intervalId);
+      };
+    });
+
+    // 페이지 로드 시 즉시 업데이트 확인
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then((registration) => {
+        registration.update();
+      })
+      .catch((error) => {
+        console.error("[PWA] Service Worker 등록 실패:", error);
+      });
   }, []);
 
   return null;
-}
-
-// 전역 타입 선언
-declare global {
-  interface Window {
-    workbox?: {
-      register: () => void;
-      addEventListener: (event: string, callback: () => void) => void;
-      messageSkipWaiting: () => void;
-    };
-  }
 }

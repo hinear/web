@@ -15,25 +15,25 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: "portrait",
     icons: [
       {
-        src: "/icon-192-transparent.png",
+        src: "/icon-192.png",
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icon-192-transparent.png",
+        src: "/icon-192.png",
         sizes: "192x192",
         type: "image/png",
         purpose: "maskable",
       },
       {
-        src: "/icon-512-transparent.png",
+        src: "/icon-512.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icon-512-transparent.png",
+        src: "/icon-512.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
@@ -42,32 +42,6 @@ export default function manifest(): MetadataRoute.Manifest {
         src: "/apple-icon-180.png",
         sizes: "180x180",
         type: "image/png",
-      },
-    ],
-    screenshots: [
-      {
-        src: "/splash_screens/iPhone_16__iPhone_15_Pro__iPhone_15__iPhone_14_Pro_portrait.png",
-        sizes: "1290x2796",
-        type: "image/png",
-        label: "Hinear on iPhone 16",
-      },
-      {
-        src: "/splash_screens/iPhone_17_Pro_Max__iPhone_16_Pro_Max_portrait.png",
-        sizes: "1320x2868",
-        type: "image/png",
-        label: "Hinear on iPhone 17 Pro Max",
-      },
-      {
-        src: "/splash_screens/iPhone_17_Pro__iPhone_17__iPhone_16_Pro_portrait.png",
-        sizes: "1290x2796",
-        type: "image/png",
-        label: "Hinear on iPhone 17 Pro",
-      },
-      {
-        src: "/splash_screens/13__iPad_Pro_M4_portrait.png",
-        sizes: "2048x2732",
-        type: "image/png",
-        label: 'Hinear on iPad Pro 13"',
       },
     ],
     related_applications: [],

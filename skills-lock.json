@@ -6,6 +6,11 @@
       "sourceType": "github",
       "computedHash": "d2f0a7065f7418fdb3ae88559f1f1426f40c26f2b5aebcd394797418d4bb3b04"
     },
+    "pwa-development": {
+      "source": "alinaqi/claude-bootstrap",
+      "sourceType": "github",
+      "computedHash": "0b8f1e6f78708bc73de3c1fa04c0ad0c3a698fa308fe0311f5078703ca4b6359"
+    },
     "tailwind-v4": {
       "source": "existential-birds/beagle",
       "sourceType": "github",
