@@ -17,6 +17,49 @@ const PRIORITY_LABEL_CLASS_NAMES: Record<IssuePriority, string> = {
   Urgent: "text-[var(--color-red-700)]",
 };
 
+function formatDueDate(dueDate: string): { text: string; className: string } {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(dueDate);
+  due.setHours(0, 0, 0, 0);
+
+  const diffTime = due.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) {
+    // 기한 경과
+    const daysOverdue = Math.abs(diffDays);
+    return {
+      text: `D+${daysOverdue}`,
+      className: "text-[var(--color-red-700)]",
+    };
+  } else if (diffDays === 0) {
+    // 당일 마감
+    return {
+      text: "D-Day",
+      className: "text-[var(--color-red-700)]",
+    };
+  } else if (diffDays <= 3) {
+    // 3일 이내
+    return {
+      text: `D-${diffDays}`,
+      className: "text-[var(--color-orange-700)]",
+    };
+  } else if (diffDays <= 7) {
+    // 7일 이내
+    return {
+      text: `D-${diffDays}`,
+      className: "text-[var(--color-amber-700)]",
+    };
+  } else {
+    // 7일 이후
+    return {
+      text: `D-${diffDays}`,
+      className: "text-[var(--app-color-gray-400)]",
+    };
+  }
+}
+
 function getChipVariant(label: Label) {
   if (label.name.toLowerCase() === "copy") {
     return "violet" as const;
@@ -136,11 +179,13 @@ export const BoardIssueCard = React.forwardRef<
 
             <div className="flex items-center gap-2">
               {dueDate ? (
-                <span className="shrink-0 text-[11px] leading-[11px] font-[var(--app-font-weight-500)] text-[var(--app-color-gray-400)]">
-                  {new Date(dueDate).toLocaleDateString("ko-KR", {
-                    month: "short",
-                    day: "numeric",
-                  })}
+                <span
+                  className={cn(
+                    "shrink-0 text-[11px] leading-[11px] font-[var(--app-font-weight-500)]",
+                    formatDueDate(dueDate).className
+                  )}
+                >
+                  {formatDueDate(dueDate).text}
                 </span>
               ) : null}
               {estimate ? (
