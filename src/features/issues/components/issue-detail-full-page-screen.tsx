@@ -9,6 +9,7 @@ import { Chip } from "@/components/atoms/Chip";
 import { Field } from "@/components/atoms/Field";
 import { Select } from "@/components/atoms/Select";
 import { ConflictDialog } from "@/components/molecules/ConflictDialog";
+import { DueDateField } from "@/components/molecules/DueDateField";
 import {
   getMutationErrorCode,
   getMutationErrorFallbackMessage,
@@ -142,6 +143,7 @@ export function IssueDetailFullPageScreen({
   const [statusDraft, setStatusDraft] = useState(issue.status);
   const [priorityDraft, setPriorityDraft] = useState(issue.priority);
   const [assigneeDraft, setAssigneeDraft] = useState(issue.assigneeId ?? "");
+  const [dueDateDraft, setDueDateDraft] = useState(issue.dueDate);
   const [commentDraft, setCommentDraft] = useState("");
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -160,6 +162,7 @@ export function IssueDetailFullPageScreen({
     setStatusDraft(issue.status);
     setPriorityDraft(issue.priority);
     setAssigneeDraft(issue.assigneeId ?? "");
+    setDueDateDraft(issue.dueDate);
   }, [issue, comments, activityLog]);
 
   const hasPendingChanges =
@@ -167,7 +170,8 @@ export function IssueDetailFullPageScreen({
     descriptionDraft !== issueState.description ||
     statusDraft !== issueState.status ||
     priorityDraft !== issueState.priority ||
-    assigneeDraft.trim() !== (issueState.assigneeId ?? "");
+    assigneeDraft.trim() !== (issueState.assigneeId ?? "") ||
+    dueDateDraft !== issueState.dueDate;
   const assigneeLabel =
     memberNamesById[issueState.assigneeId ?? ""] ??
     issueState.assigneeId ??
@@ -188,6 +192,7 @@ export function IssueDetailFullPageScreen({
             body: JSON.stringify({
               assigneeId: assigneeDraft.trim() || null,
               description: descriptionDraft,
+              dueDate: dueDateDraft,
               priority: priorityDraft,
               status: statusDraft,
               title: titleDraft.trim(),
@@ -209,6 +214,7 @@ export function IssueDetailFullPageScreen({
             setStatusDraft(data.currentIssue.status);
             setPriorityDraft(data.currentIssue.priority);
             setAssigneeDraft(data.currentIssue.assigneeId ?? "");
+            setDueDateDraft(data.currentIssue.dueDate);
             setConflictInfo({
               currentVersion: data.currentVersion,
               requestedVersion: data.requestedVersion,
@@ -237,6 +243,7 @@ export function IssueDetailFullPageScreen({
         setStatusDraft(data.issue.status);
         setPriorityDraft(data.issue.priority);
         setAssigneeDraft(data.issue.assigneeId ?? "");
+        setDueDateDraft(data.issue.dueDate);
         setFeedbackMessage("Changes saved.");
       } catch (error) {
         setErrorMessage(
@@ -574,7 +581,7 @@ export function IssueDetailFullPageScreen({
                 </div>
               </div>
 
-              <div className="mt-4 grid gap-3 md:grid-cols-3">
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
                 <div className="flex flex-col gap-[6px]">
                   <label
                     className="text-[11px] font-[var(--app-font-weight-600)] text-[#6B7280]"
@@ -641,6 +648,13 @@ export function IssueDetailFullPageScreen({
                     ))}
                   </Select>
                 </div>
+
+                <DueDateField
+                  id="full-issue-dueDate"
+                  label="Due Date"
+                  value={dueDateDraft}
+                  onChange={setDueDateDraft}
+                />
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2">

@@ -8,6 +8,7 @@ import { Chip } from "@/components/atoms/Chip";
 import { Field } from "@/components/atoms/Field";
 import { Select } from "@/components/atoms/Select";
 import { ConflictDialog } from "@/components/molecules/ConflictDialog";
+import { DueDateField } from "@/components/molecules/DueDateField";
 import {
   getMutationErrorCode,
   getMutationErrorFallbackMessage,
@@ -116,6 +117,7 @@ export function IssueDetailDrawerScreen({
   const [statusDraft, setStatusDraft] = useState(issue.status);
   const [priorityDraft, setPriorityDraft] = useState(issue.priority);
   const [assigneeDraft, setAssigneeDraft] = useState(issue.assigneeId ?? "");
+  const [dueDateDraft, setDueDateDraft] = useState(issue.dueDate);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [conflictInfo, setConflictInfo] = useState<{
@@ -132,6 +134,7 @@ export function IssueDetailDrawerScreen({
     setStatusDraft(issue.status);
     setPriorityDraft(issue.priority);
     setAssigneeDraft(issue.assigneeId ?? "");
+    setDueDateDraft(issue.dueDate);
   }, [activityLog, issue]);
 
   const hasPendingChanges =
@@ -139,7 +142,8 @@ export function IssueDetailDrawerScreen({
     descriptionDraft !== issueState.description ||
     statusDraft !== issueState.status ||
     priorityDraft !== issueState.priority ||
-    assigneeDraft.trim() !== (issueState.assigneeId ?? "");
+    assigneeDraft.trim() !== (issueState.assigneeId ?? "") ||
+    dueDateDraft !== issueState.dueDate;
 
   function saveChanges() {
     setErrorMessage(null);
@@ -154,6 +158,7 @@ export function IssueDetailDrawerScreen({
             body: JSON.stringify({
               assigneeId: assigneeDraft.trim() || null,
               description: descriptionDraft,
+              dueDate: dueDateDraft,
               priority: priorityDraft,
               status: statusDraft,
               title: titleDraft.trim(),
@@ -175,6 +180,7 @@ export function IssueDetailDrawerScreen({
             setStatusDraft(data.currentIssue.status);
             setPriorityDraft(data.currentIssue.priority);
             setAssigneeDraft(data.currentIssue.assigneeId ?? "");
+            setDueDateDraft(data.currentIssue.dueDate);
             setConflictInfo({
               currentVersion: data.currentVersion,
               requestedVersion: data.requestedVersion,
@@ -203,6 +209,7 @@ export function IssueDetailDrawerScreen({
         setStatusDraft(data.issue.status);
         setPriorityDraft(data.issue.priority);
         setAssigneeDraft(data.issue.assigneeId ?? "");
+        setDueDateDraft(data.issue.dueDate);
         setFeedbackMessage("Drawer changes saved.");
       } catch (error) {
         setErrorMessage(
@@ -291,7 +298,7 @@ export function IssueDetailDrawerScreen({
             value={titleDraft}
           />
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-[6px]">
               <label
                 className="text-[11px] leading-[11px] font-[var(--app-font-weight-600)] text-[#6B7280]"
@@ -355,6 +362,13 @@ export function IssueDetailDrawerScreen({
                 ))}
               </Select>
             </div>
+
+            <DueDateField
+              id="drawer-dueDate"
+              label="Due Date"
+              value={dueDateDraft}
+              onChange={setDueDateDraft}
+            />
           </div>
 
           <div className="flex flex-wrap gap-[6px]">
