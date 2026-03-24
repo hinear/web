@@ -230,11 +230,6 @@ export function KanbanBoardView({
           title="Issue board"
         />
 
-        <div className="rounded-[12px] border border-[#DDD6FE] bg-[#F5F3FF] px-[14px] py-3 text-[12px] leading-5 font-[var(--app-font-weight-600)] text-[#5B21B6]">
-          Exploration flow: card click opens the compact drawer. MVP 1 source of
-          truth stays the full page detail route.
-        </div>
-
         <div className="min-h-0 flex-1 overflow-hidden">
           <KanbanBoard
             issues={issues}

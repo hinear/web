@@ -37,6 +37,7 @@ export function MarkdownEditor({
   minHeight = "160px",
 }: MarkdownEditorProps) {
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         heading: {
@@ -196,7 +197,9 @@ export function MarkdownEditor({
           <LinkIcon className="h-4 w-4" />
         </ToolbarButton>
       </div>
-      <EditorContent editor={editor} />
+      <div suppressHydrationWarning>
+        <EditorContent editor={editor} />
+      </div>
     </div>
   );
 }
