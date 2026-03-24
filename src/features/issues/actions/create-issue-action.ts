@@ -48,6 +48,7 @@ export async function createIssueAction(projectId: string, formData: FormData) {
       | "Done"
       | "Canceled"
       | undefined,
+    dueDate: readOptionalFormValue(formData, "dueDate") ?? null,
     title: readFormValue(formData, "title"),
     description: readOptionalFormValue(formData, "description"),
     labels: parseLabelInput(readOptionalFormValue(formData, "labels")),

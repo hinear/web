@@ -119,6 +119,7 @@ export async function loadProjectIssuesContainer(
       labels: labelsByIssueId.get(issue.id) ?? [],
       issueNumber: issue.issueNumber,
       projectId: issue.projectId,
+      dueDate: issue.dueDate,
       createdAt: issue.createdAt,
       updatedAt: issue.updatedAt,
     }));

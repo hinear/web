@@ -5,6 +5,7 @@ import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 import { cn } from "@/lib/utils";
+import "./DueDateField.css";
 
 interface DueDateFieldProps {
   value: string | null;
@@ -37,13 +38,11 @@ export function DueDateField({
     }
   };
 
-  const handleClear = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onChange(null);
-  };
-
   return (
-    <div className={cn("flex flex-col gap-[6px]", className)}>
+    <div
+      className={cn("flex flex-col gap-[6px]", className)}
+      suppressHydrationWarning
+    >
       {label ? (
         <label
           className="text-[11px] leading-[11px] font-[var(--app-font-weight-600)] text-[#6B7280]"
@@ -54,40 +53,37 @@ export function DueDateField({
         </label>
       ) : null}
 
-      <div className="relative">
+      <div className="relative w-full">
         <ReactDatePicker
           selected={selectedDate}
           onChange={handleChange}
           disabled={disabled}
           dateFormat="yyyy-MM-dd"
-          placeholderText="마감일 선택"
-          className="w-full rounded-[10px] border border-[#E6E8EC] bg-white px-3 py-[9px] text-[13px] leading-[13px] font-[var(--app-font-weight-500)] text-[#111318] outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-color-brand-300)] disabled:cursor-not-allowed disabled:bg-[#F3F4F6] disabled:text-[#9CA3AF]"
+          placeholderText="Due Date"
           id={id}
           popperClassName="date-picker-popper"
           showPopperArrow={false}
-          isClearable
+          calendarClassName="rounded-[10px] w-full border border-[var(--app-color-border-soft)]"
           customInput={
-            <div className="relative">
-              <input
-                type="text"
-                id={id}
-                value={
-                  selectedDate ? selectedDate.toLocaleDateString("ko-KR") : ""
-                }
-                placeholder="마감일 선택"
-                disabled={disabled}
-                required={required}
-                className={cn(
-                  "w-full rounded-[10px] border border-[#E6E8EC] bg-white px-3 py-[9px] pr-10 text-[13px] leading-[13px] font-[var(--app-font-weight-500)] text-[#111318] outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-color-brand-300)] disabled:cursor-not-allowed disabled:bg-[#F3F4F6] disabled:text-[#9CA3AF]"
-                )}
-                readOnly
-              />
-              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
-                <Calendar className="h-4 w-4 text-[#6B7280]" />
-              </div>
-            </div>
+            <input
+              type="text"
+              id={id}
+              value={
+                selectedDate ? selectedDate.toLocaleDateString("ko-KR") : ""
+              }
+              placeholder="Due Date"
+              disabled={disabled}
+              required={required}
+              className={cn(
+                "h-11 w-full rounded-[10px] border border-[var(--app-color-border-soft)] bg-[var(--app-color-white)] px-4 pr-10 text-[14px] leading-[14px] font-normal text-[var(--app-color-black)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-color-brand-300)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              )}
+              readOnly
+            />
           }
         />
+        <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+          <Calendar className="h-4 w-4 text-[#6B7280]" />
+        </div>
       </div>
     </div>
   );

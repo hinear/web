@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { Button, getButtonClassName } from "@/components/atoms/Button";
 import { Chip } from "@/components/atoms/Chip";
@@ -9,6 +10,7 @@ import { Field } from "@/components/atoms/Field";
 import { Select } from "@/components/atoms/Select";
 import { Skeleton } from "@/components/atoms/Skeleton";
 import { ConflictDialog } from "@/components/molecules/ConflictDialog";
+import { DueDateField } from "@/components/molecules/DueDateField";
 import {
   getMutationErrorCode,
   getMutationErrorFallbackMessage,
@@ -119,32 +121,6 @@ function DetailField({ label, value }: { label: string; value: string }) {
       <div className="rounded-[10px] border border-[#E6E8EC] bg-white px-3 py-[10px] text-[13px] font-medium text-[#374151]">
         {value}
       </div>
-    </div>
-  );
-}
-
-function FeedbackNotice({
-  tone = "neutral",
-  message,
-}: {
-  message: string | null;
-  tone?: "critical" | "neutral";
-}) {
-  if (!message) {
-    return null;
-  }
-
-  return (
-    <div
-      className={[
-        "rounded-[14px] border px-4 py-3 text-[13px] font-medium",
-        tone === "critical"
-          ? "border-[#FCA5A5] bg-[#FEF2F2] text-[#991B1B]"
-          : "border-[#D6DAF8] bg-[#EEF2FF] text-[#3730A3]",
-      ].join(" ")}
-      role={tone === "critical" ? "alert" : "status"}
-    >
-      {message}
     </div>
   );
 }
@@ -349,8 +325,6 @@ export function IssueDetailScreen({
   );
   const [assigneeDraft, setAssigneeDraft] = useState(issue.assigneeId ?? "");
   const [commentDraft, setCommentDraft] = useState("");
-  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [conflictInfo, setConflictInfo] = useState<{
     currentVersion: number;
     requestedVersion: number;
@@ -382,9 +356,7 @@ export function IssueDetailScreen({
     >,
     successMessage: string
   ) => {
-    setErrorMessage(null);
     setConflictInfo(null);
-    setFeedbackMessage(null);
 
     startSavingTransition(async () => {
       try {
@@ -439,9 +411,9 @@ export function IssueDetailScreen({
         setStatusDraft(data.issue.status);
         setPriorityDraft(data.issue.priority);
         setAssigneeDraft(data.issue.assigneeId ?? "");
-        setFeedbackMessage(successMessage);
+        toast.success(successMessage);
       } catch (error) {
-        setErrorMessage(
+        toast.error(
           error instanceof Error ? error.message : "Failed to update issue."
         );
       }
@@ -449,9 +421,7 @@ export function IssueDetailScreen({
   };
 
   const submitComment = () => {
-    setErrorMessage(null);
     setConflictInfo(null);
-    setFeedbackMessage(null);
 
     startSavingTransition(async () => {
       try {
@@ -487,9 +457,9 @@ export function IssueDetailScreen({
         setCommentsState((current) => [data.comment, ...current]);
         setActivityState((current) => [data.activityEntry, ...current]);
         setCommentDraft("");
-        setFeedbackMessage("Comment posted.");
+        toast.success("Comment posted.");
       } catch (error) {
-        setErrorMessage(
+        toast.error(
           error instanceof Error ? error.message : "Failed to create comment."
         );
       }
@@ -499,7 +469,6 @@ export function IssueDetailScreen({
   return (
     <main className="app-shell">
       <div className="app-stack">
-        <FeedbackNotice message={errorMessage} tone="critical" />
         {conflictInfo && (
           <ConflictDialog
             currentVersion={conflictInfo.currentVersion}
@@ -507,7 +476,6 @@ export function IssueDetailScreen({
             onDismiss={() => setConflictInfo(null)}
           />
         )}
-        <FeedbackNotice message={feedbackMessage} />
 
         <DetailPanel>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -550,6 +518,84 @@ export function IssueDetailScreen({
                 Full-page issue detail stays primary for editing depth, longer
                 context, and recovery states.
               </p>
+
+              {/* Issue Control Row */}
+              <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="flex flex-col gap-[6px]">
+                  <label
+                    className="text-[11px] leading-[11px] font-semibold text-[#6B7280]"
+                    htmlFor="detail-issue-status"
+                  >
+                    Status
+                  </label>
+                  <div className="flex items-center justify-between rounded-[10px] border border-[#E6E8EC] bg-white px-[10px] py-[12px]">
+                    <Select
+                      id="detail-issue-status"
+                      onValueChange={(value) =>
+                        setStatusDraft(value as Issue["status"])
+                      }
+                      value={statusDraft}
+                    >
+                      {ISSUE_STATUSES.map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-[6px]">
+                  <label
+                    className="text-[11px] leading-[11px] font-semibold text-[#6B7280]"
+                    htmlFor="detail-issue-priority"
+                  >
+                    Priority
+                  </label>
+                  <div className="flex items-center justify-between rounded-[10px] border border-[#E6E8EC] bg-white px-[10px] py-[12px]">
+                    <Select
+                      id="detail-issue-priority"
+                      onValueChange={(value) =>
+                        setPriorityDraft(value as Issue["priority"])
+                      }
+                      value={priorityDraft}
+                    >
+                      {ISSUE_PRIORITIES.map((priority) => (
+                        <option key={priority} value={priority}>
+                          {priority}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-[6px]">
+                  <label
+                    className="text-[11px] leading-[11px] font-semibold text-[#6B7280]"
+                    htmlFor="detail-issue-assignee"
+                  >
+                    Assignee
+                  </label>
+                  <div className="flex items-center justify-between rounded-[10px] border border-[#E6E8EC] bg-white px-[10px] py-[12px]">
+                    <Field
+                      id="detail-issue-assignee"
+                      onChange={(event) => setAssigneeDraft(event.target.value)}
+                      placeholder="Assign to..."
+                      value={assigneeDraft}
+                      className="border-0 bg-transparent p-0 text-[13px]"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-[6px]">
+                  <DueDateField
+                    id="detail-issue-due-date"
+                    label="Due Date"
+                    onChange={(date) => setDueDateDraft(date || "")}
+                    value={dueDateDraft}
+                  />
+                </div>
+              </div>
             </div>
 
             {(boardHref || createHref) && (
@@ -682,110 +728,8 @@ export function IssueDetailScreen({
                 <h2 className="text-[18px] font-bold text-[#111318]">
                   Metadata
                 </h2>
-                <Button
-                  disabled={
-                    isSaving ||
-                    (statusDraft === issueState.status &&
-                      priorityDraft === issueState.priority &&
-                      dueDateDraft ===
-                        (issueState.dueDate
-                          ? new Date(issueState.dueDate)
-                              .toISOString()
-                              .split("T")[0]
-                          : "") &&
-                      assigneeDraft.trim() === (issueState.assigneeId ?? ""))
-                  }
-                  onClick={() =>
-                    saveIssueUpdates(
-                      {
-                        assigneeId: assigneeDraft.trim() || null,
-                        dueDate: dueDateDraft || null,
-                        priority: priorityDraft,
-                        status: statusDraft,
-                      },
-                      "Metadata updated."
-                    )
-                  }
-                  size="sm"
-                  variant="secondary"
-                >
-                  Save metadata
-                </Button>
               </div>
               <div className="mt-4 grid gap-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex flex-col gap-[6px]">
-                    <label
-                      className="text-[11px] font-semibold text-[#6B7280]"
-                      htmlFor="issue-status"
-                    >
-                      Status
-                    </label>
-                    <Select
-                      id="issue-status"
-                      onValueChange={(value) =>
-                        setStatusDraft(value as Issue["status"])
-                      }
-                      value={statusDraft}
-                    >
-                      {ISSUE_STATUSES.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
-                  <div className="flex flex-col gap-[6px]">
-                    <label
-                      className="text-[11px] font-semibold text-[#6B7280]"
-                      htmlFor="issue-priority"
-                    >
-                      Priority
-                    </label>
-                    <Select
-                      id="issue-priority"
-                      onValueChange={(value) =>
-                        setPriorityDraft(value as Issue["priority"])
-                      }
-                      value={priorityDraft}
-                    >
-                      {ISSUE_PRIORITIES.map((priority) => (
-                        <option key={priority} value={priority}>
-                          {priority}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
-                  <div className="flex flex-col gap-[6px]">
-                    <label
-                      className="text-[11px] font-semibold text-[#6B7280]"
-                      htmlFor="issue-due-date"
-                    >
-                      Due Date
-                    </label>
-                    <input
-                      id="issue-due-date"
-                      className="rounded-[8px] border border-[var(--color-border-soft)] bg-[var(--color-surface-50)] px-3 py-2 text-[13px] text-[var(--color-ink-900)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-300)] focus-visible:ring-offset-2"
-                      onChange={(event) => setDueDateDraft(event.target.value)}
-                      type="date"
-                      value={dueDateDraft}
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-col gap-[6px]">
-                  <label
-                    className="text-[11px] font-semibold text-[#6B7280]"
-                    htmlFor="issue-assignee"
-                  >
-                    Assignee
-                  </label>
-                  <Field
-                    id="issue-assignee"
-                    onChange={(event) => setAssigneeDraft(event.target.value)}
-                    placeholder="user-id or leave empty"
-                    value={assigneeDraft}
-                  />
-                </div>
                 <DetailField label="Issue ID" value={issueState.identifier} />
                 <DetailField
                   label="Created"

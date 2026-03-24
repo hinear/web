@@ -1,5 +1,5 @@
 // PWA 자동 업데이트 설정
-self.addEventListener("install", (event) => {
+self.addEventListener("install", (_event) => {
   // 새 서비스 워커가 설치되면 즉시 활성화
   self.skipWaiting();
 });

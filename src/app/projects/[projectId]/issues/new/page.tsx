@@ -40,6 +40,7 @@ export default async function NewProjectIssuePage({
         <div className="md:hidden">
           <MobileIssueCreateScreen
             action={createIssueAction.bind(null, projectId)}
+            assigneeOptions={assigneeOptions}
             cancelHref={getProjectPath(projectId)}
           />
         </div>

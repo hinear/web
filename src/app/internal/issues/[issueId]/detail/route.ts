@@ -15,7 +15,10 @@ interface RouteContext {
 }
 
 type IssueUpdateBody = Partial<
-  Pick<Issue, "assigneeId" | "description" | "priority" | "status" | "title">
+  Pick<
+    Issue,
+    "assigneeId" | "description" | "dueDate" | "priority" | "status" | "title"
+  >
 > & {
   version?: number;
 };
@@ -52,6 +55,10 @@ function parseIssueUpdateBody(body: unknown): IssueUpdateBody {
 
   if (typeof record.assigneeId === "string" || record.assigneeId === null) {
     updates.assigneeId = record.assigneeId;
+  }
+
+  if (typeof record.dueDate === "string" || record.dueDate === null) {
+    updates.dueDate = record.dueDate;
   }
 
   if (typeof record.version === "number" && Number.isInteger(record.version)) {

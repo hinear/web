@@ -24,6 +24,7 @@ export interface BoardIssue {
   labels: Label[];
   issueNumber: number;
   projectId: string;
+  dueDate: string | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -6,6 +6,7 @@ export interface CreateIssueFlowInput {
   actorId: string;
   assigneeId?: string | null;
   description?: string;
+  dueDate?: string | null;
   labels?: string[];
   priority?: "No Priority" | "Low" | "Medium" | "High" | "Urgent";
   projectId: string;
@@ -21,6 +22,7 @@ export async function createIssueFlow(
     assigneeId: input.assigneeId,
     createdBy: input.actorId,
     description: input.description,
+    dueDate: input.dueDate,
     labels: input.labels,
     priority: input.priority,
     projectId: input.projectId,

@@ -3,6 +3,7 @@
 import { AlertCircle, ChevronLeft, Ellipsis } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { Button, getButtonClassName } from "@/components/atoms/Button";
 import { Chip } from "@/components/atoms/Chip";
@@ -244,9 +245,9 @@ export function IssueDetailFullPageScreen({
         setPriorityDraft(data.issue.priority);
         setAssigneeDraft(data.issue.assigneeId ?? "");
         setDueDateDraft(data.issue.dueDate);
-        setFeedbackMessage("Changes saved.");
+        toast.success("Changes saved.");
       } catch (error) {
-        setErrorMessage(
+        toast.error(
           error instanceof Error ? error.message : "Failed to save changes."
         );
       }
@@ -290,9 +291,9 @@ export function IssueDetailFullPageScreen({
         setCommentsState((current) => [data.comment, ...current]);
         setActivityState((current) => [data.activityEntry, ...current]);
         setCommentDraft("");
-        setFeedbackMessage("Comment posted.");
+        toast.success("Comment posted.");
       } catch (error) {
-        setErrorMessage(
+        toast.error(
           error instanceof Error ? error.message : "Failed to create comment."
         );
       }
@@ -564,9 +565,6 @@ export function IssueDetailFullPageScreen({
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-[12px] font-[var(--app-font-weight-700)] text-[#5E6AD2]">
                       {issueState.identifier}
-                    </span>
-                    <span className="text-[11px] font-[var(--app-font-weight-600)] text-[#6B7280]">
-                      Inline edit
                     </span>
                   </div>
                   <label className="sr-only" htmlFor="full-issue-title">

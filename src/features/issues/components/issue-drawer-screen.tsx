@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/atoms/Button";
 import { Chip } from "@/components/atoms/Chip";
@@ -87,19 +88,6 @@ function formatCompactDate(value: string) {
   }).format(new Date(value));
 }
 
-function splitDescription(description: string) {
-  const trimmed = description.trim();
-
-  if (!trimmed) {
-    return [];
-  }
-
-  return trimmed
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean);
-}
-
 export function IssueDetailDrawerScreen({
   activityLog = EMPTY_ACTIVITY_LOG,
   assigneeOptions,
@@ -118,8 +106,6 @@ export function IssueDetailDrawerScreen({
   const [priorityDraft, setPriorityDraft] = useState(issue.priority);
   const [assigneeDraft, setAssigneeDraft] = useState(issue.assigneeId ?? "");
   const [dueDateDraft, setDueDateDraft] = useState(issue.dueDate);
-  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [conflictInfo, setConflictInfo] = useState<{
     currentVersion: number;
     requestedVersion: number;
@@ -146,8 +132,6 @@ export function IssueDetailDrawerScreen({
     dueDateDraft !== issueState.dueDate;
 
   function saveChanges() {
-    setErrorMessage(null);
-    setFeedbackMessage(null);
     setConflictInfo(null);
 
     startSavingTransition(async () => {
@@ -210,9 +194,9 @@ export function IssueDetailDrawerScreen({
         setPriorityDraft(data.issue.priority);
         setAssigneeDraft(data.issue.assigneeId ?? "");
         setDueDateDraft(data.issue.dueDate);
-        setFeedbackMessage("Drawer changes saved.");
+        toast.success("Drawer changes saved.");
       } catch (error) {
-        setErrorMessage(
+        toast.error(
           error instanceof Error
             ? error.message
             : "Failed to save drawer changes."
@@ -222,7 +206,6 @@ export function IssueDetailDrawerScreen({
   }
 
   const visibleActivity = activityState.slice(0, 3);
-  const descriptionLines = splitDescription(descriptionDraft);
 
   return (
     <aside className="pointer-events-auto flex h-full max-h-[936px] w-full max-w-[688px] flex-col gap-4 overflow-hidden rounded-[20px] border border-[#E6E8EC] bg-white p-5 shadow-[-12px_20px_40px_rgba(15,23,42,0.12)]">
@@ -237,12 +220,8 @@ export function IssueDetailDrawerScreen({
       <header className="flex items-center justify-between gap-4">
         <div className="min-w-0">
           <h2 className="text-[20px] leading-[20px] font-[var(--app-font-weight-700)] text-[#111318]">
-            Issue Detail / Drawer
+            Issue Drawer
           </h2>
-          <p className="mt-1 text-[12px] leading-[1.45] font-[var(--app-font-weight-500)] text-[#6B7280]">
-            Compact detail mode. Edit the essentials here and open the full page
-            for deeper work.
-          </p>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
@@ -260,22 +239,6 @@ export function IssueDetailDrawerScreen({
           </Link>
         </div>
       </header>
-
-      <div className="rounded-[12px] border border-[#C7D2FE] bg-[#EEF2FF] px-[14px] py-3 text-[12px] leading-[1.45] font-[var(--app-font-weight-600)] text-[#3730A3]">
-        Same detail model as the full page. Drawer intentionally shows compact
-        fields and recent activity so you can edit without leaving the board.
-      </div>
-
-      {errorMessage ? (
-        <div className="rounded-[14px] border border-[#FCA5A5] bg-[#FEF2F2] px-4 py-3 text-[13px] font-medium text-[#991B1B]">
-          {errorMessage}
-        </div>
-      ) : null}
-      {feedbackMessage ? (
-        <div className="rounded-[14px] border border-[#C7D2FE] bg-[#EEF2FF] px-4 py-3 text-[13px] font-medium text-[#3730A3]">
-          {feedbackMessage}
-        </div>
-      ) : null}
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1">
         <section className="flex flex-col gap-3 rounded-[16px] border border-[#E6E8EC] bg-white p-4">
@@ -404,18 +367,6 @@ export function IssueDetailDrawerScreen({
             onChange={(event) => setDescriptionDraft(event.target.value)}
             value={descriptionDraft}
           />
-
-          <div className="rounded-[12px] border border-[#E6E8EC] bg-[#FCFCFD] px-[14px] py-3">
-            {descriptionLines.length > 0 ? (
-              <div className="whitespace-pre-line text-[12px] leading-[1.5] text-[#6B7280]">
-                {descriptionLines.join("\n")}
-              </div>
-            ) : (
-              <p className="text-[12px] leading-[1.45] text-[#6B7280]">
-                No compact description yet.
-              </p>
-            )}
-          </div>
         </section>
 
         <section className="flex flex-col gap-3 rounded-[16px] border border-[#E6E8EC] bg-white p-4">

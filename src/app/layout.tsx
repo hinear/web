@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Toaster } from "sonner";
 import { ServiceWorkerRegister } from "@/components/organisms/ServiceWorkerRegister";
 import "./globals.css";
 
@@ -87,6 +88,7 @@ export default function RootLayout({
     <html lang="ko">
       <body>
         <ServiceWorkerRegister />
+        <Toaster />
         {children}
       </body>
     </html>

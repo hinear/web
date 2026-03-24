@@ -1,459 +1,5 @@
 {
   "version": "2.9",
-  "variables": {
-    "app-color-surface-0": {
-      "type": "color",
-      "value": "#FCFCFD"
-    },
-    "app-space-20": {
-      "type": "number",
-      "value": 20
-    },
-    "app-space-24": {
-      "type": "number",
-      "value": 24
-    },
-    "app-space-14": {
-      "type": "number",
-      "value": 14
-    },
-    "app-space-12": {
-      "type": "number",
-      "value": 12
-    },
-    "app-color-overlay-slate": {
-      "type": "color",
-      "value": "#0F172A66"
-    },
-    "app-color-white": {
-      "type": "color",
-      "value": "#FFFFFF"
-    },
-    "app-radius-20": {
-      "type": "number",
-      "value": 20
-    },
-    "app-color-border-soft": {
-      "type": "color",
-      "value": "#E6E8EC"
-    },
-    "app-stroke-01": {
-      "type": "number",
-      "value": 1
-    },
-    "app-color-transparent": {
-      "type": "color",
-      "value": "#00000000"
-    },
-    "app-stroke-00": {
-      "type": "number",
-      "value": 0
-    },
-    "app-space-32": {
-      "type": "number",
-      "value": 32
-    },
-    "app-space-06": {
-      "type": "number",
-      "value": 6
-    },
-    "app-color-gray-500": {
-      "type": "color",
-      "value": "#6B7280"
-    },
-    "app-font-family-base": {
-      "type": "string",
-      "value": "Inter"
-    },
-    "app-font-size-12": {
-      "type": "number",
-      "value": 12
-    },
-    "app-font-weight-500": {
-      "type": "string",
-      "value": "500"
-    },
-    "app-color-ink-900": {
-      "type": "color",
-      "value": "#111318"
-    },
-    "app-font-size-28": {
-      "type": "number",
-      "value": 28
-    },
-    "app-font-weight-700": {
-      "type": "string",
-      "value": "700"
-    },
-    "app-color-gray-600": {
-      "type": "color",
-      "value": "#4B5563"
-    },
-    "app-font-size-13": {
-      "type": "number",
-      "value": 13
-    },
-    "app-space-10": {
-      "type": "number",
-      "value": 10
-    },
-    "app-radius-10": {
-      "type": "number",
-      "value": 10
-    },
-    "app-space-09": {
-      "type": "number",
-      "value": 9
-    },
-    "app-font-weight-600": {
-      "type": "string",
-      "value": "600"
-    },
-    "app-color-brand-500": {
-      "type": "color",
-      "value": "#5E6AD2"
-    },
-    "app-color-brand-50": {
-      "type": "color",
-      "value": "#EEF2FF"
-    },
-    "app-radius-14": {
-      "type": "number",
-      "value": 14
-    },
-    "app-color-brand-200": {
-      "type": "color",
-      "value": "#C7D2FE"
-    },
-    "app-color-brand-700": {
-      "type": "color",
-      "value": "#4338CA"
-    },
-    "app-color-3730a3": {
-      "type": "color",
-      "value": "#3730A3"
-    },
-    "app-space-16": {
-      "type": "number",
-      "value": 16
-    },
-    "app-radius-16": {
-      "type": "number",
-      "value": 16
-    },
-    "app-space-18": {
-      "type": "number",
-      "value": 18
-    },
-    "app-space-05": {
-      "type": "number",
-      "value": 5
-    },
-    "app-color-gray-100": {
-      "type": "color",
-      "value": "#F3F4F6"
-    },
-    "app-radius-full": {
-      "type": "number",
-      "value": 999
-    },
-    "app-space-08": {
-      "type": "number",
-      "value": 8
-    },
-    "app-color-gray-700": {
-      "type": "color",
-      "value": "#374151"
-    },
-    "app-font-size-11": {
-      "type": "number",
-      "value": 11
-    },
-    "app-radius-12": {
-      "type": "number",
-      "value": 12
-    },
-    "app-line-height-145": {
-      "type": "number",
-      "value": 1.45
-    },
-    "app-font-size-14": {
-      "type": "number",
-      "value": 14
-    },
-    "app-color-red-700": {
-      "type": "color",
-      "value": "#B91C1C"
-    },
-    "app-color-6366f1": {
-      "type": "color",
-      "value": "#6366F1"
-    },
-    "app-color-emerald-50": {
-      "type": "color",
-      "value": "#ECFDF5"
-    },
-    "app-color-emerald-700": {
-      "type": "color",
-      "value": "#047857"
-    },
-    "app-color-059669": {
-      "type": "color",
-      "value": "#059669"
-    },
-    "app-space-04": {
-      "type": "number",
-      "value": 4
-    },
-    "app-font-family-display": {
-      "type": "string",
-      "value": "Space Grotesk"
-    },
-    "app-font-size-16": {
-      "type": "number",
-      "value": 16
-    },
-    "app-line-height-150": {
-      "type": "number",
-      "value": 1.5
-    },
-    "app-space-02": {
-      "type": "number",
-      "value": 2
-    },
-    "app-color-b45309": {
-      "type": "color",
-      "value": "#B45309"
-    },
-    "app-color-d1d5db": {
-      "type": "color",
-      "value": "#D1D5DB"
-    },
-    "app-font-size-15": {
-      "type": "number",
-      "value": 15
-    },
-    "app-color-orange-50": {
-      "type": "color",
-      "value": "#FFF7ED"
-    },
-    "app-color-orange-300": {
-      "type": "color",
-      "value": "#FDBA74"
-    },
-    "app-color-orange-800": {
-      "type": "color",
-      "value": "#9A3412"
-    },
-    "app-color-7c2d12": {
-      "type": "color",
-      "value": "#7C2D12"
-    },
-    "app-color-ink-850": {
-      "type": "color",
-      "value": "#1C1F26"
-    },
-    "app-space-28": {
-      "type": "number",
-      "value": 28
-    },
-    "app-color-c7cad1": {
-      "type": "color",
-      "value": "#C7CAD1"
-    },
-    "app-color-slate-400": {
-      "type": "color",
-      "value": "#8F98A8"
-    },
-    "app-font-weight-400": {
-      "type": "string",
-      "value": "normal"
-    },
-    "app-font-size-24": {
-      "type": "number",
-      "value": 24
-    },
-    "app-color-black": {
-      "type": "color",
-      "value": "#0D0D0D"
-    },
-    "app-color-violet-50": {
-      "type": "color",
-      "value": "#F5F3FF"
-    },
-    "app-color-violet-200": {
-      "type": "color",
-      "value": "#DDD6FE"
-    },
-    "app-color-violet-800": {
-      "type": "color",
-      "value": "#5B21B6"
-    },
-    "app-color-border-default": {
-      "type": "color",
-      "value": "#E8E8E8"
-    },
-    "app-color-neutral-500": {
-      "type": "color",
-      "value": "#7A7A7A"
-    },
-    "app-font-size-36": {
-      "type": "number",
-      "value": 36
-    },
-    "app-color-red-600": {
-      "type": "color",
-      "value": "#E42313"
-    },
-    "app-color-green-500": {
-      "type": "color",
-      "value": "#22C55E"
-    },
-    "app-font-size-18": {
-      "type": "number",
-      "value": 18
-    },
-    "app-color-6d28d9": {
-      "type": "color",
-      "value": "#6D28D9"
-    },
-    "app-space-48": {
-      "type": "number",
-      "value": 48
-    },
-    "app-space-00": {
-      "type": "number",
-      "value": 0
-    },
-    "app-color-cccccc": {
-      "type": "color",
-      "value": "#CCCCCC"
-    },
-    "app-font-size-92": {
-      "type": "number",
-      "value": 92
-    },
-    "app-font-size-64": {
-      "type": "number",
-      "value": 64
-    },
-    "app-color-171a21": {
-      "type": "color",
-      "value": "#171A21"
-    },
-    "app-color-slate-850": {
-      "type": "color",
-      "value": "#232936"
-    },
-    "app-color-0f172a5c": {
-      "type": "color",
-      "value": "#0F172A5C"
-    },
-    "app-font-size-20": {
-      "type": "number",
-      "value": 20
-    },
-    "app-color-fef2f2": {
-      "type": "color",
-      "value": "#FEF2F2"
-    },
-    "app-color-gray-400": {
-      "type": "color",
-      "value": "#8A90A2"
-    },
-    "app-space-40": {
-      "type": "number",
-      "value": 40
-    },
-    "app-color-emerald-200": {
-      "type": "color",
-      "value": "#A7F3D0"
-    },
-    "app-color-eff6ff": {
-      "type": "color",
-      "value": "#EFF6FF"
-    },
-    "app-color-blue-200": {
-      "type": "color",
-      "value": "#BFDBFE"
-    },
-    "app-color-1d4ed8": {
-      "type": "color",
-      "value": "#1D4ED8"
-    },
-    "app-font-size-30": {
-      "type": "number",
-      "value": 30
-    },
-    "app-line-height-180": {
-      "type": "number",
-      "value": 1.8
-    },
-    "app-radius-24": {
-      "type": "number",
-      "value": 24
-    },
-    "app-radius-18": {
-      "type": "number",
-      "value": 18
-    },
-    "app-line-height-190": {
-      "type": "number",
-      "value": 1.9
-    },
-    "app-color-fcfcff": {
-      "type": "color",
-      "value": "#FCFCFF"
-    },
-    "app-color-gray-275": {
-      "type": "color",
-      "value": "#D6DAE1"
-    },
-    "app-color-gray-200": {
-      "type": "color",
-      "value": "#E5E7EB"
-    },
-    "app-color-9ca3af": {
-      "type": "color",
-      "value": "#9CA3AF"
-    },
-    "app-color-slate-300": {
-      "type": "color",
-      "value": "#CBD5E1"
-    },
-    "app-color-brand-300": {
-      "type": "color",
-      "value": "#818CF8"
-    },
-    "app-stroke-02": {
-      "type": "number",
-      "value": 2
-    },
-    "app-space-64": {
-      "type": "number",
-      "value": 64
-    },
-    "app-radius-28": {
-      "type": "number",
-      "value": 28
-    },
-    "app-color-brand-300-alt": {
-      "type": "color",
-      "value": "#A5B4FC"
-    },
-    "app-font-size-40": {
-      "type": "number",
-      "value": 40
-    },
-    "app-space-56": {
-      "type": "number",
-      "value": 56
-    },
-    "app-font-size-34": {
-      "type": "number",
-      "value": 34
-    }
-  },
   "children": [
     {
       "type": "frame",
@@ -645,7 +191,8 @@
                     },
                     "components:ocIRE": {
                       "width": "fill_container",
-                      "y": 223
+                      "y": 223,
+                      "height": "fit_content"
                     },
                     "components:nAKqZ": {
                       "width": "fill_container"
@@ -656,8 +203,12 @@
                     "components:zbvZI": {
                       "width": "fill_container"
                     },
+                    "components:400o7": {
+                      "y": 87
+                    },
                     "components:J0kDw": {
-                      "width": "fill_container"
+                      "width": "fill_container",
+                      "y": 118
                     },
                     "components:8LrYY": {
                       "x": 107
@@ -708,7 +259,8 @@
                     },
                     "components:OhyMS": {
                       "width": "fill_container",
-                      "y": 223
+                      "y": 223,
+                      "height": "fit_content"
                     },
                     "components:OhyMS__lNE3z": {
                       "width": "fill_container"
@@ -719,8 +271,12 @@
                     "components:OhyMS__331h6": {
                       "width": "fill_container"
                     },
+                    "components:OhyMS__Zgypa": {
+                      "y": 87
+                    },
                     "components:OhyMS__491p7": {
-                      "width": "fill_container"
+                      "width": "fill_container",
+                      "y": 118
                     },
                     "components:OhyMS__DgxyA": {
                       "x": 107
@@ -919,10 +475,10 @@
           "padding": "$app-space-24",
           "descendants": {
             "components:Y3ldb": {
-              "x": 63.166666666666664
+              "x": 63.16666666666667
             },
             "components:bfWUp": {
-              "x": 61.666666666666664
+              "x": 61.66666666666667
             }
           }
         }
@@ -3659,7 +3215,8 @@
                 },
                 "components:ocIRE": {
                   "width": "fill_container",
-                  "y": 223
+                  "y": 223,
+                  "height": "fit_content"
                 },
                 "components:nAKqZ": {
                   "width": "fill_container"
@@ -3670,8 +3227,12 @@
                 "components:zbvZI": {
                   "width": "fill_container"
                 },
+                "components:400o7": {
+                  "y": 87
+                },
                 "components:J0kDw": {
-                  "width": "fill_container"
+                  "width": "fill_container",
+                  "y": 118
                 },
                 "components:8LrYY": {
                   "x": 107
@@ -3722,7 +3283,8 @@
                 },
                 "components:OhyMS": {
                   "width": "fill_container",
-                  "y": 223
+                  "y": 223,
+                  "height": "fit_content"
                 },
                 "components:OhyMS__lNE3z": {
                   "width": "fill_container"
@@ -3733,8 +3295,12 @@
                 "components:OhyMS__331h6": {
                   "width": "fill_container"
                 },
+                "components:OhyMS__Zgypa": {
+                  "y": 87
+                },
                 "components:OhyMS__491p7": {
-                  "width": "fill_container"
+                  "width": "fill_container",
+                  "y": 118
                 },
                 "components:OhyMS__DgxyA": {
                   "x": 107
@@ -5093,10 +4659,10 @@
                       "width": "fill_container"
                     },
                     "components:607u6_add__cmpBoardCardAddIcon": {
-                      "x": 64.33333333333334
+                      "x": 64.33333333333333
                     },
                     "components:607u6_add__cmpBoardCardAddLabel": {
-                      "x": 86.33333333333334
+                      "x": 86.33333333333333
                     },
                     "components:YHy5W": {
                       "width": "fill_container",
@@ -5149,10 +4715,10 @@
                       "width": "fill_container"
                     },
                     "components:aSuSN": {
-                      "x": 64.33333333333334
+                      "x": 64.33333333333333
                     },
                     "components:Dk7jd": {
-                      "x": 86.33333333333334
+                      "x": 86.33333333333333
                     },
                     "components:Sqi9W": {
                       "width": "fill_container",
@@ -5205,10 +4771,10 @@
                       "width": "fill_container"
                     },
                     "components:Sqi9W_add__cmpBoardCardAddIcon": {
-                      "x": 64.33333333333334
+                      "x": 64.33333333333333
                     },
                     "components:Sqi9W_add__cmpBoardCardAddLabel": {
-                      "x": 86.33333333333334
+                      "x": 86.33333333333333
                     },
                     "components:ZIk5E": {
                       "width": "fill_container",
@@ -5261,10 +4827,10 @@
                       "width": "fill_container"
                     },
                     "components:ZIk5E_add__cmpBoardCardAddIcon": {
-                      "x": 64.33333333333334
+                      "x": 64.33333333333333
                     },
                     "components:ZIk5E_add__cmpBoardCardAddLabel": {
-                      "x": 86.33333333333334
+                      "x": 86.33333333333333
                     },
                     "components:WFe3i": {
                       "width": "fill_container",
@@ -5299,10 +4865,10 @@
                       "width": "fill_container"
                     },
                     "components:WFe3i_add__cmpBoardCardAddIcon": {
-                      "x": 64.33333333333334
+                      "x": 64.33333333333333
                     },
                     "components:WFe3i_add__cmpBoardCardAddLabel": {
-                      "x": 86.33333333333334
+                      "x": 86.33333333333333
                     },
                     "components:idXx6": {
                       "width": "fill_container",
@@ -5337,10 +4903,10 @@
                       "width": "fill_container"
                     },
                     "components:n01bE": {
-                      "x": 64.33333333333334
+                      "x": 64.33333333333333
                     },
                     "components:onpBk": {
-                      "x": 86.33333333333334
+                      "x": 86.33333333333333
                     }
                   }
                 }
@@ -5675,10 +5241,10 @@
               "x": 0
             },
             "components:vcooQ/components:cmpFieldSelectText": {
-              "x": 63.166666666666664
+              "x": 63.16666666666667
             },
             "components:Kc54O/components:cmpFieldSelectText": {
-              "x": 61.666666666666664
+              "x": 61.66666666666667
             },
             "components:6Goz4": {
               "x": 0
@@ -5796,7 +5362,7 @@
     {
       "type": "frame",
       "id": "gTDt3",
-      "x": -626,
+      "x": -627,
       "y": 4311,
       "name": "Issue List Mobile",
       "width": 393,
@@ -7671,7 +7237,8 @@
                     },
                     "components:ocIRE": {
                       "width": "fill_container",
-                      "y": 223
+                      "y": 223,
+                      "height": "fit_content"
                     },
                     "components:nAKqZ": {
                       "width": "fill_container"
@@ -7682,8 +7249,12 @@
                     "components:zbvZI": {
                       "width": "fill_container"
                     },
+                    "components:400o7": {
+                      "y": 87
+                    },
                     "components:J0kDw": {
-                      "width": "fill_container"
+                      "width": "fill_container",
+                      "y": 118
                     },
                     "components:8LrYY": {
                       "x": 107
@@ -7734,7 +7305,8 @@
                     },
                     "components:OhyMS": {
                       "width": "fill_container",
-                      "y": 223
+                      "y": 223,
+                      "height": "fit_content"
                     },
                     "components:OhyMS__lNE3z": {
                       "width": "fill_container"
@@ -7745,8 +7317,12 @@
                     "components:OhyMS__331h6": {
                       "width": "fill_container"
                     },
+                    "components:OhyMS__Zgypa": {
+                      "y": 87
+                    },
                     "components:OhyMS__491p7": {
-                      "width": "fill_container"
+                      "width": "fill_container",
+                      "y": 118
                     },
                     "components:OhyMS__DgxyA": {
                       "x": 107
@@ -8456,66 +8032,130 @@
                         },
                         {
                           "type": "frame",
-                          "id": "t000t",
-                          "name": "Issue Control Row",
+                          "id": "OdWg4",
+                          "name": "Issue Control Grid",
                           "width": "fill_container",
-                          "gap": "$app-space-12",
+                          "layout": "vertical",
+                          "gap": 12,
                           "children": [
                             {
                               "type": "frame",
-                              "id": "t000u",
-                              "name": "Status Column",
+                              "id": "C1zFp",
+                              "name": "Control Row 1",
                               "width": "fill_container",
-                              "layout": "vertical",
-                              "gap": "$app-space-06",
+                              "gap": 12,
                               "children": [
                                 {
-                                  "type": "text",
-                                  "id": "t000v",
-                                  "name": "Status Text",
-                                  "fill": "$app-color-gray-500",
-                                  "content": "Status",
-                                  "fontFamily": "$app-font-family-base",
-                                  "fontSize": "$app-font-size-11",
-                                  "fontWeight": "$app-font-weight-600"
-                                },
-                                {
                                   "type": "frame",
-                                  "id": "t000w",
-                                  "name": "Status Control",
+                                  "id": "jMP1F",
+                                  "name": "Status Column",
                                   "width": "fill_container",
-                                  "fill": "$app-color-white",
-                                  "cornerRadius": "$app-radius-10",
-                                  "stroke": {
-                                    "thickness": "$app-stroke-01",
-                                    "fill": "$app-color-border-soft"
-                                  },
-                                  "padding": [
-                                    "$app-space-10",
-                                    "$app-space-12"
-                                  ],
-                                  "justifyContent": "space_between",
-                                  "alignItems": "center",
+                                  "layout": "vertical",
+                                  "gap": 6,
                                   "children": [
                                     {
                                       "type": "text",
-                                      "id": "t000x",
-                                      "name": "In Progress Text",
-                                      "fill": "$app-color-ink-900",
-                                      "content": "In Progress",
-                                      "fontFamily": "$app-font-family-base",
-                                      "fontSize": "$app-font-size-13",
-                                      "fontWeight": "$app-font-weight-500"
+                                      "id": "AnJMq",
+                                      "fill": "#6B7280",
+                                      "content": "Status",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 11,
+                                      "fontWeight": "600"
                                     },
                                     {
-                                      "type": "icon_font",
-                                      "id": "t000y",
-                                      "name": "Chevron Down Icon",
-                                      "width": 14,
-                                      "height": 14,
-                                      "iconFontName": "chevron-down",
-                                      "iconFontFamily": "lucide",
-                                      "fill": "$app-color-gray-500"
+                                      "type": "frame",
+                                      "id": "DjLbv",
+                                      "name": "Status Control",
+                                      "width": "fill_container",
+                                      "fill": "#FFFFFF",
+                                      "cornerRadius": 10,
+                                      "stroke": {
+                                        "thickness": 1,
+                                        "fill": "#E6E8EC"
+                                      },
+                                      "padding": [
+                                        10,
+                                        12
+                                      ],
+                                      "justifyContent": "space_between",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "NKLyA",
+                                          "fill": "#111318",
+                                          "content": "In Progress",
+                                          "fontFamily": "Inter",
+                                          "fontSize": 13,
+                                          "fontWeight": "500"
+                                        },
+                                        {
+                                          "type": "icon_font",
+                                          "id": "Jkc7k",
+                                          "width": 14,
+                                          "height": 14,
+                                          "iconFontName": "chevron-down",
+                                          "iconFontFamily": "lucide",
+                                          "fill": "#6B7280"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "6oFsx",
+                                  "name": "Priority Column",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 6,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "3go1n",
+                                      "fill": "#6B7280",
+                                      "content": "Priority",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 11,
+                                      "fontWeight": "600"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "lAuQR",
+                                      "name": "Priority Control",
+                                      "width": "fill_container",
+                                      "fill": "#FFFFFF",
+                                      "cornerRadius": 10,
+                                      "stroke": {
+                                        "thickness": 1,
+                                        "fill": "#E6E8EC"
+                                      },
+                                      "padding": [
+                                        10,
+                                        12
+                                      ],
+                                      "justifyContent": "space_between",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "aihTQ",
+                                          "fill": "#B91C1C",
+                                          "content": "High",
+                                          "fontFamily": "Inter",
+                                          "fontSize": 13,
+                                          "fontWeight": "600"
+                                        },
+                                        {
+                                          "type": "icon_font",
+                                          "id": "PNLNl",
+                                          "width": 14,
+                                          "height": 14,
+                                          "iconFontName": "chevron-down",
+                                          "iconFontFamily": "lucide",
+                                          "fill": "#6B7280"
+                                        }
+                                      ]
                                     }
                                   ]
                                 }
@@ -8523,119 +8163,122 @@
                             },
                             {
                               "type": "frame",
-                              "id": "t000z",
-                              "name": "Priority Column",
+                              "id": "om61S",
+                              "name": "Control Row 2",
                               "width": "fill_container",
-                              "layout": "vertical",
-                              "gap": "$app-space-06",
+                              "gap": 12,
                               "children": [
                                 {
-                                  "type": "text",
-                                  "id": "t0010",
-                                  "name": "Priority Text",
-                                  "fill": "$app-color-gray-500",
-                                  "content": "Priority",
-                                  "fontFamily": "$app-font-family-base",
-                                  "fontSize": "$app-font-size-11",
-                                  "fontWeight": "$app-font-weight-600"
-                                },
-                                {
                                   "type": "frame",
-                                  "id": "t0011",
-                                  "name": "Priority Control",
+                                  "id": "n9EqN",
+                                  "name": "Assignee Column",
                                   "width": "fill_container",
-                                  "fill": "$app-color-white",
-                                  "cornerRadius": "$app-radius-10",
-                                  "stroke": {
-                                    "thickness": "$app-stroke-01",
-                                    "fill": "$app-color-border-soft"
-                                  },
-                                  "padding": [
-                                    "$app-space-10",
-                                    "$app-space-12"
-                                  ],
-                                  "justifyContent": "space_between",
-                                  "alignItems": "center",
+                                  "layout": "vertical",
+                                  "gap": 6,
                                   "children": [
                                     {
                                       "type": "text",
-                                      "id": "t0012",
-                                      "name": "Priority Text",
-                                      "fill": "$app-color-red-700",
-                                      "content": "High",
-                                      "fontFamily": "$app-font-family-base",
-                                      "fontSize": "$app-font-size-13",
-                                      "fontWeight": "$app-font-weight-600"
+                                      "id": "8Su2q",
+                                      "fill": "#6B7280",
+                                      "content": "Assignee",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 11,
+                                      "fontWeight": "600"
                                     },
                                     {
-                                      "type": "icon_font",
-                                      "id": "t0013",
-                                      "name": "Chevron Down Icon",
-                                      "width": 14,
-                                      "height": 14,
-                                      "iconFontName": "chevron-down",
-                                      "iconFontFamily": "lucide",
-                                      "fill": "$app-color-gray-500"
+                                      "type": "frame",
+                                      "id": "r7dX8",
+                                      "name": "Assignee Control",
+                                      "width": "fill_container",
+                                      "fill": "#FFFFFF",
+                                      "cornerRadius": 10,
+                                      "stroke": {
+                                        "thickness": 1,
+                                        "fill": "#E6E8EC"
+                                      },
+                                      "padding": [
+                                        10,
+                                        12
+                                      ],
+                                      "justifyContent": "space_between",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "19fJb",
+                                          "fill": "#111318",
+                                          "content": "Jane Smith",
+                                          "fontFamily": "Inter",
+                                          "fontSize": 13,
+                                          "fontWeight": "500"
+                                        },
+                                        {
+                                          "type": "icon_font",
+                                          "id": "fjzk8",
+                                          "width": 14,
+                                          "height": 14,
+                                          "iconFontName": "chevron-down",
+                                          "iconFontFamily": "lucide",
+                                          "fill": "#6B7280"
+                                        }
+                                      ]
                                     }
                                   ]
-                                }
-                              ]
-                            },
-                            {
-                              "type": "frame",
-                              "id": "t0014",
-                              "name": "Assignee Column",
-                              "width": "fill_container",
-                              "layout": "vertical",
-                              "gap": "$app-space-06",
-                              "children": [
-                                {
-                                  "type": "text",
-                                  "id": "t0015",
-                                  "name": "Assignee Text",
-                                  "fill": "$app-color-gray-500",
-                                  "content": "Assignee",
-                                  "fontFamily": "$app-font-family-base",
-                                  "fontSize": "$app-font-size-11",
-                                  "fontWeight": "$app-font-weight-600"
                                 },
                                 {
                                   "type": "frame",
-                                  "id": "t0016",
-                                  "name": "Assignee Control",
+                                  "id": "o8D2W",
+                                  "name": "Due Date Column",
                                   "width": "fill_container",
-                                  "fill": "$app-color-white",
-                                  "cornerRadius": "$app-radius-10",
-                                  "stroke": {
-                                    "thickness": "$app-stroke-01",
-                                    "fill": "$app-color-border-soft"
-                                  },
-                                  "padding": [
-                                    "$app-space-10",
-                                    "$app-space-12"
-                                  ],
-                                  "justifyContent": "space_between",
-                                  "alignItems": "center",
+                                  "layout": "vertical",
+                                  "gap": 6,
                                   "children": [
                                     {
                                       "type": "text",
-                                      "id": "t0017",
-                                      "name": "Jane Smith Text",
-                                      "fill": "$app-color-ink-900",
-                                      "content": "Jane Smith",
-                                      "fontFamily": "$app-font-family-base",
-                                      "fontSize": "$app-font-size-13",
-                                      "fontWeight": "$app-font-weight-500"
+                                      "id": "gT3Dd",
+                                      "fill": "#6B7280",
+                                      "content": "Due date",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 11,
+                                      "fontWeight": "600"
                                     },
                                     {
-                                      "type": "icon_font",
-                                      "id": "t0018",
-                                      "name": "Chevron Down Icon",
-                                      "width": 14,
-                                      "height": 14,
-                                      "iconFontName": "chevron-down",
-                                      "iconFontFamily": "lucide",
-                                      "fill": "$app-color-gray-500"
+                                      "type": "frame",
+                                      "id": "U7Pg3",
+                                      "name": "Due Date Control",
+                                      "width": "fill_container",
+                                      "fill": "#FFFFFF",
+                                      "cornerRadius": 10,
+                                      "stroke": {
+                                        "thickness": 1,
+                                        "fill": "#E6E8EC"
+                                      },
+                                      "padding": [
+                                        10,
+                                        12
+                                      ],
+                                      "justifyContent": "space_between",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "A5MFF",
+                                          "fill": "#111318",
+                                          "content": "Mar 28, 2026",
+                                          "fontFamily": "Inter",
+                                          "fontSize": 13,
+                                          "fontWeight": "500"
+                                        },
+                                        {
+                                          "type": "icon_font",
+                                          "id": "9yIrk",
+                                          "width": 14,
+                                          "height": 14,
+                                          "iconFontName": "calendar-days",
+                                          "iconFontFamily": "lucide",
+                                          "fill": "#6B7280"
+                                        }
+                                      ]
                                     }
                                   ]
                                 }
@@ -12146,11 +11789,16 @@
               "layout": "vertical",
               "alignItems": "start",
               "justifyContent": "start",
-              "gap": "$app-space-10"
+              "gap": "$app-space-10",
+              "height": "fit_content"
+            },
+            "components:kRMvC": {
+              "y": 0
             },
             "components:ngL2y": {
               "x": 0,
-              "width": "fill_container"
+              "width": "fill_container",
+              "y": 25
             },
             "components:wvQy8": {
               "width": "fill_container",
@@ -12169,10 +11817,15 @@
               "layout": "vertical",
               "alignItems": "start",
               "justifyContent": "start",
-              "gap": "$app-space-10"
+              "gap": "$app-space-10",
+              "height": "fit_content"
+            },
+            "components:8pPCD": {
+              "y": 14
             },
             "components:G5vNk": {
-              "x": 16
+              "x": 16,
+              "y": 41
             },
             "components:OXwYZ": {
               "width": "fill_container",
@@ -12180,10 +11833,15 @@
               "layout": "vertical",
               "alignItems": "start",
               "justifyContent": "start",
-              "gap": "$app-space-10"
+              "gap": "$app-space-10",
+              "height": "fit_content"
+            },
+            "components:Twb2d": {
+              "y": 14
             },
             "components:C9TEh": {
-              "x": 16
+              "x": 16,
+              "y": 41
             }
           }
         },
@@ -12675,20 +12333,476 @@
               "layout": "vertical",
               "alignItems": "start",
               "justifyContent": "start",
-              "gap": "$app-space-10"
+              "gap": "$app-space-10",
+              "height": "fit_content"
             },
             "components:XC7UV": {
               "width": "fill_container"
             },
             "components:ILxc9": {
               "x": 0,
-              "width": "fill_container"
+              "width": "fill_container",
+              "y": 51
             }
           }
         }
       ]
     }
   ],
+  "variables": {
+    "app-color-surface-0": {
+      "type": "color",
+      "value": "#FCFCFD"
+    },
+    "app-space-20": {
+      "type": "number",
+      "value": 20
+    },
+    "app-space-24": {
+      "type": "number",
+      "value": 24
+    },
+    "app-space-14": {
+      "type": "number",
+      "value": 14
+    },
+    "app-space-12": {
+      "type": "number",
+      "value": 12
+    },
+    "app-color-overlay-slate": {
+      "type": "color",
+      "value": "#0F172A66"
+    },
+    "app-color-white": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "app-radius-20": {
+      "type": "number",
+      "value": 20
+    },
+    "app-color-border-soft": {
+      "type": "color",
+      "value": "#E6E8EC"
+    },
+    "app-stroke-01": {
+      "type": "number",
+      "value": 1
+    },
+    "app-color-transparent": {
+      "type": "color",
+      "value": "#00000000"
+    },
+    "app-stroke-00": {
+      "type": "number",
+      "value": 0
+    },
+    "app-space-32": {
+      "type": "number",
+      "value": 32
+    },
+    "app-space-06": {
+      "type": "number",
+      "value": 6
+    },
+    "app-color-gray-500": {
+      "type": "color",
+      "value": "#6B7280"
+    },
+    "app-font-family-base": {
+      "type": "string",
+      "value": "Inter"
+    },
+    "app-font-size-12": {
+      "type": "number",
+      "value": 12
+    },
+    "app-font-weight-500": {
+      "type": "string",
+      "value": "500"
+    },
+    "app-color-ink-900": {
+      "type": "color",
+      "value": "#111318"
+    },
+    "app-font-size-28": {
+      "type": "number",
+      "value": 28
+    },
+    "app-font-weight-700": {
+      "type": "string",
+      "value": "700"
+    },
+    "app-color-gray-600": {
+      "type": "color",
+      "value": "#4B5563"
+    },
+    "app-font-size-13": {
+      "type": "number",
+      "value": 13
+    },
+    "app-space-10": {
+      "type": "number",
+      "value": 10
+    },
+    "app-radius-10": {
+      "type": "number",
+      "value": 10
+    },
+    "app-space-09": {
+      "type": "number",
+      "value": 9
+    },
+    "app-font-weight-600": {
+      "type": "string",
+      "value": "600"
+    },
+    "app-color-brand-500": {
+      "type": "color",
+      "value": "#5E6AD2"
+    },
+    "app-color-brand-50": {
+      "type": "color",
+      "value": "#EEF2FF"
+    },
+    "app-radius-14": {
+      "type": "number",
+      "value": 14
+    },
+    "app-color-brand-200": {
+      "type": "color",
+      "value": "#C7D2FE"
+    },
+    "app-color-brand-700": {
+      "type": "color",
+      "value": "#4338CA"
+    },
+    "app-color-3730a3": {
+      "type": "color",
+      "value": "#3730A3"
+    },
+    "app-space-16": {
+      "type": "number",
+      "value": 16
+    },
+    "app-radius-16": {
+      "type": "number",
+      "value": 16
+    },
+    "app-space-18": {
+      "type": "number",
+      "value": 18
+    },
+    "app-space-05": {
+      "type": "number",
+      "value": 5
+    },
+    "app-color-gray-100": {
+      "type": "color",
+      "value": "#F3F4F6"
+    },
+    "app-radius-full": {
+      "type": "number",
+      "value": 999
+    },
+    "app-space-08": {
+      "type": "number",
+      "value": 8
+    },
+    "app-color-gray-700": {
+      "type": "color",
+      "value": "#374151"
+    },
+    "app-font-size-11": {
+      "type": "number",
+      "value": 11
+    },
+    "app-radius-12": {
+      "type": "number",
+      "value": 12
+    },
+    "app-line-height-145": {
+      "type": "number",
+      "value": 1.45
+    },
+    "app-font-size-14": {
+      "type": "number",
+      "value": 14
+    },
+    "app-color-red-700": {
+      "type": "color",
+      "value": "#B91C1C"
+    },
+    "app-color-6366f1": {
+      "type": "color",
+      "value": "#6366F1"
+    },
+    "app-color-emerald-50": {
+      "type": "color",
+      "value": "#ECFDF5"
+    },
+    "app-color-emerald-700": {
+      "type": "color",
+      "value": "#047857"
+    },
+    "app-color-059669": {
+      "type": "color",
+      "value": "#059669"
+    },
+    "app-space-04": {
+      "type": "number",
+      "value": 4
+    },
+    "app-font-family-display": {
+      "type": "string",
+      "value": "Space Grotesk"
+    },
+    "app-font-size-16": {
+      "type": "number",
+      "value": 16
+    },
+    "app-line-height-150": {
+      "type": "number",
+      "value": 1.5
+    },
+    "app-space-02": {
+      "type": "number",
+      "value": 2
+    },
+    "app-color-b45309": {
+      "type": "color",
+      "value": "#B45309"
+    },
+    "app-color-d1d5db": {
+      "type": "color",
+      "value": "#D1D5DB"
+    },
+    "app-font-size-15": {
+      "type": "number",
+      "value": 15
+    },
+    "app-color-orange-50": {
+      "type": "color",
+      "value": "#FFF7ED"
+    },
+    "app-color-orange-300": {
+      "type": "color",
+      "value": "#FDBA74"
+    },
+    "app-color-orange-800": {
+      "type": "color",
+      "value": "#9A3412"
+    },
+    "app-color-7c2d12": {
+      "type": "color",
+      "value": "#7C2D12"
+    },
+    "app-color-ink-850": {
+      "type": "color",
+      "value": "#1C1F26"
+    },
+    "app-space-28": {
+      "type": "number",
+      "value": 28
+    },
+    "app-color-c7cad1": {
+      "type": "color",
+      "value": "#C7CAD1"
+    },
+    "app-color-slate-400": {
+      "type": "color",
+      "value": "#8F98A8"
+    },
+    "app-font-weight-400": {
+      "type": "string",
+      "value": "normal"
+    },
+    "app-font-size-24": {
+      "type": "number",
+      "value": 24
+    },
+    "app-color-black": {
+      "type": "color",
+      "value": "#0D0D0D"
+    },
+    "app-color-violet-50": {
+      "type": "color",
+      "value": "#F5F3FF"
+    },
+    "app-color-violet-200": {
+      "type": "color",
+      "value": "#DDD6FE"
+    },
+    "app-color-violet-800": {
+      "type": "color",
+      "value": "#5B21B6"
+    },
+    "app-color-border-default": {
+      "type": "color",
+      "value": "#E8E8E8"
+    },
+    "app-color-neutral-500": {
+      "type": "color",
+      "value": "#7A7A7A"
+    },
+    "app-font-size-36": {
+      "type": "number",
+      "value": 36
+    },
+    "app-color-red-600": {
+      "type": "color",
+      "value": "#E42313"
+    },
+    "app-color-green-500": {
+      "type": "color",
+      "value": "#22C55E"
+    },
+    "app-font-size-18": {
+      "type": "number",
+      "value": 18
+    },
+    "app-color-6d28d9": {
+      "type": "color",
+      "value": "#6D28D9"
+    },
+    "app-space-48": {
+      "type": "number",
+      "value": 48
+    },
+    "app-space-00": {
+      "type": "number",
+      "value": 0
+    },
+    "app-color-cccccc": {
+      "type": "color",
+      "value": "#CCCCCC"
+    },
+    "app-font-size-92": {
+      "type": "number",
+      "value": 92
+    },
+    "app-font-size-64": {
+      "type": "number",
+      "value": 64
+    },
+    "app-color-171a21": {
+      "type": "color",
+      "value": "#171A21"
+    },
+    "app-color-slate-850": {
+      "type": "color",
+      "value": "#232936"
+    },
+    "app-color-0f172a5c": {
+      "type": "color",
+      "value": "#0F172A5C"
+    },
+    "app-font-size-20": {
+      "type": "number",
+      "value": 20
+    },
+    "app-color-fef2f2": {
+      "type": "color",
+      "value": "#FEF2F2"
+    },
+    "app-color-gray-400": {
+      "type": "color",
+      "value": "#8A90A2"
+    },
+    "app-space-40": {
+      "type": "number",
+      "value": 40
+    },
+    "app-color-emerald-200": {
+      "type": "color",
+      "value": "#A7F3D0"
+    },
+    "app-color-eff6ff": {
+      "type": "color",
+      "value": "#EFF6FF"
+    },
+    "app-color-blue-200": {
+      "type": "color",
+      "value": "#BFDBFE"
+    },
+    "app-color-1d4ed8": {
+      "type": "color",
+      "value": "#1D4ED8"
+    },
+    "app-font-size-30": {
+      "type": "number",
+      "value": 30
+    },
+    "app-line-height-180": {
+      "type": "number",
+      "value": 1.8
+    },
+    "app-radius-24": {
+      "type": "number",
+      "value": 24
+    },
+    "app-radius-18": {
+      "type": "number",
+      "value": 18
+    },
+    "app-line-height-190": {
+      "type": "number",
+      "value": 1.9
+    },
+    "app-color-fcfcff": {
+      "type": "color",
+      "value": "#FCFCFF"
+    },
+    "app-color-gray-275": {
+      "type": "color",
+      "value": "#D6DAE1"
+    },
+    "app-color-gray-200": {
+      "type": "color",
+      "value": "#E5E7EB"
+    },
+    "app-color-9ca3af": {
+      "type": "color",
+      "value": "#9CA3AF"
+    },
+    "app-color-slate-300": {
+      "type": "color",
+      "value": "#CBD5E1"
+    },
+    "app-color-brand-300": {
+      "type": "color",
+      "value": "#818CF8"
+    },
+    "app-stroke-02": {
+      "type": "number",
+      "value": 2
+    },
+    "app-space-64": {
+      "type": "number",
+      "value": 64
+    },
+    "app-radius-28": {
+      "type": "number",
+      "value": 28
+    },
+    "app-color-brand-300-alt": {
+      "type": "color",
+      "value": "#A5B4FC"
+    },
+    "app-font-size-40": {
+      "type": "number",
+      "value": 40
+    },
+    "app-space-56": {
+      "type": "number",
+      "value": 56
+    },
+    "app-font-size-34": {
+      "type": "number",
+      "value": 34
+    }
+  },
   "imports": {
     "components": "components.pen"
   }
