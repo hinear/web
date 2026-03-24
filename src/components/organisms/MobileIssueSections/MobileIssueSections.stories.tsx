@@ -60,6 +60,7 @@ const issues: Issue[] = [
 
 const defaultArgs = {
   issues,
+  projectId: "project-1",
 } satisfies MobileIssueSectionsProps;
 
 const meta = {
