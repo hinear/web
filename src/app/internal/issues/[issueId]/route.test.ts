@@ -16,6 +16,8 @@ const {
   updateIssueMock: vi.fn(),
 }));
 
+vi.mock("server-only", () => ({}));
+
 vi.mock("@/lib/supabase/server-auth", () => ({
   getAuthenticatedActorIdOrNull: getAuthenticatedActorIdOrNullMock,
 }));
@@ -26,6 +28,18 @@ vi.mock("@/features/issues/repositories/server-issues-repository", () => ({
 
 vi.mock("@/lib/supabase/server-client", () => ({
   createRequestSupabaseServerClient: createRequestSupabaseServerClientMock,
+}));
+
+vi.mock("@/features/issues/containers/load-issue-detail-container", () => ({
+  loadIssueDetailContainer: vi.fn(),
+}));
+
+vi.mock("@/features/issues/presenters/issue-detail-presenter", () => ({
+  IssueDetailPresenter: {
+    presentSuccess: vi.fn(),
+    presentAuthRequired: vi.fn(),
+    presentError: vi.fn(),
+  },
 }));
 
 import { PUT } from "@/app/internal/issues/[issueId]/route";

@@ -117,6 +117,8 @@ export async function loadProjectIssuesContainer(
         ? (profilesById.get(issue.assigneeId) ?? null)
         : null,
       labels: labelsByIssueId.get(issue.id) ?? [],
+      issueNumber: issue.issueNumber,
+      projectId: issue.projectId,
       createdAt: issue.createdAt,
       updatedAt: issue.updatedAt,
     }));

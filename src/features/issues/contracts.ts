@@ -5,7 +5,57 @@ import type {
   Issue,
   IssuePriority,
   IssueStatus,
+  Label,
 } from "@/features/issues/types";
+
+// API 응답을 위한 타입들
+export interface Assignee {
+  name: string;
+  avatarUrl: string | null;
+}
+
+export interface BoardIssue {
+  id: string;
+  identifier: string;
+  title: string;
+  status: IssueStatus;
+  priority: IssuePriority;
+  assignee: Assignee | null;
+  labels: Label[];
+  issueNumber: number;
+  projectId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IssueDetail {
+  id: string;
+  projectId: string;
+  issueNumber: number;
+  identifier: string;
+  title: string;
+  status: IssueStatus;
+  priority: IssuePriority;
+  assigneeId: string | null;
+  labels: Label[];
+  description: string | null;
+  dueDate: string | null;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: string;
+  updatedAt: string;
+  version: number;
+  // 확장 필드
+  assignee: Assignee | null;
+  createdByUser: { name: string; avatarUrl: string | null } | null;
+  updatedByUser: { name: string; avatarUrl: string | null } | null;
+  comments: Array<
+    Comment & { authorName: string; authorAvatarUrl: string | null }
+  >;
+  activityLog: Array<
+    ActivityLogEntry & { actorName: string; actorAvatarUrl: string | null }
+  >;
+}
 
 export interface CreateIssueInput {
   assigneeId?: string | null;

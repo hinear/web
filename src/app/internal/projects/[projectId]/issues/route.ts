@@ -27,5 +27,9 @@ export async function GET(_request: Request, context: RouteContext) {
   }
 
   // Presenter: 성공 응답
+  if (!result.data) {
+    return IssuesApiPresenter.presentError(new Error("Failed to load issues"));
+  }
+
   return IssuesApiPresenter.presentSuccess(result.data);
 }

@@ -16,8 +16,26 @@ const {
   getServerIssuesRepositoryMock: vi.fn(),
 }));
 
+vi.mock("server-only", () => ({}));
+
 vi.mock("@/lib/supabase/server-auth", () => ({
   getAuthenticatedActorIdOrNull: getAuthenticatedActorIdOrNullMock,
+}));
+
+vi.mock("@/lib/supabase/server-client", () => ({
+  createRequestSupabaseServerClient: vi.fn(),
+}));
+
+vi.mock("@/features/comments/containers/load-comments-container", () => ({
+  loadCommentsContainer: vi.fn(),
+}));
+
+vi.mock("@/features/comments/presenters/comments-presenter", () => ({
+  CommentsPresenter: {
+    presentSuccess: vi.fn(),
+    presentAuthRequired: vi.fn(),
+    presentError: vi.fn(),
+  },
 }));
 
 vi.mock("@/features/issues/repositories/server-issues-repository", () => ({

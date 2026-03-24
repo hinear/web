@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
+import { loadIssueDetailContainer } from "@/features/issues/containers/load-issue-detail-container";
 import { toBoardIssue } from "@/features/issues/lib/issue-contract-adapter";
 import {
   getMutationErrorStatus,
   inferMutationErrorCode,
 } from "@/features/issues/lib/mutation-error-messages";
+import { IssueDetailPresenter } from "@/features/issues/presenters/issue-detail-presenter";
 import { getServerIssuesRepository } from "@/features/issues/repositories/server-issues-repository";
 import type { Issue } from "@/features/issues/types";
 import { ISSUE_PRIORITIES, ISSUE_STATUSES } from "@/features/issues/types";
@@ -59,6 +61,34 @@ function parseIssueUpdateBody(body: unknown): IssueUpdateBody {
   }
 
   return updates;
+}
+
+export async function GET(_request: Request, context: RouteContext) {
+  // 인증 체크
+  const actorId = await getAuthenticatedActorIdOrNull();
+  if (!actorId) {
+    return IssueDetailPresenter.presentAuthRequired();
+  }
+
+  const { issueId } = await context.params;
+  const supabase = await createRequestSupabaseServerClient();
+
+  // Container: 데이터 페칭
+  const result = await loadIssueDetailContainer(supabase, issueId);
+
+  if (result.error) {
+    // Presenter: 에러 응답
+    return IssueDetailPresenter.presentError(result.error);
+  }
+
+  // Presenter: 성공 응답
+  if (!result.data) {
+    return IssueDetailPresenter.presentError(
+      new Error("Failed to load issue detail")
+    );
+  }
+
+  return IssueDetailPresenter.presentSuccess(result.data);
 }
 
 export async function PUT(request: Request, context: RouteContext) {
