@@ -91,6 +91,9 @@ export interface UpdateIssueInput {
 export interface IssuesRepository {
   createIssue(input: CreateIssueInput): Promise<Issue>;
   createComment(input: CreateCommentInput): Promise<Comment>;
+  getCommentById(commentId: string): Promise<Comment>;
+  updateComment(commentId: string, updates: { body: string }): Promise<Comment>;
+  deleteComment(commentId: string): Promise<void>;
   appendActivityLog(
     entry: Omit<ActivityLogEntry, "id" | "createdAt">
   ): Promise<ActivityLogEntry>;

@@ -351,6 +351,43 @@ export class SupabaseIssuesRepository implements IssuesRepository {
     return mapComment(assertDataPresent("Failed to create comment", data));
   }
 
+  async getCommentById(commentId: string): Promise<Comment> {
+    const { data, error } = await this.client
+      .from("comments")
+      .select()
+      .eq("id", commentId)
+      .single();
+
+    assertQuerySucceeded("Failed to get comment", error);
+
+    return mapComment(assertDataPresent("Failed to get comment", data));
+  }
+
+  async updateComment(
+    commentId: string,
+    updates: { body: string }
+  ): Promise<Comment> {
+    const { data, error } = await this.client
+      .from("comments")
+      .update({ body: updates.body })
+      .eq("id", commentId)
+      .select()
+      .single();
+
+    assertQuerySucceeded("Failed to update comment", error);
+
+    return mapComment(assertDataPresent("Failed to update comment", data));
+  }
+
+  async deleteComment(commentId: string): Promise<void> {
+    const { error } = await this.client
+      .from("comments")
+      .delete()
+      .eq("id", commentId);
+
+    assertQuerySucceeded("Failed to delete comment", error);
+  }
+
   async appendActivityLog(
     entry: Omit<ActivityLogEntry, "id" | "createdAt">
   ): Promise<ActivityLogEntry> {

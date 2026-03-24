@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, Ellipsis } from "lucide-react";
+import { ChevronLeft, Ellipsis, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -147,6 +147,8 @@ export function IssueDetailFullPageScreen({
   const [assigneeDraft, setAssigneeDraft] = useState(issue.assigneeId ?? "");
   const [dueDateDraft, setDueDateDraft] = useState(issue.dueDate);
   const [commentDraft, setCommentDraft] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingCommentBody, setEditingCommentBody] = useState("");
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [conflictInfo, setConflictInfo] = useState<{
@@ -296,6 +298,100 @@ export function IssueDetailFullPageScreen({
       } catch (error) {
         toast.error(
           error instanceof Error ? error.message : "Failed to create comment."
+        );
+      }
+    });
+  };
+
+  const startEditComment = (commentId: string, body: string) => {
+    setEditingCommentId(commentId);
+    setEditingCommentBody(body);
+  };
+
+  const cancelEditComment = () => {
+    setEditingCommentId(null);
+    setEditingCommentBody("");
+  };
+
+  const saveCommentEdit = async (commentId: string) => {
+    startSavingTransition(async () => {
+      try {
+        const response = await fetch(
+          `/internal/issues/${issueState.id}/comments/${commentId}`,
+          {
+            body: JSON.stringify({ body: editingCommentBody }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+            method: "PATCH",
+          }
+        );
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            getMutationErrorMessage({
+              actionLabel: "comment",
+              code: getMutationErrorCode(data),
+              fallbackMessage: getMutationErrorFallbackMessage(data),
+              status: response.status,
+            })
+          );
+        }
+
+        setCommentsState((current) =>
+          current.map((comment) =>
+            comment.id === commentId
+              ? { ...comment, body: data.comment.body }
+              : comment
+          )
+        );
+        cancelEditComment();
+        toast.success("Comment updated.");
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : "Failed to update comment."
+        );
+      }
+    });
+  };
+
+  const deleteComment = async (commentId: string) => {
+    if (!confirm("Are you sure you want to delete this comment?")) {
+      return;
+    }
+
+    startSavingTransition(async () => {
+      try {
+        const response = await fetch(
+          `/internal/issues/${issueState.id}/comments/${commentId}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            method: "DELETE",
+          }
+        );
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(
+            getMutationErrorMessage({
+              actionLabel: "comment",
+              code: getMutationErrorCode(data),
+              fallbackMessage: getMutationErrorFallbackMessage(data),
+              status: response.status,
+            })
+          );
+        }
+
+        setCommentsState((current) =>
+          current.filter((comment) => comment.id !== commentId)
+        );
+        toast.success("Comment deleted.");
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : "Failed to delete comment."
         );
       }
     });
@@ -756,15 +852,68 @@ export function IssueDetailFullPageScreen({
                           {memberNamesById[comment.authorId] ??
                             comment.authorId}
                         </span>
-                        <span className="text-[11px] text-[#6B7280]">
-                          {formatTimestamp(comment.createdAt)}
-                        </span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-[11px] text-[#6B7280]">
+                            {formatTimestamp(comment.createdAt)}
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <button
+                              className="rounded p-1 text-[#6B7280] transition-colors hover:bg-[#F3F4F6] hover:text-[#111318]"
+                              onClick={() =>
+                                startEditComment(comment.id, comment.body)
+                              }
+                              title="Edit comment"
+                              type="button"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              className="rounded p-1 text-[#6B7280] transition-colors hover:bg-[#FEF2F2] hover:text-[#991B1B]"
+                              onClick={() => deleteComment(comment.id)}
+                              title="Delete comment"
+                              type="button"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                      <div
-                        className="prose prose-sm max-w-none mt-2 text-[13px] leading-6 text-[#374151]"
-                        // biome-ignore lint/security/noDangerouslySetInnerHtml: User-generated markdown content
-                        dangerouslySetInnerHTML={{ __html: comment.body }}
-                      />
+                      {editingCommentId === comment.id ? (
+                        <div className="mt-3 flex flex-col gap-3">
+                          <MarkdownEditor
+                            value={editingCommentBody}
+                            onChange={setEditingCommentBody}
+                            placeholder="Edit your comment..."
+                            minHeight="96px"
+                          />
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              disabled={isSaving}
+                              onClick={cancelEditComment}
+                              size="sm"
+                              variant="secondary"
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              disabled={
+                                isSaving ||
+                                editingCommentBody.trim().length === 0
+                              }
+                              onClick={() => saveCommentEdit(comment.id)}
+                              size="sm"
+                            >
+                              Save
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          className="prose prose-sm max-w-none mt-2 text-[13px] leading-6 text-[#374151]"
+                          // biome-ignore lint/security/noDangerouslySetInnerHtml: User-generated markdown content
+                          dangerouslySetInnerHTML={{ __html: comment.body }}
+                        />
+                      )}
                     </div>
                   ))
                 ) : (
