@@ -51,12 +51,18 @@ export async function PATCH(request: Request, context: RouteContext) {
       );
     }
 
+    console.log("Updating comment:", commentId, "with body:", body.body.trim());
+
     const updatedComment = await repository.updateComment(commentId, {
       body: body.body.trim(),
     });
 
+    console.log("Updated comment:", updatedComment);
+
     return NextResponse.json({ comment: updatedComment });
   } catch (error) {
+    console.error("Error updating comment:", error);
+
     const message =
       error instanceof Error ? error.message : "Failed to update comment.";
     const code = inferMutationErrorCode(error);
