@@ -21,10 +21,11 @@ export async function loadIssueDetail(
   const issuesRepository = await getServerIssuesRepository();
   const projectsRepository = await getServerProjectsRepository();
 
-  const [project, issue, members] = await Promise.all([
+  const [project, issue, members, comments] = await Promise.all([
     projectsRepository.getProjectById(projectId),
     issuesRepository.getIssueById(issueId),
     projectsRepository.listProjectMembers(projectId),
+    issuesRepository.listCommentsByIssueId(issueId),
   ]);
 
   if (!project || !issue) {
@@ -47,7 +48,7 @@ export async function loadIssueDetail(
 
   return {
     activityLog: [], // TODO: Implement activity log loading
-    comments: [], // TODO: Implement comments loading
+    comments,
     assigneeOptions,
     memberNamesById,
     project,
