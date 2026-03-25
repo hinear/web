@@ -4,6 +4,10 @@ import { redirect } from "next/navigation";
 
 import { requireAuthRedirect } from "@/features/auth/actions/start-email-auth-action";
 import { getServerProjectsRepository } from "@/features/projects/repositories/server-projects-repository";
+import { sendProjectInvitationEmail } from "@/lib/email/send-project-invitation-email";
+import { findUserIdByEmail } from "@/lib/notifications/find-user-id-by-email";
+import { triggerProjectInvitedNotification } from "@/lib/notifications/triggers";
+import { getRequestOrigin } from "@/lib/request-origin";
 import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
 
 function getInvitationActionNotice(action: "resend" | "revoke", email: string) {
@@ -28,7 +32,38 @@ export async function manageProjectInvitationAction(
   const repository = await getServerProjectsRepository();
 
   if (action === "resend") {
-    await repository.resendProjectInvitation(invitationId);
+    const invitation = await repository.resendProjectInvitation(invitationId);
+    const project = await repository.getProjectById(projectId);
+    const origin = await getRequestOrigin();
+    const invitedUserId = await findUserIdByEmail(invitation.email);
+    const emailSent = await sendProjectInvitationEmail({
+      expiresAt: invitation.expiresAt,
+      inviteLink: `${origin}/invite/${invitation.token}`,
+      invitedBy: actorId,
+      projectName: project?.name ?? "your project",
+      to: invitation.email,
+    });
+
+    triggerProjectInvitedNotification({
+      invitedBy: actorId,
+      projectId,
+      projectName: project?.name ?? "your project",
+      role: invitation.role,
+      targetUserIds: invitedUserId ? [invitedUserId] : [],
+    }).catch((err) => {
+      console.error(
+        "[Notification] Failed to resend project invite push:",
+        err
+      );
+    });
+
+    if (!emailSent) {
+      return redirect(
+        `/projects/${projectId}?inviteNotice=${encodeURIComponent(
+          `Invitation was refreshed for ${invitationEmail}, but Gmail SMTP is not configured. Share the invite link manually from the pending invitations list.`
+        )}#project-access`
+      );
+    }
   } else if (action === "revoke") {
     await repository.revokeProjectInvitation(invitationId);
   } else {

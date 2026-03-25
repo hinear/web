@@ -5,6 +5,10 @@ import { redirect } from "next/navigation";
 import { requireAuthRedirect } from "@/features/auth/actions/start-email-auth-action";
 import { getInviteProjectMemberErrorMessage } from "@/features/projects/lib/invite-project-member-error-message";
 import { getServerProjectsRepository } from "@/features/projects/repositories/server-projects-repository";
+import { sendProjectInvitationEmail } from "@/lib/email/send-project-invitation-email";
+import { findUserIdByEmail } from "@/lib/notifications/find-user-id-by-email";
+import { triggerProjectInvitedNotification } from "@/lib/notifications/triggers";
+import { getRequestOrigin } from "@/lib/request-origin";
 import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
 
 function readInviteEmail(formData: FormData): string {
@@ -24,11 +28,40 @@ export async function inviteProjectMemberAction(
   const inviteEmail = readInviteEmail(formData);
 
   try {
-    await (await getServerProjectsRepository()).inviteProjectMember({
+    const repository = await getServerProjectsRepository();
+    const invitation = await repository.inviteProjectMember({
       email: inviteEmail,
       invitedBy: actorId,
       projectId,
     });
+    const project = await repository.getProjectById(projectId);
+    const origin = await getRequestOrigin();
+    const invitedUserId = await findUserIdByEmail(invitation.email);
+    const emailSent = await sendProjectInvitationEmail({
+      expiresAt: invitation.expiresAt,
+      inviteLink: `${origin}/invite/${invitation.token}`,
+      invitedBy: actorId,
+      projectName: project?.name ?? "your project",
+      to: invitation.email,
+    });
+
+    triggerProjectInvitedNotification({
+      invitedBy: actorId,
+      projectId,
+      projectName: project?.name ?? "your project",
+      role: invitation.role,
+      targetUserIds: invitedUserId ? [invitedUserId] : [],
+    }).catch((err) => {
+      console.error("[Notification] Failed to send project invite push:", err);
+    });
+
+    if (!emailSent) {
+      return redirect(
+        `/projects/${projectId}?inviteNotice=${encodeURIComponent(
+          `Invitation created for ${inviteEmail}, but Gmail SMTP is not configured. Share the invite link manually from the pending invitations list.`
+        )}#project-access`
+      );
+    }
 
     return redirect(
       `/projects/${projectId}?inviteSent=1&inviteEmail=${encodeURIComponent(inviteEmail)}#project-access`
