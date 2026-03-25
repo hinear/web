@@ -6,6 +6,7 @@ import * as React from "react";
 import { Button } from "@/components/atoms/Button";
 import { Field } from "@/components/atoms/Field";
 import { Select } from "@/components/atoms/Select";
+import { DueDateField } from "@/components/molecules/DueDateField";
 import { MarkdownEditor } from "@/components/molecules/MarkdownEditor";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,7 @@ interface CreateIssueTabletModalProps
   action?: React.ComponentProps<"form">["action"];
   assigneeOptions?: SelectOption[];
   defaultDescription?: string;
+  defaultDueDate?: string | null;
   defaultLabels?: string;
   defaultPriority?: string;
   defaultStatus?: string;
@@ -57,6 +59,7 @@ export function CreateIssueTabletModal({
   assigneeOptions = DEFAULT_ASSIGNEE_OPTIONS,
   className,
   defaultDescription = "# 요약\n이슈의 핵심 내용을 짧게 적어주세요...\n\n- 기대 동작\n- 현재 문제\n- 배포 메모",
+  defaultDueDate = null,
   defaultLabels = "",
   defaultPriority = "No Priority",
   defaultStatus = "Triage",
@@ -69,6 +72,7 @@ export function CreateIssueTabletModal({
   ...props
 }: CreateIssueTabletModalProps) {
   const [description, setDescription] = React.useState(defaultDescription);
+  const [dueDate, setDueDate] = React.useState<string | null>(defaultDueDate);
 
   return (
     <div
@@ -118,7 +122,7 @@ export function CreateIssueTabletModal({
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <label
                 className="text-[13px] leading-[13px] font-[var(--app-font-weight-500)] text-[var(--app-color-black)]"
@@ -173,6 +177,21 @@ export function CreateIssueTabletModal({
                   </option>
                 ))}
               </Select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <DueDateField
+                value={dueDate}
+                onChange={setDueDate}
+                label="Due Date"
+                id="create-issue-due-date"
+              />
+              <input
+                id="create-issue-due-date"
+                name="dueDate"
+                type="hidden"
+                value={dueDate ?? ""}
+              />
             </div>
           </div>
 
