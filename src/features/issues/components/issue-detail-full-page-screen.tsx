@@ -11,7 +11,10 @@ import { Field } from "@/components/atoms/Field";
 import { Select } from "@/components/atoms/Select";
 import { ConflictDialog } from "@/components/molecules/ConflictDialog";
 import { DueDateField } from "@/components/molecules/DueDateField";
+import { LabelSelector } from "@/components/molecules/LabelSelector";
 import { MarkdownEditor } from "@/components/molecules/MarkdownEditor";
+import { createLabelAction } from "@/features/issues/actions/create-label-action";
+import { updateIssueLabelsAction } from "@/features/issues/actions/update-issue-labels-action";
 import {
   getMutationErrorCode,
   getMutationErrorFallbackMessage,
@@ -22,6 +25,7 @@ import type {
   Comment,
   ConflictError,
   Issue,
+  Label,
 } from "@/features/issues/types";
 import { ISSUE_PRIORITIES, ISSUE_STATUSES } from "@/features/issues/types";
 
@@ -30,6 +34,7 @@ interface IssueDetailFullPageScreenProps {
     label: string;
     value: string;
   }>;
+  availableLabels?: Label[];
   boardHref?: string;
   issue: Issue;
   comments?: Comment[];
@@ -132,6 +137,7 @@ function formatRelativeTime(value: string) {
 export function IssueDetailFullPageScreen({
   activityLog = EMPTY_ACTIVITY_LOG,
   assigneeOptions = [],
+  availableLabels = [],
   boardHref,
   comments = EMPTY_COMMENTS,
   issue,
@@ -146,6 +152,9 @@ export function IssueDetailFullPageScreen({
   const [priorityDraft, setPriorityDraft] = useState(issue.priority);
   const [assigneeDraft, setAssigneeDraft] = useState(issue.assigneeId ?? "");
   const [dueDateDraft, setDueDateDraft] = useState(issue.dueDate);
+  const [selectedLabelIds, setSelectedLabelIds] = useState(
+    issue.labels.map((label) => label.id)
+  );
   const [commentDraft, setCommentDraft] = useState("");
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingCommentBody, setEditingCommentBody] = useState("");
@@ -167,6 +176,7 @@ export function IssueDetailFullPageScreen({
     setPriorityDraft(issue.priority);
     setAssigneeDraft(issue.assigneeId ?? "");
     setDueDateDraft(issue.dueDate);
+    setSelectedLabelIds(issue.labels.map((label) => label.id));
   }, [issue, comments, activityLog]);
 
   const hasPendingChanges =
@@ -175,13 +185,39 @@ export function IssueDetailFullPageScreen({
     statusDraft !== issueState.status ||
     priorityDraft !== issueState.priority ||
     assigneeDraft.trim() !== (issueState.assigneeId ?? "") ||
-    dueDateDraft !== issueState.dueDate;
+    dueDateDraft !== issueState.dueDate ||
+    // 라벨 변경 확인 (Set으로 비교)
+    JSON.stringify([...selectedLabelIds].sort()) !==
+      JSON.stringify([...issueState.labels.map((l) => l.id)].sort());
   const assigneeLabel =
     memberNamesById[issueState.assigneeId ?? ""] ??
     issueState.assigneeId ??
     "Unassigned";
   const lastEditedByLabel =
     memberNamesById[issueState.updatedBy] ?? issueState.updatedBy;
+
+  const handleLabelToggle = (labelId: string) => {
+    setSelectedLabelIds((current) =>
+      current.includes(labelId)
+        ? current.filter((id) => id !== labelId)
+        : [...current, labelId]
+    );
+  };
+
+  const handleCreateLabel = async (name: string) => {
+    const result = await createLabelAction({
+      projectId: issue.projectId,
+      name,
+    });
+
+    if (result.success && result.label) {
+      toast.success(`Label "${name}" created`);
+      // 새 라벨을 자동으로 선택
+      setSelectedLabelIds((current) => [...current, result.label.id]);
+    } else {
+      toast.error(result.error || "Failed to create label");
+    }
+  };
 
   const saveAllChanges = () => {
     setErrorMessage(null);
@@ -190,6 +226,17 @@ export function IssueDetailFullPageScreen({
 
     startSavingTransition(async () => {
       try {
+        // 라벨 업데이트 (별도 API 호출)
+        const labelResponse = await updateIssueLabelsAction({
+          issueId: issueState.id,
+          projectId: issueState.projectId,
+          labelIds: selectedLabelIds,
+        });
+
+        if (!labelResponse.success) {
+          throw new Error(labelResponse.error || "Failed to update labels");
+        }
+
         const response = await fetch(
           `/internal/issues/${issueState.id}/detail`,
           {
@@ -248,6 +295,8 @@ export function IssueDetailFullPageScreen({
         setPriorityDraft(data.issue.priority);
         setAssigneeDraft(data.issue.assigneeId ?? "");
         setDueDateDraft(data.issue.dueDate);
+        // 라벨은 이미 updateIssueLabelsAction에서 업데이트됨
+        setSelectedLabelIds(data.issue.labels.map((label) => label.id));
         toast.success("Changes saved.");
       } catch (error) {
         toast.error(
@@ -741,28 +790,19 @@ export function IssueDetailFullPageScreen({
                 />
               </div>
 
-              <div className="mt-4 flex flex-wrap gap-2">
-                {issueState.labels.length > 0 ? (
-                  issueState.labels.map((label) => (
-                    <Chip
-                      className="border"
-                      key={label.id}
-                      size="sm"
-                      style={{
-                        backgroundColor: `${label.color}12`,
-                        borderColor: `${label.color}33`,
-                        color: label.color,
-                      }}
-                      variant="neutral"
-                    >
-                      {label.name}
-                    </Chip>
-                  ))
-                ) : (
-                  <Chip size="sm" variant="outline">
-                    No labels
-                  </Chip>
-                )}
+              <div className="mt-4">
+                <LabelSelector
+                  availableLabels={availableLabels.map((label) => ({
+                    id: label.id,
+                    name: label.name,
+                    color: label.color,
+                  }))}
+                  selectedLabelIds={selectedLabelIds}
+                  onLabelToggle={handleLabelToggle}
+                  onCreateLabel={handleCreateLabel}
+                  disabled={isSaving}
+                  placeholder="Select labels"
+                />
               </div>
             </section>
 
