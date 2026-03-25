@@ -104,18 +104,6 @@ function getPriorityTone(priority: Issue["priority"]) {
   return "text-[#6B7280]";
 }
 
-function getFailureMemo(issue: Issue) {
-  if (issue.priority === "Urgent" || issue.priority === "High") {
-    return "High-priority issue. Validate edge cases and rollback notes before shipping.";
-  }
-
-  if (issue.status === "In Progress") {
-    return "Implementation in progress. Keep owner notes and verification scope visible for handoff.";
-  }
-
-  return "Capture delivery risk, QA notes, and follow-up items here when the issue gets closer to release.";
-}
-
 function formatRelativeTime(value: string) {
   const diffInHours = Math.round(
     (new Date(value).getTime() - Date.now()) / (1000 * 60 * 60)
@@ -807,19 +795,9 @@ export function IssueDetailFullPageScreen({
             </section>
 
             <section className="rounded-[16px] border border-[#E6E8EC] bg-white p-4">
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-[14px] font-[var(--app-font-weight-700)] text-[#111318]">
-                  Description
-                </h2>
-                <div className="flex items-center gap-2">
-                  <Chip size="sm" variant="outline">
-                    Product
-                  </Chip>
-                  <Chip size="sm" variant="outline">
-                    Editing
-                  </Chip>
-                </div>
-              </div>
+              <h2 className="text-[14px] font-[var(--app-font-weight-700)] text-[#111318]">
+                Description
+              </h2>
 
               <MarkdownEditor
                 value={descriptionDraft}
@@ -1004,15 +982,6 @@ export function IssueDetailFullPageScreen({
                   </div>
                 )}
               </div>
-            </section>
-
-            <section className="rounded-[16px] border border-[#FDBA74] bg-[#FFF7ED] p-4">
-              <h2 className="text-[14px] font-[var(--app-font-weight-700)] text-[#9A3412]">
-                Failure / fallback & Memo
-              </h2>
-              <p className="mt-3 text-[12px] leading-5 text-[#9A3412]">
-                {getFailureMemo(issueState)}
-              </p>
             </section>
           </aside>
         </section>
