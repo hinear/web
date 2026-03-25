@@ -1,9 +1,9 @@
 "use server";
 
-import { createClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import { SupabaseLabelsRepository } from "@/features/issues/repositories/supabase-labels-repository";
 import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
+import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
 
 export async function createLabelAction(input: {
   projectId: string;
@@ -15,11 +15,7 @@ export async function createLabelAction(input: {
     redirect("/auth/signin");
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
-  );
-
+  const supabase = await createRequestSupabaseServerClient();
   const repository = new SupabaseLabelsRepository(supabase);
 
   try {
