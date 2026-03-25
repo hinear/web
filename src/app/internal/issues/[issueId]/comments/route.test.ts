@@ -8,12 +8,14 @@ const {
   getAuthenticatedActorIdOrNullMock,
   getIssueByIdMock,
   getServerIssuesRepositoryMock,
+  triggerCommentAddedNotificationMock,
 } = vi.hoisted(() => ({
   appendActivityLogMock: vi.fn(),
   createCommentMock: vi.fn(),
   getAuthenticatedActorIdOrNullMock: vi.fn(),
   getIssueByIdMock: vi.fn(),
   getServerIssuesRepositoryMock: vi.fn(),
+  triggerCommentAddedNotificationMock: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
@@ -42,11 +44,16 @@ vi.mock("@/features/issues/repositories/server-issues-repository", () => ({
   getServerIssuesRepository: getServerIssuesRepositoryMock,
 }));
 
+vi.mock("@/lib/notifications/triggers", () => ({
+  triggerCommentAddedNotification: triggerCommentAddedNotificationMock,
+}));
+
 import { POST } from "@/app/internal/issues/[issueId]/comments/route";
 
 describe("POST /internal/issues/[issueId]/comments", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    triggerCommentAddedNotificationMock.mockResolvedValue(undefined);
   });
 
   it("rejects empty comments", async () => {
@@ -130,6 +137,19 @@ describe("POST /internal/issues/[issueId]/comments", () => {
       body: "Looks good.",
       issueId: "issue-1",
       projectId: "project-1",
+    });
+    expect(triggerCommentAddedNotificationMock).toHaveBeenCalledWith({
+      actor: {
+        id: "user-1",
+        name: "사용자",
+      },
+      commentAuthor: "user-1",
+      commentId: "comment-1",
+      commentPreview: "Looks good.",
+      issueId: "issue-1",
+      issueIdentifier: "WEB-2",
+      projectId: "project-1",
+      targetUserIds: [],
     });
     await expect(response.json()).resolves.toEqual({
       activityEntry,

@@ -142,6 +142,9 @@ export async function PUT(request: Request, context: RouteContext) {
           id: actorId,
           name: "사용자", // TODO: 실제 사용자 이름으로 변경
         },
+        targetUserIds: [issue.assigneeId, currentIssue.createdBy].filter(
+          (userId): userId is string => Boolean(userId && userId !== actorId)
+        ),
       }).catch((err) => {
         console.error(
           "[Notification] Failed to send status change notification:",
@@ -163,6 +166,9 @@ export async function PUT(request: Request, context: RouteContext) {
           id: actorId,
           name: "사용자", // TODO: 실제 사용자 이름으로 변경
         },
+        targetUserIds: [updates.assigneeId, currentIssue.assigneeId].filter(
+          (userId): userId is string => Boolean(userId && userId !== actorId)
+        ),
       }).catch((err) => {
         console.error(
           "[Notification] Failed to send assignment notification:",

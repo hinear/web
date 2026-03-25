@@ -6,6 +6,11 @@ export interface PushSubscription {
   };
 }
 
+export interface UserPushSubscription {
+  subscription: PushSubscription;
+  userId: string;
+}
+
 export interface NotificationData {
   type:
     | "issue_assigned"
@@ -21,6 +26,7 @@ export interface NotificationData {
     id: string;
     name: string;
   };
+  targetUserIds?: string[];
   data?: Record<string, unknown>;
 }
 

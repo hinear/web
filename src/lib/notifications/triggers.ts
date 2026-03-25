@@ -1,16 +1,18 @@
-import { createClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import webpush from "web-push";
 import { SupabaseNotificationPreferencesRepository } from "@/features/notifications/repositories/supabase-notification-preferences-repository";
 import { SupabasePushSubscriptionsRepository } from "@/features/notifications/repositories/supabase-push-subscriptions-repository";
 import type {
   NotificationData,
-  PushSubscription,
+  UserPushSubscription,
 } from "@/features/notifications/types";
+import { createServiceRoleSupabaseClient } from "@/lib/supabase/server-client";
 
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
+const VAPID_PUBLIC_KEY =
+  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ??
+  process.env.NOTIFICATION_PUBLIC_KEY ??
+  "";
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY ?? "";
-const NOTIFICATION_PUBLIC_KEY = process.env.NOTIFICATION_PUBLIC_KEY ?? "";
 
 webpush.setVapidDetails(
   "mailto:notifications@hinear.local",
@@ -22,12 +24,12 @@ webpush.setVapidDetails(
  * 알림 데이터로부터 대상 사용자 ID 목록을 추출합니다
  */
 function extractTargetUserIds(data: NotificationData): string[] {
-  if (data.actor?.id) {
-    return [data.actor.id];
+  if (data.targetUserIds && data.targetUserIds.length > 0) {
+    return [...new Set(data.targetUserIds.filter(Boolean))];
   }
 
-  if (data.type === "project_invited") {
-    return [];
+  if (data.actor?.id) {
+    return [data.actor.id];
   }
 
   return [];
@@ -37,25 +39,21 @@ function extractTargetUserIds(data: NotificationData): string[] {
  * 알림 설정에 따라 구독을 필터링합니다
  */
 async function filterSubscriptionsByPreferences(
-  subscriptions: PushSubscription[],
-  userIds: string[],
+  subscriptions: UserPushSubscription[],
   notificationType: NotificationData["type"],
   preferencesRepo: SupabaseNotificationPreferencesRepository
-): Promise<PushSubscription[]> {
-  const filtered: PushSubscription[] = [];
+): Promise<UserPushSubscription[]> {
+  const filtered: UserPushSubscription[] = [];
 
-  for (let i = 0; i < userIds.length; i++) {
-    const userId = userIds[i];
-    const subscription = subscriptions[i];
-
-    if (!subscription) continue;
+  for (const subscriptionRecord of subscriptions) {
+    const userId = subscriptionRecord.userId;
 
     // 사용자 알림 설정 조회
     const preferences = await preferencesRepo.getPreferences(userId);
 
     // 설정이 없으면 기본적으로 모두 알림 허용
     if (!preferences) {
-      filtered.push(subscription);
+      filtered.push(subscriptionRecord);
       continue;
     }
 
@@ -79,7 +77,7 @@ async function filterSubscriptionsByPreferences(
     }
 
     if (enabled) {
-      filtered.push(subscription);
+      filtered.push(subscriptionRecord);
     }
   }
 
@@ -162,10 +160,7 @@ async function sendNotification(data: NotificationData): Promise<void> {
       return;
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
-    );
+    const supabase = createServiceRoleSupabaseClient();
 
     const subscriptionRepo = new SupabasePushSubscriptionsRepository(supabase);
     const subscriptions =
@@ -177,17 +172,16 @@ async function sendNotification(data: NotificationData): Promise<void> {
 
     const filteredSubscriptions = await filterSubscriptionsByPreferences(
       subscriptions,
-      targetUserIds,
       data.type,
       preferencesRepo
     );
 
-    for (const subscription of filteredSubscriptions) {
+    for (const { subscription } of filteredSubscriptions) {
       try {
         await webpush.sendNotification(subscription, JSON.stringify(payload), {
           vapidDetails: {
             subject: "mailto:notifications@hinear.local",
-            publicKey: NOTIFICATION_PUBLIC_KEY,
+            publicKey: VAPID_PUBLIC_KEY,
             privateKey: VAPID_PRIVATE_KEY,
           },
           TTL: 3600,
@@ -213,6 +207,7 @@ export async function triggerIssueAssignedNotification(data: {
   issueIdentifier: string;
   projectId: string;
   actor: { id: string; name: string };
+  targetUserIds?: string[];
 }): Promise<void> {
   const notificationData: NotificationData = {
     type: "issue_assigned",
@@ -220,6 +215,7 @@ export async function triggerIssueAssignedNotification(data: {
     issueIdentifier: data.issueIdentifier,
     projectId: data.projectId,
     actor: data.actor,
+    targetUserIds: data.targetUserIds,
   };
 
   await sendNotification(notificationData);
@@ -235,6 +231,7 @@ export async function triggerIssueStatusChangedNotification(data: {
   previousStatus: string;
   newStatus: string;
   actor?: { id: string; name: string };
+  targetUserIds?: string[];
 }): Promise<void> {
   const notificationData: NotificationData = {
     type: "issue_status_changed",
@@ -242,6 +239,7 @@ export async function triggerIssueStatusChangedNotification(data: {
     issueIdentifier: data.issueIdentifier,
     projectId: data.projectId,
     actor: data.actor,
+    targetUserIds: data.targetUserIds,
     data: {
       previousStatus: data.previousStatus,
       newStatus: data.newStatus,
@@ -262,6 +260,7 @@ export async function triggerCommentAddedNotification(data: {
   commentAuthor: string;
   commentPreview: string;
   actor: { id: string; name: string };
+  targetUserIds?: string[];
 }): Promise<void> {
   const notificationData: NotificationData = {
     type: "comment_added",
@@ -269,6 +268,7 @@ export async function triggerCommentAddedNotification(data: {
     issueIdentifier: data.issueIdentifier,
     projectId: data.projectId,
     actor: data.actor,
+    targetUserIds: data.targetUserIds,
     data: {
       commentId: data.commentId,
       commentAuthor: data.commentAuthor,
@@ -287,11 +287,13 @@ export async function triggerProjectInvitedNotification(data: {
   projectName: string;
   invitedBy: string;
   role: "owner" | "member";
+  targetUserIds?: string[];
 }): Promise<void> {
   const notificationData: NotificationData = {
     type: "project_invited",
     projectId: data.projectId,
     projectName: data.projectName,
+    targetUserIds: data.targetUserIds,
     data: {
       invitedBy: data.invitedBy,
       role: data.role,

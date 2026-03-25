@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { PushSubscription } from "../types";
+import type { PushSubscription, UserPushSubscription } from "../types";
 
 export interface PushSubscriptionRecord {
   id: string;
@@ -99,12 +99,14 @@ export class SupabasePushSubscriptionsRepository {
   /**
    * 특정 사용자들의 활성 구독을 모두 조회합니다
    */
-  async getActiveSubscriptions(userIds: string[]): Promise<PushSubscription[]> {
+  async getActiveSubscriptions(
+    userIds: string[]
+  ): Promise<UserPushSubscription[]> {
     if (userIds.length === 0) return [];
 
     const { data, error } = await this.supabase
       .from("push_subscriptions")
-      .select("endpoint, p256dh_key, auth_key")
+      .select("user_id, endpoint, p256dh_key, auth_key")
       .in("user_id", userIds)
       .eq("is_active", true);
 
@@ -115,11 +117,14 @@ export class SupabasePushSubscriptionsRepository {
 
     return (
       data?.map((record) => ({
-        endpoint: record.endpoint,
-        keys: {
-          p256dh: record.p256dh_key,
-          auth: record.auth_key,
+        subscription: {
+          endpoint: record.endpoint,
+          keys: {
+            p256dh: record.p256dh_key,
+            auth: record.auth_key,
+          },
         },
+        userId: record.user_id,
       })) ?? []
     );
   }

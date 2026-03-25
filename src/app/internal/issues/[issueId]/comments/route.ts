@@ -4,6 +4,7 @@ import {
   inferMutationErrorCode,
 } from "@/features/issues/lib/mutation-error-messages";
 import { getServerIssuesRepository } from "@/features/issues/repositories/server-issues-repository";
+import { triggerCommentAddedNotification } from "@/lib/notifications/triggers";
 import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
 
 interface RouteContext {
@@ -101,6 +102,24 @@ export async function POST(request: Request, context: RouteContext) {
       from: null,
       to: null,
       summary: "댓글을 남겼습니다",
+    });
+
+    triggerCommentAddedNotification({
+      issueId,
+      issueIdentifier: issue.identifier,
+      projectId: issue.projectId,
+      commentId: comment.id,
+      commentAuthor: actorId,
+      commentPreview: comment.body.slice(0, 120),
+      actor: {
+        id: actorId,
+        name: "사용자",
+      },
+      targetUserIds: [issue.assigneeId, issue.createdBy].filter(
+        (userId): userId is string => Boolean(userId && userId !== actorId)
+      ),
+    }).catch((err) => {
+      console.error("[Notification] Failed to send comment notification:", err);
     });
 
     return NextResponse.json(

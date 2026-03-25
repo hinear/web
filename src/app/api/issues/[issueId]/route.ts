@@ -1,5 +1,6 @@
-import { type NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
+import { apiError, apiSuccess } from "@/app/api/_lib/response";
 import { loadIssueDetail } from "@/features/issues/lib/issue-detail-loader";
 
 export async function GET(
@@ -8,14 +9,11 @@ export async function GET(
 ) {
   try {
     const { issueId } = await params;
-    const searchParams = request.nextUrl.searchParams;
+    const searchParams = new URL(request.url).searchParams;
     const projectId = searchParams.get("projectId");
 
     if (!projectId) {
-      return NextResponse.json(
-        { error: "projectId is required" },
-        { status: 400 }
-      );
+      return apiError("projectId is required", 400);
     }
 
     const data = await loadIssueDetail(
@@ -24,12 +22,9 @@ export async function GET(
       `/projects/${projectId}?issueId=${issueId}`
     );
 
-    return NextResponse.json(data);
+    return apiSuccess(data);
   } catch (error) {
     console.error("Error loading issue:", error);
-    return NextResponse.json(
-      { error: "Failed to load issue" },
-      { status: 500 }
-    );
+    return apiError("Failed to load issue", 500);
   }
 }

@@ -15,12 +15,12 @@ export function NotificationPermissionButton() {
 
   const requestPermission = async () => {
     if (!("Notification" in window)) {
-      alert("이 브라우저는 알림을 지원하지 않습니다.");
+      alert("This browser does not support notifications.");
       return;
     }
 
     if (!("serviceWorker" in navigator)) {
-      alert("이 브라우저는 Service Worker를 지원하지 않습니다.");
+      alert("This browser does not support Service Workers.");
       return;
     }
 
@@ -37,12 +37,12 @@ export function NotificationPermissionButton() {
           await subscribeToPush(registration);
         } catch (swError) {
           console.error("[Notification] Service Worker not ready:", swError);
-          alert("Service Worker를 초기화하는 데 실패했습니다.");
+          alert("Failed to initialize the Service Worker.");
         }
       }
     } catch (error) {
-      console.error("알림 권한 요청 실패:", error);
-      alert("알림 권한 요청에 실패했습니다.");
+      console.error("Failed to request notification permission:", error);
+      alert("Failed to request notification permission.");
     } finally {
       setIsLoading(false);
     }
@@ -52,10 +52,10 @@ export function NotificationPermissionButton() {
     <div className="flex items-center gap-2 rounded-lg border border-[var(--app-color-border-soft)] bg-[var(--app-color-surface-100)] p-3">
       <div className="flex-1">
         <p className="text-sm font-semibold text-[var(--app-color-ink-900)]">
-          알림 설정
+          Notification Settings
         </p>
         <p className="text-xs text-[var(--app-color-gray-500)]">
-          이슈 변경 사항을 실시간으로 받아보세요
+          Get real-time updates about changes to your issues
         </p>
       </div>
       <button
@@ -72,10 +72,10 @@ export function NotificationPermissionButton() {
         `}
       >
         {permission === "granted"
-          ? "알림 활성화됨"
+          ? "Notifications Enabled"
           : isLoading
-            ? "요청 중..."
-            : "알림 켜기"}
+            ? "Requesting..."
+            : "Enable Notifications"}
       </button>
     </div>
   );

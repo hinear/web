@@ -1,16 +1,19 @@
-import { createClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import webpush from "web-push";
+import { apiError, apiSuccess } from "@/app/api/_lib/response";
 import { SupabaseNotificationPreferencesRepository } from "@/features/notifications/repositories/supabase-notification-preferences-repository";
 import { SupabasePushSubscriptionsRepository } from "@/features/notifications/repositories/supabase-push-subscriptions-repository";
 import type {
   NotificationData,
-  PushSubscription,
+  UserPushSubscription,
 } from "@/features/notifications/types";
+import { createServiceRoleSupabaseClient } from "@/lib/supabase/server-client";
 
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
+const VAPID_PUBLIC_KEY =
+  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ??
+  process.env.NOTIFICATION_PUBLIC_KEY ??
+  "";
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY ?? "";
-const NOTIFICATION_PUBLIC_KEY = process.env.NOTIFICATION_PUBLIC_KEY ?? "";
 
 webpush.setVapidDetails(
   "mailto:notifications@hinear.local",
@@ -29,7 +32,7 @@ export async function POST(request: Request) {
     const targetUserIds = extractTargetUserIds(notificationData);
 
     if (targetUserIds.length === 0) {
-      return Response.json({
+      return apiSuccess({
         success: true,
         sent: 0,
         failed: 0,
@@ -37,11 +40,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // Supabase 클라이언트 생성
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
-    );
+    const supabase = createServiceRoleSupabaseClient();
 
     // Repository로부터 활성 구독 조회
     const subscriptionRepo = new SupabasePushSubscriptionsRepository(supabase);
@@ -56,7 +55,6 @@ export async function POST(request: Request) {
     // 필터링된 구독자 목록 (알림 설정 고려)
     const filteredSubscriptions = await filterSubscriptionsByPreferences(
       subscriptions,
-      targetUserIds,
       notificationData.type,
       preferencesRepo
     );
@@ -65,12 +63,12 @@ export async function POST(request: Request) {
     let successCount = 0;
     let failCount = 0;
 
-    for (const subscription of filteredSubscriptions) {
+    for (const { subscription } of filteredSubscriptions) {
       try {
         await webpush.sendNotification(subscription, JSON.stringify(payload), {
           vapidDetails: {
             subject: "mailto:notifications@hinear.local",
-            publicKey: NOTIFICATION_PUBLIC_KEY,
+            publicKey: VAPID_PUBLIC_KEY,
             privateKey: VAPID_PRIVATE_KEY,
           },
           TTL: 3600,
@@ -89,17 +87,14 @@ export async function POST(request: Request) {
       );
     }
 
-    return Response.json({
+    return apiSuccess({
       success: true,
       sent: successCount,
       failed: failCount,
     });
   } catch (error) {
     console.error("Notification error:", error);
-    return Response.json(
-      { success: false, error: "Failed to send notification" },
-      { status: 500 }
-    );
+    return apiError("Failed to send notification", 500);
   }
 }
 
@@ -107,19 +102,12 @@ export async function POST(request: Request) {
  * 알림 데이터로부터 대상 사용자 ID 목록을 추출합니다
  */
 function extractTargetUserIds(data: NotificationData): string[] {
-  // 이슈 관련 알림: 이슈 담당자, 프로젝트 멤버 등
-  // 프로젝트 초대: 초대받은 사용자
-  // 실제 구현에서는 DB 조회가 필요할 수 있음
-  // 지금은 간단히 data에 포함된 actor 등을 사용
-  if (data.actor?.id) {
-    return [data.actor.id];
+  if (data.targetUserIds && data.targetUserIds.length > 0) {
+    return [...new Set(data.targetUserIds.filter(Boolean))];
   }
 
-  // 프로젝트 초대의 경우 별도 처리 필요
-  if (data.type === "project_invited") {
-    // 초대받은 사용자 ID를 반환해야 함
-    // 현재는 데이터 구조상 확인 필요
-    return [];
+  if (data.actor?.id) {
+    return [data.actor.id];
   }
 
   return [];
@@ -129,14 +117,47 @@ function extractTargetUserIds(data: NotificationData): string[] {
  * 알림 설정에 따라 구독을 필터링합니다
  */
 async function filterSubscriptionsByPreferences(
-  subscriptions: PushSubscription[],
-  _userIds: string[],
-  _notificationType: NotificationData["type"],
-  _preferencesRepo: SupabaseNotificationPreferencesRepository
-): Promise<PushSubscription[]> {
-  // 간단한 구현: 모든 구독을 반환 (실제로는 사용자별 설정 확인)
-  // TODO: 사용자별 알림 설정 확인 및 필터링
-  return subscriptions;
+  subscriptions: UserPushSubscription[],
+  notificationType: NotificationData["type"],
+  preferencesRepo: SupabaseNotificationPreferencesRepository
+): Promise<UserPushSubscription[]> {
+  const filtered: UserPushSubscription[] = [];
+
+  for (const subscriptionRecord of subscriptions) {
+    const preferences = await preferencesRepo.getPreferences(
+      subscriptionRecord.userId
+    );
+
+    if (!preferences) {
+      filtered.push(subscriptionRecord);
+      continue;
+    }
+
+    let enabled = false;
+
+    switch (notificationType) {
+      case "issue_assigned":
+        enabled = preferences.issue_assigned ?? true;
+        break;
+      case "issue_status_changed":
+        enabled = preferences.issue_status_changed ?? true;
+        break;
+      case "comment_added":
+        enabled = preferences.comment_added ?? true;
+        break;
+      case "project_invited":
+        enabled = preferences.project_invited ?? true;
+        break;
+      default:
+        enabled = true;
+    }
+
+    if (enabled) {
+      filtered.push(subscriptionRecord);
+    }
+  }
+
+  return filtered;
 }
 
 function createNotificationPayload(data: NotificationData) {

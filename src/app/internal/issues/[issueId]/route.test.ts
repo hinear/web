@@ -7,12 +7,16 @@ const {
   getIssueByIdMock,
   getAuthenticatedActorIdOrNullMock,
   getServerIssuesRepositoryMock,
+  triggerIssueAssignedNotificationMock,
+  triggerIssueStatusChangedNotificationMock,
   updateIssueMock,
 } = vi.hoisted(() => ({
   createRequestSupabaseServerClientMock: vi.fn(),
   getIssueByIdMock: vi.fn(),
   getAuthenticatedActorIdOrNullMock: vi.fn(),
   getServerIssuesRepositoryMock: vi.fn(),
+  triggerIssueAssignedNotificationMock: vi.fn(),
+  triggerIssueStatusChangedNotificationMock: vi.fn(),
   updateIssueMock: vi.fn(),
 }));
 
@@ -28,6 +32,12 @@ vi.mock("@/features/issues/repositories/server-issues-repository", () => ({
 
 vi.mock("@/lib/supabase/server-client", () => ({
   createRequestSupabaseServerClient: createRequestSupabaseServerClientMock,
+}));
+
+vi.mock("@/lib/notifications/triggers", () => ({
+  triggerIssueAssignedNotification: triggerIssueAssignedNotificationMock,
+  triggerIssueStatusChangedNotification:
+    triggerIssueStatusChangedNotificationMock,
 }));
 
 vi.mock("@/features/issues/containers/load-issue-detail-container", () => ({
@@ -47,6 +57,8 @@ import { PUT } from "@/app/internal/issues/[issueId]/route";
 describe("PUT /internal/issues/[issueId]", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    triggerIssueAssignedNotificationMock.mockResolvedValue(undefined);
+    triggerIssueStatusChangedNotificationMock.mockResolvedValue(undefined);
   });
 
   it("returns 401 when the request has no authenticated actor", async () => {

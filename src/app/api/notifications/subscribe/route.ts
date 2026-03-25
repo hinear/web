@@ -1,13 +1,11 @@
-import { createClient } from "@supabase/supabase-js";
+import { apiError, apiSuccess, apiUnauthorized } from "@/app/api/_lib/response";
 import { SupabasePushSubscriptionsRepository } from "@/features/notifications/repositories/supabase-push-subscriptions-repository";
 import type { PushSubscription } from "@/features/notifications/types";
+import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
 
 export async function POST(request: Request) {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
-    );
+    const supabase = await createRequestSupabaseServerClient();
 
     // 인증된 사용자 확인
     const {
@@ -16,10 +14,7 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return Response.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
+      return apiUnauthorized();
     }
 
     const subscription: PushSubscription = await request.json();
@@ -29,18 +24,12 @@ export async function POST(request: Request) {
     const result = await repository.subscribe(user.id, subscription);
 
     if (!result) {
-      return Response.json(
-        { success: false, error: "Failed to save subscription" },
-        { status: 500 }
-      );
+      return apiError("Failed to save subscription", 500);
     }
 
-    return Response.json({ success: true, message: "Subscribed successfully" });
+    return apiSuccess({ message: "Subscribed successfully" });
   } catch (error) {
     console.error("Subscription error:", error);
-    return Response.json(
-      { success: false, error: "Failed to subscribe" },
-      { status: 400 }
-    );
+    return apiError("Failed to subscribe", 400);
   }
 }

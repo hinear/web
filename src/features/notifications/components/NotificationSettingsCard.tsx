@@ -65,21 +65,14 @@ export function NotificationSettingsCard() {
 
   const loadPreferences = useCallback(async () => {
     try {
-      // TODO: 실제 API 호출로 대체
-      // const response = await fetch("/api/notifications/preferences");
-      // const data = await response.json();
-      // setPreferences(data);
+      const response = await fetch("/api/notifications/preferences");
+      const data = await response.json();
 
-      // 임시 mock 데이터
-      setPreferences({
-        user_id: "",
-        issue_assigned: true,
-        issue_status_changed: true,
-        comment_added: true,
-        project_invited: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
+      if (!response.ok || !data.success) {
+        throw new Error(data.error ?? "Failed to load preferences");
+      }
+
+      setPreferences(data.preferences);
     } catch (error) {
       console.error("Failed to load preferences:", error);
     } finally {
@@ -96,14 +89,20 @@ export function NotificationSettingsCard() {
       setSaving(true);
 
       try {
-        // TODO: 실제 API 호출로 대체
-        // await fetch("/api/notifications/preferences", {
-        //   method: "PATCH",
-        //   body: JSON.stringify({ [key]: value }),
-        // });
+        const response = await fetch("/api/notifications/preferences", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ [key]: value }),
+        });
+        const data = await response.json();
 
-        // 임시 지연
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        if (!response.ok || !data.success) {
+          throw new Error(data.error ?? "Failed to update preference");
+        }
+
+        setPreferences(data.preferences);
       } catch (error) {
         console.error("Failed to update preference:", error);
         // 실패 시 롤백
@@ -150,10 +149,13 @@ export function NotificationSettingsCard() {
   return (
     <div className="flex flex-col gap-4 rounded-[16px] border border-[#E6E8EC] p-5">
       <div className="flex flex-col gap-1">
-        <h2 className="text-[16px] font-semibold text-[#111318]">알림 설정</h2>
+        <h2 className="text-[16px] font-semibold text-[#111318]">
+          Notification Settings
+        </h2>
         <p className="text-[13px] text-[#6B7280]">
-          이슈 변경, 댓글, 프로젝트 초대 등의 알림을 실시간으로 받아보세요.
-          {saving && " 저장 중..."}
+          Stay updated in real time with issue changes, comments, and project
+          invitations.
+          {saving && " Saving..."}
         </p>
       </div>
 
@@ -164,32 +166,32 @@ export function NotificationSettingsCard() {
           {preferences && (
             <>
               <NotificationToggle
-                label="이슈 할당 알림"
-                description="다른 사용자가 이슈를 할당했을 때"
+                label="Issue Assignment Notifications"
+                description="When another user assigns an issue to you"
                 enabled={preferences.issue_assigned}
                 onChange={(enabled) =>
                   updatePreference("issue_assigned", enabled)
                 }
               />
               <NotificationToggle
-                label="상태 변경 알림"
-                description="이슈 상태가 변경되었을 때"
+                label="Status Change Notifications"
+                description="When an issue status changes"
                 enabled={preferences.issue_status_changed}
                 onChange={(enabled) =>
                   updatePreference("issue_status_changed", enabled)
                 }
               />
               <NotificationToggle
-                label="댓글 알림"
-                description="새 댓글이 추가되었을 때"
+                label="Comment Notifications"
+                description="When a new comment is added"
                 enabled={preferences.comment_added}
                 onChange={(enabled) =>
                   updatePreference("comment_added", enabled)
                 }
               />
               <NotificationToggle
-                label="프로젝트 초대 알림"
-                description="새 프로젝트에 초대되었을 때"
+                label="Project Invitation Notifications"
+                description="When you are invited to a new project"
                 enabled={preferences.project_invited}
                 onChange={(enabled) =>
                   updatePreference("project_invited", enabled)
