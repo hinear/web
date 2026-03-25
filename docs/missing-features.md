@@ -657,10 +657,12 @@ src/features/comments/components/
 |---------|--------|-------|---------|---------|
 | Comment 도메인 구조 | comments | 0 ✅ | 0 ✅ | 0 ✅ |
 | ProjectMember 도메인 | project-members | 0 ✅ | 0 ✅ | 0 ✅ |
-| Issue 검색/필터 | issues | 0 | 7 | 6 |
+| Issue 검색/필터 | issues | 0 ✅ | 0 ✅ | 0 ✅ |
 | Project 접근 제어 | projects | 0 ✅ | 0 ✅ | 0 ✅ |
 | Issue Closed 상태 | issues | 0 ✅ | 0 ✅ | 0 ✅ |
-| 보안: 세션 인식 repo | All | 4 | - | - |
+| 보안: 세션 인식 repo | All | 0 ✅ | - | - |
+
+**MVP 1 상태:** ✅ **모든 필수 기능 완료! (2026-03-25)**
 
 ### 🟡 MVP 2 - 중요
 
@@ -671,6 +673,8 @@ src/features/comments/components/
 | RBAC 구현 | project-members | 세분화된 권한 |
 | Issue 템플릿 | issues | 빠른 생성 |
 | 고급 필터링 | issues | 복잡한 쿼리 |
+
+**MVP 2 상태:** ✅ **모든 기능 완료! (2026-03-25)**
 
 ### 🟢 MVP 3 - 좋은 기능
 
@@ -692,7 +696,7 @@ src/features/comments/components/
 4. ✅ 세션 인식 repository 리팩토링 (1단계 완료)
 
 ### Phase 2: 핵심 기능 (3-4주)
-5. ⬜ Issue 검색 및 필터링
+5. ✅ Issue 검색 및 필터링
 6. ✅ Issue Closed 상태
 7. ✅ Comment 컴포넌트
 

@@ -38,11 +38,52 @@ function extractTargetUserIds(data: NotificationData): string[] {
  */
 async function filterSubscriptionsByPreferences(
   subscriptions: PushSubscription[],
-  _userIds: string[],
-  _notificationType: NotificationData["type"],
-  _preferencesRepo: SupabaseNotificationPreferencesRepository
+  userIds: string[],
+  notificationType: NotificationData["type"],
+  preferencesRepo: SupabaseNotificationPreferencesRepository
 ): Promise<PushSubscription[]> {
-  return subscriptions;
+  const filtered: PushSubscription[] = [];
+
+  for (let i = 0; i < userIds.length; i++) {
+    const userId = userIds[i];
+    const subscription = subscriptions[i];
+
+    if (!subscription) continue;
+
+    // 사용자 알림 설정 조회
+    const preferences = await preferencesRepo.getPreferences(userId);
+
+    // 설정이 없으면 기본적으로 모두 알림 허용
+    if (!preferences) {
+      filtered.push(subscription);
+      continue;
+    }
+
+    // 알림 타입별로 설정 확인
+    let enabled = false;
+    switch (notificationType) {
+      case "issue_assigned":
+        enabled = preferences.issue_assigned ?? true;
+        break;
+      case "issue_status_changed":
+        enabled = preferences.issue_status_changed ?? true;
+        break;
+      case "comment_added":
+        enabled = preferences.comment_added ?? true;
+        break;
+      case "project_invited":
+        enabled = preferences.project_invited ?? true;
+        break;
+      default:
+        enabled = true;
+    }
+
+    if (enabled) {
+      filtered.push(subscription);
+    }
+  }
+
+  return filtered;
 }
 
 function createNotificationPayload(data: NotificationData) {

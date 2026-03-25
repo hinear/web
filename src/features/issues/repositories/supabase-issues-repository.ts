@@ -865,4 +865,109 @@ export class SupabaseIssuesRepository implements IssuesRepository {
 
     return statusCounts;
   }
+
+  /**
+   * 고급 필터링 - 복합 조건으로 이슈 조회
+   */
+  async filterIssues(input: {
+    projectId: string;
+    statuses?: Issue["status"][];
+    priorities?: Issue["priority"][];
+    assigneeIds?: string[];
+    labelIds?: string[];
+    searchQuery?: string;
+    dueBefore?: string;
+    dueAfter?: string;
+    createdAfter?: string;
+    createdBefore?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<Issue[]> {
+    let query = this.client
+      .from("issues")
+      .select("*")
+      .eq("project_id", input.projectId);
+
+    // 상태 필터
+    if (input.statuses && input.statuses.length > 0) {
+      query = query.in("status", input.statuses);
+    }
+
+    // 우선순위 필터
+    if (input.priorities && input.priorities.length > 0) {
+      query = query.in("priority", input.priorities);
+    }
+
+    // 담당자 필터
+    if (input.assigneeIds && input.assigneeIds.length > 0) {
+      query = query.in("assignee_id", input.assigneeIds);
+    }
+
+    // 검색어 필터
+    if (input.searchQuery && input.searchQuery.trim()) {
+      const searchTerm = `%${input.searchQuery.trim()}%`;
+      query = query.or(
+        `title.ilike.${searchTerm},description.ilike.${searchTerm}`
+      );
+    }
+
+    // 마감일 범위 필터
+    if (input.dueBefore) {
+      query = query.lte("due_date", input.dueBefore);
+    }
+
+    if (input.dueAfter) {
+      query = query.gte("due_date", input.dueAfter);
+    }
+
+    // 생성일 범위 필터
+    if (input.createdAfter) {
+      query = query.gte("created_at", input.createdAfter);
+    }
+
+    if (input.createdBefore) {
+      query = query.lte("created_at", input.createdBefore);
+    }
+
+    // 라벨 필터 (별도 쿼리 필요)
+    let issuesWithoutLabels: Issue[] = [];
+    const { data, error } = await query;
+
+    assertQuerySucceeded("Failed to filter issues", error);
+
+    if (data) {
+      issuesWithoutLabels = data.map(mapIssue);
+    }
+
+    // 라벨 필터가 있는 경우 별도 처리
+    if (
+      input.labelIds &&
+      input.labelIds.length > 0 &&
+      issuesWithoutLabels.length > 0
+    ) {
+      const issueIds = issuesWithoutLabels.map((issue) => issue.id);
+
+      const { data: labelData, error: labelError } = await this.client
+        .from("issue_labels")
+        .select("issue_id")
+        .in("label_id", input.labelIds)
+        .in("issue_id", issueIds);
+
+      assertQuerySucceeded("Failed to filter by labels", labelError);
+
+      const matchingIssueIds = new Set(
+        labelData?.map((row) => row.issue_id) ?? []
+      );
+
+      issuesWithoutLabels = issuesWithoutLabels.filter((issue) =>
+        matchingIssueIds.has(issue.id)
+      );
+    }
+
+    // 라벨 병렬 로드
+    const issuesWithLabels =
+      await this.attachLabelsToIssues(issuesWithoutLabels);
+
+    return issuesWithLabels;
+  }
 }

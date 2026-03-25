@@ -126,6 +126,21 @@ export interface PaginatedIssues {
   totalPages: number;
 }
 
+export interface FilterIssuesInput {
+  projectId: string;
+  statuses?: IssueStatus[];
+  priorities?: IssuePriority[];
+  assigneeIds?: string[];
+  labelIds?: string[];
+  searchQuery?: string;
+  dueBefore?: string;
+  dueAfter?: string;
+  createdAfter?: string;
+  createdBefore?: string;
+  limit?: number;
+  offset?: number;
+}
+
 export interface IssuesRepository {
   createIssue(input: CreateIssueInput): Promise<Issue>;
   createComment(input: CreateCommentInput): Promise<Comment>;
@@ -155,6 +170,9 @@ export interface IssuesRepository {
   // 카운트 메서드
   countIssuesByProject(projectId: string): Promise<number>;
   countIssuesByStatus(projectId: string): Promise<Record<IssueStatus, number>>;
+
+  // 고급 필터링 메서드
+  filterIssues(input: FilterIssuesInput): Promise<Issue[]>;
 }
 
 export function isConflictError(error: unknown): error is ConflictError {
