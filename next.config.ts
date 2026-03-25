@@ -1,5 +1,3 @@
-// @ts-expect-error - next-pwa doesn't have TypeScript types
-
 import type { NextConfig } from "next";
 import withPWA from "next-pwa";
 

@@ -510,9 +510,13 @@ export function IssueDetailFullPageScreen({
               Markdown
             </span>
           </div>
-          <p className="whitespace-pre-wrap text-[13px] leading-[1.5] text-[#111318]">
-            {issueState.description || "No description yet."}
-          </p>
+          <div
+            className="prose prose-sm max-w-none text-[13px] leading-[1.5] text-[#111318]"
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: TipTap editor generates safe HTML
+            dangerouslySetInnerHTML={{
+              __html: issueState.description || "<p>No description yet.</p>",
+            }}
+          />
           {issueState.labels.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {issueState.labels.map((label) => (
