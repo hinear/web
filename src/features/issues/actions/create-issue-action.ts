@@ -19,7 +19,12 @@ function readOptionalFormValue(
 }
 
 function readFormValue(formData: FormData, name: string): string {
-  return String(formData.get(name) ?? "");
+  const value = formData.get(name);
+  // Handle case where field wasn't filled (no user input)
+  if (value === null || value === undefined) {
+    return "";
+  }
+  return String(value);
 }
 
 export async function createIssueAction(projectId: string, formData: FormData) {
