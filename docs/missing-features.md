@@ -671,7 +671,7 @@ const actorId = user.id
 1. ✅ Comment 도메인 구조
 2. ✅ ProjectMember 도메인 구조
 3. ✅ Project 접근 제어
-4. ⬜ 세션 인식 repository 리팩토링
+4. ✅ 세션 인식 repository 리팩토링 (1단계 완료)
 
 ### Phase 2: 핵심 기능 (3-4주)
 5. ⬜ Issue 검색 및 필터링
