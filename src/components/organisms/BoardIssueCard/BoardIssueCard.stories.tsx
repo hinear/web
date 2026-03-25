@@ -14,6 +14,7 @@ const meta = {
     layout: "centered",
   },
   args: {
+    issueStatus: "Todo",
     issueKey: "WEB-127",
     priority: "Low",
     issueTitle: "온보딩 성공 메시지용 카피 기준 정리",
@@ -32,9 +33,14 @@ export const NoMeta: Story = {
   args: {
     assignee: null,
     estimate: undefined,
+    issueStatus: "Todo",
     labels: [],
     priority: "No Priority",
   },
 };
 
-export const PenPreview: Story = {};
+export const PenPreview: Story = {
+  args: {
+    issueStatus: "In Progress",
+  },
+};

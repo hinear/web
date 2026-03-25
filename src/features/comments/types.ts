@@ -24,6 +24,7 @@ export interface CommentThread {
 export interface CommentWithAuthor extends Comment {
   authorName: string;
   authorAvatarUrl: string | null;
+  replies?: CommentWithAuthor[];
 }
 
 export interface CommentThreadWithAuthor extends CommentThread {

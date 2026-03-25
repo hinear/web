@@ -2,14 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { SupabaseProjectMembersRepository } from "@/features/project-members/repositories/SupabaseProjectMembersRepository";
-import { createClient } from "@/lib/supabase/server-client";
+import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
 
 export async function transferOwnershipAction(
   projectId: string,
   newOwnerId: string,
   currentOwnerId: string
 ): Promise<void> {
-  const supabase = await createClient();
+  const supabase = await createRequestSupabaseServerClient();
   const membersRepo = new SupabaseProjectMembersRepository(supabase);
 
   // Check if current user is owner

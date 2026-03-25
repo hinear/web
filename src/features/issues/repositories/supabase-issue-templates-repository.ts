@@ -8,7 +8,34 @@ import type {
   UpdateIssueTemplateInput,
 } from "@/features/issues/types/templates";
 import type { AppSupabaseServerClient } from "@/lib/supabase/server-client";
-import type { TableRow } from "@/lib/supabase/types";
+
+interface IssueTemplateRow {
+  id: string;
+  project_id: string;
+  name: string;
+  description: string | null;
+  title_template: string;
+  default_status: IssueTemplate["defaultStatus"];
+  default_priority: IssueTemplate["defaultPriority"];
+  default_labels: string[] | null;
+  default_description: string | null;
+  is_active: boolean;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface IssueTemplateInsert {
+  created_by: string;
+  default_description?: string;
+  default_labels?: string[];
+  default_priority?: IssueTemplate["defaultPriority"];
+  default_status?: IssueTemplate["defaultStatus"];
+  description?: string;
+  name: string;
+  project_id: string;
+  title_template: string;
+}
 
 function assertQuerySucceeded(
   context: string,
@@ -26,7 +53,7 @@ function assertDataPresent<T>(context: string, data: T | null): T {
   return data;
 }
 
-function mapIssueTemplate(row: TableRow<"issue_templates">): IssueTemplate {
+function mapIssueTemplate(row: IssueTemplateRow): IssueTemplate {
   return {
     id: row.id,
     projectId: row.project_id,
@@ -58,7 +85,7 @@ export class SupabaseIssueTemplatesRepository
       .from("issue_templates")
       .select()
       .eq("id", templateId)
-      .single();
+      .single<IssueTemplateRow>();
 
     if (error) {
       if (error.code === "PGRST116") {
@@ -80,7 +107,7 @@ export class SupabaseIssueTemplatesRepository
 
     assertQuerySucceeded("Failed to get templates by project", error);
 
-    return (data ?? []).map(mapIssueTemplate);
+    return ((data ?? []) as IssueTemplateRow[]).map(mapIssueTemplate);
   }
 
   async getActiveTemplatesByProject(
@@ -95,32 +122,37 @@ export class SupabaseIssueTemplatesRepository
 
     assertQuerySucceeded("Failed to get active templates by project", error);
 
-    return (data ?? []).map(mapIssueTemplate);
+    return ((data ?? []) as IssueTemplateRow[]).map(mapIssueTemplate);
   }
 
   async createTemplate(
     input: CreateIssueTemplateInput
   ): Promise<IssueTemplate> {
+    const insertData: IssueTemplateInsert = {
+      project_id: input.projectId,
+      name: input.name,
+      description: input.description,
+      title_template: input.titleTemplate,
+      default_status: input.defaultStatus ?? "Triage",
+      default_priority: input.defaultPriority,
+      default_labels: input.defaultLabels ?? [],
+      default_description: input.defaultDescription,
+      created_by: input.createdBy,
+    };
+
     const { data, error } = await this.client
       .from("issue_templates")
-      .insert({
-        project_id: input.projectId,
-        name: input.name,
-        description: input.description,
-        title_template: input.titleTemplate,
-        default_status: input.defaultStatus ?? "Triage",
-        default_priority: input.defaultPriority,
-        default_labels: input.defaultLabels ?? [],
-        default_description: input.defaultDescription,
-        created_by: input.createdBy,
-      })
+      .insert(insertData as never)
       .select()
-      .single();
+      .single<IssueTemplateRow>();
 
     assertQuerySucceeded("Failed to create template", error);
-    assertDataPresent("Failed to create template", data);
+    const createdTemplate = assertDataPresent(
+      "Failed to create template",
+      data
+    );
 
-    return mapIssueTemplate(data);
+    return mapIssueTemplate(createdTemplate);
   }
 
   async updateTemplate(
@@ -148,15 +180,18 @@ export class SupabaseIssueTemplatesRepository
 
     const { data, error } = await this.client
       .from("issue_templates")
-      .update(updateData)
+      .update(updateData as never)
       .eq("id", templateId)
       .select()
-      .single();
+      .single<IssueTemplateRow>();
 
     assertQuerySucceeded("Failed to update template", error);
-    assertDataPresent("Failed to update template", data);
+    const updatedTemplate = assertDataPresent(
+      "Failed to update template",
+      data
+    );
 
-    return mapIssueTemplate(data);
+    return mapIssueTemplate(updatedTemplate);
   }
 
   async deleteTemplate(templateId: string): Promise<void> {

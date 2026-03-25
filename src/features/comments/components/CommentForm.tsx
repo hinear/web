@@ -1,6 +1,5 @@
 import { type FormEvent, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/atoms/Button";
 
 interface CommentFormProps {
   onSubmit: (body: string) => void | Promise<void>;
@@ -40,13 +39,13 @@ export function CommentForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <Textarea
-        value={body}
+        autoFocus={autoFocus}
+        className="min-h-[100px] w-full resize-y rounded-[10px] border border-[var(--app-color-border-soft)] bg-[var(--app-color-white)] px-4 py-3 text-[14px] leading-[1.5] text-[var(--app-color-ink-900)] placeholder:text-[var(--app-color-gray-400)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-color-brand-300)] focus-visible:ring-offset-2"
+        disabled={isSubmitting}
+        maxLength={maxLength}
         onChange={(e) => setBody(e.target.value)}
         placeholder={placeholder}
-        maxLength={maxLength}
-        autoFocus={autoFocus}
-        className="min-h-[100px] resize-y"
-        disabled={isSubmitting}
+        value={body}
       />
       <div className="flex items-center justify-between">
         <div className="text-sm text-gray-500">
@@ -63,7 +62,7 @@ export function CommentForm({
           {onCancel && (
             <Button
               type="button"
-              variant="outline"
+              variant="secondary"
               onClick={onCancel}
               disabled={isSubmitting}
             >
@@ -80,4 +79,11 @@ export function CommentForm({
       </div>
     </form>
   );
+}
+
+interface TextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
+
+function Textarea(props: TextareaProps) {
+  return <textarea {...props} />;
 }

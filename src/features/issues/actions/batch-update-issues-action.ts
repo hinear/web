@@ -1,10 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-
-import { requireAuthRedirect } from "@/features/auth/actions/start-email-auth-action";
 import { getServerIssuesRepository } from "@/features/issues/repositories/server-issues-repository";
 import type { IssuePriority, IssueStatus } from "@/features/issues/types";
+import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
 
 export interface BatchIssueUpdate {
   issueId: string;
@@ -28,7 +27,12 @@ export interface BatchUpdateIssuesResult {
 export async function batchUpdateIssuesAction(
   input: BatchUpdateIssuesInput
 ): Promise<BatchUpdateIssuesResult> {
-  const actorId = await requireAuthRedirect();
+  const actorId = await getAuthenticatedActorIdOrNull();
+
+  if (!actorId) {
+    throw new Error("Authentication required");
+  }
+
   const repository = await getServerIssuesRepository();
 
   const results: Array<{ issueId: string; success: boolean; error?: string }> =

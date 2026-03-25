@@ -116,8 +116,10 @@ export function CreateIssueTabletModal({
       };
     }
 
+    const currentProjectId = projectId;
+
     async function loadLabels() {
-      const result = await getLabelsAction(projectId);
+      const result = await getLabelsAction(currentProjectId);
 
       if (!isMounted) {
         return;

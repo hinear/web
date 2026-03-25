@@ -1,7 +1,7 @@
 "use server";
 
 import { SupabaseProjectsRepository } from "@/features/projects/repositories/supabase-projects-repository";
-import { createClient } from "@/lib/supabase/server-client";
+import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
 
 // Archive flag - could be added to projects table later
 // For now, we'll use a different approach (e.g., adding to archived projects list)
@@ -10,7 +10,7 @@ export async function archiveProjectAction(
   projectId: string,
   userId: string
 ): Promise<void> {
-  const supabase = await createClient();
+  const supabase = await createRequestSupabaseServerClient();
   const repository = new SupabaseProjectsRepository(supabase);
 
   // Check if user is owner

@@ -7,13 +7,13 @@ import { cn } from "@/lib/utils";
 
 interface IssueStatusBadgeProps {
   className?: string;
-  size?: "sm" | "md";
+  size?: "sm" | "default";
   status: IssueStatus;
 }
 
 export function IssueStatusBadge({
   className,
-  size = "md",
+  size = "default",
   status,
 }: IssueStatusBadgeProps) {
   return (

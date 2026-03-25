@@ -30,12 +30,14 @@ export function ProjectModalProvider({ projectId }: { projectId: string }) {
       return;
     }
 
+    const currentIssueId = issueId;
+
     async function loadModalData() {
       setIsLoading(true);
       try {
         // Use existing API route
         const response = await fetch(
-          `/api/issues/${issueId}?projectId=${projectId}`
+          `/api/issues/${currentIssueId}?projectId=${projectId}`
         );
 
         if (!response.ok) {
@@ -54,7 +56,7 @@ export function ProjectModalProvider({ projectId }: { projectId: string }) {
           issue: data.issue,
           memberNamesById: data.memberNamesById || {},
           projectId,
-          issueId,
+          issueId: currentIssueId,
         });
       } catch (error) {
         console.error("Failed to load issue:", error);

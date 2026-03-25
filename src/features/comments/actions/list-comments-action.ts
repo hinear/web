@@ -3,12 +3,12 @@
 import type { ListCommentsInput } from "@/features/comments/contracts";
 import { SupabaseCommentsRepository } from "@/features/comments/repositories/SupabaseCommentsRepository";
 import type { Comment } from "@/features/comments/types";
-import { createClient } from "@/lib/supabase/server-client";
+import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
 
 export async function listCommentsAction(
   input: ListCommentsInput
 ): Promise<Comment[]> {
-  const supabase = await createClient();
+  const supabase = await createRequestSupabaseServerClient();
   const repository = new SupabaseCommentsRepository(supabase);
 
   return repository.listCommentsByIssueId(input);

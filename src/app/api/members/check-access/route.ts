@@ -15,12 +15,17 @@ interface CheckAccessPayload {
   userId?: string;
 }
 
-function isValidPayload(payload: CheckAccessPayload) {
-  return Boolean(
-    payload.projectId &&
-      payload.permission &&
-      typeof payload.projectId === "string" &&
-      typeof payload.permission === "string"
+function isValidPayload(
+  payload: CheckAccessPayload
+): payload is CheckAccessPayload & {
+  permission: string;
+  projectId: string;
+} {
+  return (
+    typeof payload.projectId === "string" &&
+    payload.projectId.length > 0 &&
+    typeof payload.permission === "string" &&
+    payload.permission.length > 0
   );
 }
 

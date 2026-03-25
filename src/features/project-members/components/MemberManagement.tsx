@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/atoms/Button";
 import type {
   MemberRole,
   ProjectMemberWithUser,
@@ -22,7 +22,7 @@ export function MemberManagement({
   members,
   currentUserId,
   currentRole,
-  projectId,
+  projectId: _projectId,
   onAddMember,
   onRemoveMember,
   onUpdateRole,

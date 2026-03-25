@@ -80,7 +80,7 @@ export function validateUpdateCommentInput(
 
 export function throwValidationError(errors: ValidationError[]): never {
   throw createRepositoryError(
-    "VALIDATION_ERROR",
+    "UNKNOWN",
     errors.map((e) => `${e.field}: ${e.message}`).join("; ")
   );
 }

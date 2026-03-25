@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { canRemoveMember } from "@/features/project-members/lib/access-control";
 import { assertValidRemoveMemberInput } from "@/features/project-members/lib/membership-validation";
 import { SupabaseProjectMembersRepository } from "@/features/project-members/repositories/SupabaseProjectMembersRepository";
-import { createClient } from "@/lib/supabase/server-client";
+import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
 
 export async function removeMemberAction(
   projectId: string,
@@ -14,7 +14,7 @@ export async function removeMemberAction(
   // Validate input
   assertValidRemoveMemberInput(projectId, userId, removedBy);
 
-  const supabase = await createClient();
+  const supabase = await createRequestSupabaseServerClient();
   const repository = new SupabaseProjectMembersRepository(supabase);
 
   // Check if actor has permission

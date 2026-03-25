@@ -6,7 +6,7 @@ import { canUpdateMemberRole } from "@/features/project-members/lib/access-contr
 import { assertValidUpdateRoleInput } from "@/features/project-members/lib/membership-validation";
 import { SupabaseProjectMembersRepository } from "@/features/project-members/repositories/SupabaseProjectMembersRepository";
 import type { ProjectMember } from "@/features/project-members/types";
-import { createClient } from "@/lib/supabase/server-client";
+import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
 
 export async function updateRoleAction(
   input: UpdateRoleInput
@@ -14,7 +14,7 @@ export async function updateRoleAction(
   // Validate input
   assertValidUpdateRoleInput(input);
 
-  const supabase = await createClient();
+  const supabase = await createRequestSupabaseServerClient();
   const repository = new SupabaseProjectMembersRepository(supabase);
 
   // Check if actor has permission

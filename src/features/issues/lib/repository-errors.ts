@@ -1,12 +1,20 @@
 import type { PostgrestError } from "@supabase/supabase-js";
 
 export type RepositoryErrorCode =
+  | "ACCESS_DENIED"
+  | "ALREADY_MEMBER"
   | "AUTH_REQUIRED"
+  | "COMMENT_NOT_FOUND"
   | "CONFLICT"
   | "FORBIDDEN"
   | "ISSUE_NOT_FOUND"
+  | "LAST_OWNER"
+  | "NOT_MEMBER"
+  | "OWNER_EXISTS"
+  | "PARENT_COMMENT_NOT_FOUND"
   | "PROJECT_KEY_TAKEN"
   | "PROJECT_INVITATION_EXISTS"
+  | "VALIDATION_ERROR"
   | "UNKNOWN";
 
 export class RepositoryError extends Error {
@@ -22,12 +30,22 @@ export class RepositoryError extends Error {
 
 export function getRepositoryErrorStatus(code: RepositoryErrorCode): number {
   switch (code) {
+    case "VALIDATION_ERROR":
+      return 400;
     case "AUTH_REQUIRED":
       return 401;
+    case "ACCESS_DENIED":
     case "FORBIDDEN":
       return 403;
+    case "COMMENT_NOT_FOUND":
     case "ISSUE_NOT_FOUND":
+    case "NOT_MEMBER":
+    case "PARENT_COMMENT_NOT_FOUND":
       return 404;
+    case "ALREADY_MEMBER":
+    case "CONFLICT":
+    case "LAST_OWNER":
+    case "OWNER_EXISTS":
     case "PROJECT_KEY_TAKEN":
     case "PROJECT_INVITATION_EXISTS":
       return 409;

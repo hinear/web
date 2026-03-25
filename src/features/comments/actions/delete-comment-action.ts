@@ -3,12 +3,12 @@
 import { revalidatePath } from "next/cache";
 import type { DeleteCommentInput } from "@/features/comments/contracts";
 import { SupabaseCommentsRepository } from "@/features/comments/repositories/SupabaseCommentsRepository";
-import { createClient } from "@/lib/supabase/server-client";
+import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
 
 export async function deleteCommentAction(
   input: DeleteCommentInput
 ): Promise<void> {
-  const supabase = await createClient();
+  const supabase = await createRequestSupabaseServerClient();
   const repository = new SupabaseCommentsRepository(supabase);
 
   await repository.deleteComment(input);

@@ -1,5 +1,12 @@
 import type { Issue } from "@/features/issues/types";
-import type { Issue as BoardIssue } from "@/specs/issue-detail.contract";
+import type {
+  Issue as BoardIssue,
+  IssueStatus as BoardIssueStatus,
+} from "@/specs/issue-detail.contract";
+
+function toBoardIssueStatus(status: Issue["status"]): BoardIssueStatus {
+  return status === "Closed" ? "Done" : status;
+}
 
 export function toBoardIssue(
   issue: Issue,
@@ -12,7 +19,7 @@ export function toBoardIssue(
     id: issue.id,
     identifier: issue.identifier,
     title: issue.title,
-    status: issue.status,
+    status: toBoardIssueStatus(issue.status),
     priority: issue.priority,
     assignee: issue.assigneeId
       ? {

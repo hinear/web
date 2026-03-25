@@ -6,13 +6,13 @@ import { cn } from "@/lib/utils";
 interface IssueIdentifierBadgeProps {
   className?: string;
   identifier: string;
-  size?: "sm" | "md";
+  size?: "sm" | "default";
 }
 
 export function IssueIdentifierBadge({
   className,
   identifier,
-  size = "md",
+  size = "default",
 }: IssueIdentifierBadgeProps) {
   return (
     <Chip

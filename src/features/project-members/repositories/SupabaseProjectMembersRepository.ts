@@ -7,9 +7,9 @@ import {
 } from "@/features/issues/lib/repository-errors";
 import type {
   AddMemberInput,
-  CheckAccessInput,
   GetMemberRoleInput,
   ListMembersInput,
+  Project,
   ProjectMembersRepository,
   RemoveMemberInput,
   UpdateRoleInput,
@@ -48,6 +48,18 @@ function mapProjectMember(row: TableRow<"project_members">): ProjectMember {
     role: row.role as MemberRole,
     createdAt: row.created_at,
   };
+}
+
+function isProjectSummary(
+  value: unknown
+): value is { id: string; key: string; name: string } {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      "id" in value &&
+      "name" in value &&
+      "key" in value
+  );
 }
 
 export class SupabaseProjectMembersRepository
@@ -168,13 +180,8 @@ export class SupabaseProjectMembersRepository
   }
 
   async listMembers(input: ListMembersInput): Promise<ProjectMember[]> {
-    let query = this.client
-      .from("project_members")
-      .select()
-      .eq("project_id", input.projectId);
-
     if (input.includeUserDetails) {
-      query = this.client
+      const { data, error } = await this.client
         .from("project_members")
         .select(
           `
@@ -189,12 +196,25 @@ export class SupabaseProjectMembersRepository
           )
         `
         )
-        .eq("project_id", input.projectId);
+        .eq("project_id", input.projectId)
+        .order("created_at", {
+          ascending: true,
+        });
+
+      assertQuerySucceeded("Failed to list members", error);
+
+      return ((data ?? []) as unknown as TableRow<"project_members">[]).map(
+        mapProjectMember
+      );
     }
 
-    const { data, error } = await query.order("created_at", {
-      ascending: true,
-    });
+    const { data, error } = await this.client
+      .from("project_members")
+      .select()
+      .eq("project_id", input.projectId)
+      .order("created_at", {
+        ascending: true,
+      });
 
     assertQuerySucceeded("Failed to list members", error);
 
@@ -278,11 +298,12 @@ export class SupabaseProjectMembersRepository
     const projects: Project[] = [];
 
     for (const row of data ?? []) {
-      if (row.projects) {
+      const project = row.projects as unknown;
+      if (isProjectSummary(project)) {
         projects.push({
-          id: row.projects.id,
-          name: row.projects.name,
-          key: row.projects.key,
+          id: project.id,
+          name: project.name,
+          key: project.key,
         });
       }
     }

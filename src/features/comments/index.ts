@@ -14,7 +14,7 @@ export {
   CommentItem,
   CommentList,
   CommentMarkdown,
-  CommentThread,
+  CommentThread as CommentThreadView,
 } from "./components";
 // Contracts
 export type {

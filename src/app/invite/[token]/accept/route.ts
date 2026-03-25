@@ -19,7 +19,7 @@ export async function GET(
     return requireAuthRedirect(`/invite/${token}/accept`);
   }
 
-  const repository = getServiceProjectsRepository();
+  const repository = await getServiceProjectsRepository();
   const invitation = await repository.getProjectInvitationByToken(token);
 
   if (!invitation) {

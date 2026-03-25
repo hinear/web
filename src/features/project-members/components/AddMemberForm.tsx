@@ -1,6 +1,6 @@
 import { type FormEvent, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/atoms/Button";
+import { Field } from "@/components/atoms/Field";
 
 interface AddMemberFormProps {
   onSubmit: (email: string, role: "owner" | "member") => void | Promise<void>;
@@ -37,14 +37,14 @@ export function AddMemberForm({
         >
           이메일 주소
         </label>
-        <Input
+        <Field
           id="member-email"
-          type="email"
-          value={email}
+          disabled={isSubmitting}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="user@example.com"
           required
-          disabled={isSubmitting}
+          type="email"
+          value={email}
         />
       </div>
 
@@ -77,10 +77,10 @@ export function AddMemberForm({
       <div className="flex gap-2 justify-end">
         {onCancel && (
           <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
             disabled={isSubmitting}
+            onClick={onCancel}
+            type="button"
+            variant="secondary"
           >
             취소
           </Button>

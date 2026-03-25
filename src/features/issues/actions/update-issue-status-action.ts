@@ -1,11 +1,14 @@
 "use server";
 
-import { revalidatePath } from "next/navigation";
-
-import { requireAuthRedirect } from "@/features/auth/actions/start-email-auth-action";
-import { getIssueUpdateErrorMessage } from "@/features/issues/lib/issue-update-error-message";
+import { revalidatePath } from "next/cache";
+import {
+  getMutationErrorMessage,
+  getMutationErrorStatus,
+  inferMutationErrorCode,
+} from "@/features/issues/lib/mutation-error-messages";
 import { getServerIssuesRepository } from "@/features/issues/repositories/server-issues-repository";
 import type { IssueStatus } from "@/features/issues/types";
+import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
 
 export interface UpdateIssueStatusInput {
   issueId: string;
@@ -14,7 +17,14 @@ export interface UpdateIssueStatusInput {
 }
 
 export async function updateIssueStatusAction(input: UpdateIssueStatusInput) {
-  const actorId = await requireAuthRedirect();
+  const actorId = await getAuthenticatedActorIdOrNull();
+
+  if (!actorId) {
+    return {
+      success: false,
+      error: "Your session expired. Sign in again and retry.",
+    };
+  }
 
   try {
     const repository = await getServerIssuesRepository();
@@ -41,9 +51,15 @@ export async function updateIssueStatusAction(input: UpdateIssueStatusInput) {
       issue: updatedIssue,
     };
   } catch (error) {
+    const code = inferMutationErrorCode(error);
     return {
       success: false,
-      error: getIssueUpdateErrorMessage(error),
+      error: getMutationErrorMessage({
+        actionLabel: "issue",
+        code,
+        fallbackMessage: error instanceof Error ? error.message : null,
+        status: getMutationErrorStatus(code),
+      }),
     };
   }
 }

@@ -19,7 +19,7 @@ export default async function InvitePage({
 }: InvitePageProps) {
   const { token } = await params;
   const query = await searchParams;
-  const repository = getServiceProjectsRepository();
+  const repository = await getServiceProjectsRepository();
   const invitation = await repository.getProjectInvitationByToken(token);
 
   if (!invitation) {

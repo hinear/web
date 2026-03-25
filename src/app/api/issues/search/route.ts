@@ -7,6 +7,12 @@ import {
   apiUnauthorized,
 } from "@/app/api/_lib/response";
 import { getServerIssuesRepository } from "@/features/issues/repositories/server-issues-repository";
+import {
+  ISSUE_PRIORITIES,
+  ISSUE_STATUSES,
+  type IssuePriority,
+  type IssueStatus,
+} from "@/features/issues/types";
 import { SupabaseProjectsRepository } from "@/features/projects/repositories/supabase-projects-repository";
 import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
 import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
@@ -22,6 +28,14 @@ interface SearchIssuesPayload {
 
 function normalizeValues(values?: string[]) {
   return (values ?? []).map((value) => value.trim()).filter(Boolean);
+}
+
+function isIssueStatus(value: string): value is IssueStatus {
+  return ISSUE_STATUSES.includes(value as IssueStatus);
+}
+
+function isIssuePriority(value: string): value is IssuePriority {
+  return ISSUE_PRIORITIES.includes(value as IssuePriority);
 }
 
 export async function POST(request: NextRequest) {
@@ -41,8 +55,10 @@ export async function POST(request: NextRequest) {
 
   const projectId = payload.projectId?.trim();
   const query = payload.query?.trim();
-  const statuses = normalizeValues(payload.statuses);
-  const priorities = normalizeValues(payload.priorities);
+  const statuses = normalizeValues(payload.statuses).filter(isIssueStatus);
+  const priorities = normalizeValues(payload.priorities).filter(
+    isIssuePriority
+  );
   const payloadAssigneeIds = normalizeValues(payload.assigneeIds);
   const labelIds = normalizeValues(payload.labelIds);
   const hasFilters =
@@ -86,7 +102,11 @@ export async function POST(request: NextRequest) {
         })
       : [];
   const issueAssigneeIds = [
-    ...new Set(issues.map((issue) => issue.assigneeId).filter(Boolean)),
+    ...new Set(
+      issues
+        .map((issue) => issue.assigneeId)
+        .filter((assigneeId): assigneeId is string => Boolean(assigneeId))
+    ),
   ];
 
   const { data: profiles, error } = issueAssigneeIds.length

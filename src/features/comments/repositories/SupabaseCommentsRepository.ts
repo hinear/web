@@ -19,6 +19,17 @@ import {
 import type { AppSupabaseServerClient } from "@/lib/supabase/server-client";
 import type { TableInsert, TableRow } from "@/lib/supabase/types";
 
+type CommentRow = TableRow<"comments"> & {
+  parent_comment_id?: string | null;
+  thread_id?: string | null;
+  updated_at?: string | null;
+};
+
+type CommentInsert = TableInsert<"comments"> & {
+  parent_comment_id?: string | null;
+  thread_id?: string | null;
+};
+
 function assertQuerySucceeded(
   context: string,
   error: PostgrestError | null
@@ -39,7 +50,7 @@ function assertDataPresent<T>(context: string, data: T | null): T {
   return data;
 }
 
-function mapComment(row: TableRow<"comments">): Comment {
+function mapComment(row: CommentRow): Comment {
   return {
     id: row.id,
     issueId: row.issue_id,
@@ -57,7 +68,7 @@ export class SupabaseCommentsRepository implements CommentsRepository {
   constructor(private readonly client: AppSupabaseServerClient) {}
 
   async createComment(input: CreateCommentInput): Promise<Comment> {
-    const insertData: TableInsert<"comments"> = {
+    const insertData: CommentInsert = {
       issue_id: input.issueId,
       project_id: input.projectId,
       author_id: input.authorId,
@@ -68,10 +79,7 @@ export class SupabaseCommentsRepository implements CommentsRepository {
     if (input.parentCommentId) {
       const parentComment = await this.getCommentById(input.parentCommentId);
       if (!parentComment) {
-        throw createRepositoryError(
-          "PARENT_COMMENT_NOT_FOUND",
-          "Parent comment not found."
-        );
+        throw createRepositoryError("UNKNOWN", "Parent comment not found.");
       }
 
       insertData.parent_comment_id = input.parentCommentId;
@@ -154,10 +162,7 @@ export class SupabaseCommentsRepository implements CommentsRepository {
     const rootComment = await this.getCommentById(input.rootCommentId);
 
     if (!rootComment) {
-      throw createRepositoryError(
-        "COMMENT_NOT_FOUND",
-        "Root comment not found."
-      );
+      throw createRepositoryError("UNKNOWN", "Root comment not found.");
     }
 
     // Get all replies in the thread

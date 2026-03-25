@@ -50,7 +50,7 @@ export {
   createPostgrestRepositoryError,
   createRepositoryError,
 } from "./lib/repository-errors";
-export { ServerIssuesRepository } from "./repositories/server-issues-repository";
+export { getServerIssuesRepository } from "./repositories/server-issues-repository";
 // Repository
 export { SupabaseIssuesRepository } from "./repositories/supabase-issues-repository";
 // Types

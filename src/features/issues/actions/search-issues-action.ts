@@ -1,8 +1,7 @@
 "use server";
 
-import { requireAuthRedirect } from "@/features/auth/actions/start-email-auth-action";
 import { getServerIssuesRepository } from "@/features/issues/repositories/server-issues-repository";
-import type { Issue } from "@/features/issues/types";
+import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
 
 export interface SearchIssuesInput {
   projectId: string;
@@ -10,7 +9,15 @@ export interface SearchIssuesInput {
 }
 
 export async function searchIssuesAction(input: SearchIssuesInput) {
-  const actorId = await requireAuthRedirect();
+  const actorId = await getAuthenticatedActorIdOrNull();
+
+  if (!actorId) {
+    return {
+      success: false,
+      error: "Authentication required",
+      issues: [],
+    };
+  }
 
   try {
     const repository = await getServerIssuesRepository();

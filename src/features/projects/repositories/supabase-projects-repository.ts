@@ -54,6 +54,17 @@ function mapProject(row: TableRow<"projects">): Project {
   };
 }
 
+function isProjectRow(value: unknown): value is TableRow<"projects"> {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      "id" in value &&
+      "key" in value &&
+      "name" in value &&
+      "type" in value
+  );
+}
+
 function mapProjectMember(row: TableRow<"project_members">): ProjectMember {
   return {
     projectId: row.project_id,
@@ -78,6 +89,33 @@ function mapProjectInvitation(
     acceptedBy: row.accepted_by,
     createdAt: row.created_at,
   };
+}
+
+type ProjectInvitationRpcRow = {
+  accepted_by: string | null;
+  created_at: string;
+  email: string;
+  expires_at: string;
+  id: string;
+  invited_by: string;
+  project_id: string;
+  role: "member";
+  status: ProjectInvitation["status"];
+  token: string;
+  updated_at?: string;
+};
+
+function isProjectInvitationRpcRow(
+  value: unknown
+): value is ProjectInvitationRpcRow {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      "id" in value &&
+      "project_id" in value &&
+      "email" in value &&
+      "token" in value
+  );
 }
 
 function createInvitationDraft(
@@ -285,13 +323,18 @@ export class SupabaseProjectsRepository implements ProjectsRepository {
   async getProjectInvitationByToken(
     token: string
   ): Promise<ProjectInvitation | null> {
-    const { data, error } = await this.client.rpc("get_invitation_by_token", {
+    const { data, error } = await (
+      this.client.rpc as unknown as (
+        fn: string,
+        args?: Record<string, unknown>
+      ) => Promise<{ data: unknown; error: PostgrestError | null }>
+    )("get_invitation_by_token", {
       p_token: token,
     });
 
     assertQuerySucceeded("Failed to load project invitation", error);
 
-    if (!data || Array.isArray(data)) {
+    if (!isProjectInvitationRpcRow(data)) {
       return null;
     }
 
@@ -306,7 +349,6 @@ export class SupabaseProjectsRepository implements ProjectsRepository {
       expires_at: data.expires_at,
       accepted_by: data.accepted_by,
       created_at: data.created_at,
-      updated_at: data.updated_at,
     });
   }
 
@@ -314,17 +356,19 @@ export class SupabaseProjectsRepository implements ProjectsRepository {
     token: string,
     actorId: string
   ): Promise<ProjectInvitation> {
-    const { data, error } = await this.client.rpc(
-      "accept_invitation_by_token",
-      {
-        p_token: token,
-        p_user_id: actorId,
-      }
-    );
+    const { data, error } = await (
+      this.client.rpc as unknown as (
+        fn: string,
+        args?: Record<string, unknown>
+      ) => Promise<{ data: unknown; error: PostgrestError | null }>
+    )("accept_invitation_by_token", {
+      p_token: token,
+      p_user_id: actorId,
+    });
 
     assertQuerySucceeded("Failed to accept project invitation", error);
 
-    if (!data || typeof data !== "object") {
+    if (!isProjectInvitationRpcRow(data)) {
       throw createRepositoryError("UNKNOWN", "Failed to accept invitation");
     }
 
@@ -435,15 +479,16 @@ export class SupabaseProjectsRepository implements ProjectsRepository {
     const projects: Project[] = [];
 
     for (const row of data ?? []) {
-      if (row.projects) {
-        projects.push(mapProject(row.projects as TableRow<"projects">));
+      const project = row.projects as unknown;
+      if (isProjectRow(project)) {
+        projects.push(mapProject(project));
       }
     }
 
     return projects;
   }
 
-  async listProjectsByType(type: string): Promise<Project[]> {
+  async listProjectsByType(type: Project["type"]): Promise<Project[]> {
     const { data, error } = await this.client
       .from("projects")
       .select()

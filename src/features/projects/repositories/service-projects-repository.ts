@@ -11,6 +11,8 @@ import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client"
  * - The token itself is the security mechanism (like password reset tokens)
  * - This is more secure than using service-role which bypasses ALL RLS policies
  */
-export function getServiceProjectsRepository() {
-  return new SupabaseProjectsRepository(createRequestSupabaseServerClient());
+export async function getServiceProjectsRepository() {
+  return new SupabaseProjectsRepository(
+    await createRequestSupabaseServerClient()
+  );
 }

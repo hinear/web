@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 interface IssueLabelChipProps {
   className?: string;
   label: Label;
-  size?: "sm" | "md";
+  size?: "sm" | "default";
 }
 
 function getLabelVariant(label: Label) {

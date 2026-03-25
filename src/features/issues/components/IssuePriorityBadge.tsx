@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 interface IssuePriorityBadgeProps {
   className?: string;
   priority: IssuePriority;
-  size?: "sm" | "md";
+  size?: "sm" | "default";
 }
 
 function getPriorityBadgeClassName(priority: IssuePriority) {
@@ -28,7 +28,7 @@ function getPriorityBadgeClassName(priority: IssuePriority) {
 export function IssuePriorityBadge({
   className,
   priority,
-  size = "md",
+  size = "default",
 }: IssuePriorityBadgeProps) {
   return (
     <Chip

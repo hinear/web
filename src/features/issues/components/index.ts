@@ -21,7 +21,7 @@ export {
   IssueDetailScreen,
 } from "./issue-detail-screen";
 export { IssueDetailDrawerScreen } from "./issue-drawer-screen";
-export { IssueDrawerWithRouter } from "./issue-drawer-with-router";
+export { IssueDetailDrawerWithRouter } from "./issue-drawer-with-router";
 export { KanbanBoard } from "./KanbanBoard";
 export { KanbanBoardView } from "./KanbanBoardView";
 export { KanbanColumn } from "./KanbanColumn";

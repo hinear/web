@@ -212,6 +212,27 @@ export class SupabaseIssuesRepository implements IssuesRepository {
     return labelsByIssueId.get(issueId) ?? [];
   }
 
+  private async attachLabelsToIssues(issues: Issue[]): Promise<Issue[]> {
+    if (issues.length === 0) {
+      return issues;
+    }
+
+    const projectId = issues[0]?.projectId;
+    if (!projectId) {
+      return issues;
+    }
+
+    const labelsByIssueId = await this.listLabelsByIssueIds(
+      issues.map((issue) => issue.id),
+      projectId
+    );
+
+    return issues.map((issue) => ({
+      ...issue,
+      labels: labelsByIssueId.get(issue.id) ?? issue.labels,
+    }));
+  }
+
   private async resolveProjectLabels(
     projectId: string,
     actorId: string,

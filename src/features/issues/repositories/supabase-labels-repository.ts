@@ -34,6 +34,16 @@ function mapLabel(row: TableRow<"labels">): Label {
   };
 }
 
+function isLabelRow(value: unknown): value is TableRow<"labels"> {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      "id" in value &&
+      "name" in value &&
+      "color" in value
+  );
+}
+
 export class SupabaseLabelsRepository {
   private client: AppSupabaseServerClient;
 
@@ -134,8 +144,9 @@ export class SupabaseLabelsRepository {
 
     const labels: Label[] = [];
     for (const row of data ?? []) {
-      if (row.labels && !Array.isArray(row.labels)) {
-        labels.push(mapLabel(row.labels as TableRow<"labels">));
+      const relatedLabel = row.labels as unknown;
+      if (isLabelRow(relatedLabel)) {
+        labels.push(mapLabel(relatedLabel));
       }
     }
 

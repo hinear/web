@@ -9,7 +9,7 @@ import {
 import { assertValidCreateCommentInput } from "@/features/comments/lib/comment-validation";
 import { SupabaseCommentsRepository } from "@/features/comments/repositories/SupabaseCommentsRepository";
 import type { Comment } from "@/features/comments/types";
-import { createClient } from "@/lib/supabase/server-client";
+import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
 
 export async function createCommentAction(
   input: CreateCommentInput
@@ -20,7 +20,7 @@ export async function createCommentAction(
   // Sanitize body
   const sanitizedBody = sanitizeCommentBody(normalizeLineEndings(input.body));
 
-  const supabase = await createClient();
+  const supabase = await createRequestSupabaseServerClient();
   const repository = new SupabaseCommentsRepository(supabase);
 
   const comment = await repository.createComment({
