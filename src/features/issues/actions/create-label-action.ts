@@ -31,9 +31,23 @@ export async function createLabelAction(input: {
   } catch (error) {
     console.error("Failed to create label:", error);
 
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to create label";
+
+    // 중복 라벨 에러 처리
+    if (
+      errorMessage.includes("duplicate key") &&
+      errorMessage.includes("labels_project_id_name_key")
+    ) {
+      return {
+        success: false,
+        error: `A label with this name already exists`,
+      };
+    }
+
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to create label",
+      error: errorMessage,
     };
   }
 }
