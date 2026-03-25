@@ -19,6 +19,8 @@ interface KanbanColumnProps {
   status: IssueStatus;
   issues: Issue[];
   onNavigate?: (href: string) => void;
+  selectedIssueIds?: string[];
+  onToggleSelect?: (issueId: string) => void;
 }
 
 const COLUMN_LABELS: Record<IssueStatus, string> = {
@@ -38,6 +40,8 @@ export function KanbanColumn({
   status,
   issues,
   onNavigate,
+  selectedIssueIds = [],
+  onToggleSelect,
 }: KanbanColumnProps) {
   const { isOver, setNodeRef } = useDroppable({
     id: status,
@@ -76,7 +80,9 @@ export function KanbanColumn({
               <IssueCard
                 className="w-full"
                 issue={issue}
+                isSelected={selectedIssueIds.includes(issue.id)}
                 key={issue.id}
+                onToggleSelect={onToggleSelect}
                 projectId={projectId}
                 onNavigate={onNavigate}
               />

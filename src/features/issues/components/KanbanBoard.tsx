@@ -16,6 +16,8 @@ import {
 import { arrayMove } from "@dnd-kit/sortable";
 import { useEffect, useMemo, useState } from "react";
 import type { Issue, IssueStatus } from "@/specs/issue-detail.contract";
+import { useIssueSelection } from "../hooks/useIssueSelection";
+import { BatchActionBar } from "./BatchActionBar";
 import { IssueCard } from "./IssueCard";
 import { KanbanColumn } from "./KanbanColumn";
 
@@ -41,6 +43,10 @@ interface KanbanBoardProps {
   ) => Promise<Issue | undefined> | Issue | undefined;
   projectId?: string;
   onNavigate?: (href: string) => void;
+  assigneeOptions?: Array<{
+    label: string;
+    value: string;
+  }>;
 }
 
 function mergeIssuesPreservingOrder(previous: Issue[], next: Issue[]): Issue[] {
@@ -80,10 +86,19 @@ export function KanbanBoard({
   onIssueUpdate,
   projectId,
   onNavigate,
+  assigneeOptions = [],
 }: KanbanBoardProps) {
   const [activeIssue, setActiveIssue] = useState<Issue | null>(null);
   const [mounted, setMounted] = useState(false);
   const [orderedIssues, setOrderedIssues] = useState(issues);
+
+  const {
+    isSelected,
+    selectedCount,
+    selectedIssueIds,
+    toggleIssue,
+    clearSelection,
+  } = useIssueSelection();
 
   useEffect(() => {
     setOrderedIssues((current) => mergeIssuesPreservingOrder(current, issues));
@@ -265,6 +280,17 @@ export function KanbanBoard({
 
   return (
     <div className="h-full overflow-x-auto">
+      {/* Batch Action Bar */}
+      {selectedCount > 0 && projectId && (
+        <BatchActionBar
+          assigneeOptions={assigneeOptions}
+          projectId={projectId}
+          selectedCount={selectedCount}
+          selectedIssueIds={selectedIssueIds}
+          onClearSelection={clearSelection}
+        />
+      )}
+
       <DndContext
         collisionDetection={customCollisionDetection}
         sensors={sensors}
@@ -283,6 +309,8 @@ export function KanbanBoard({
               status={status}
               issues={getIssuesByStatus(status)}
               onNavigate={onNavigate}
+              selectedIssueIds={selectedIssueIds}
+              onToggleSelect={toggleIssue}
             />
           ))}
         </div>

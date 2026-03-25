@@ -232,6 +232,7 @@ export function KanbanBoardView({
 
         <div className="min-h-0 flex-1 overflow-hidden">
           <KanbanBoard
+            assigneeOptions={assigneeOptions ?? []}
             issues={issues}
             onAddCard={setCreateModalStatus}
             onNavigate={(href) => router.push(href)}
