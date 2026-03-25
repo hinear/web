@@ -5,7 +5,13 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import type {
   CreateCommentInput,
   CreateIssueInput,
+  GetIssuesByProjectPageInput,
   IssuesRepository,
+  ListIssuesByAssigneeInput,
+  ListIssuesByLabelInput,
+  ListIssuesByPriorityInput,
+  ListIssuesByStatusInput,
+  SearchIssuesInput,
   UpdateIssueInput,
 } from "@/features/issues/contracts";
 import { createLabelKey, getLabelColor } from "@/features/issues/lib/labels";
@@ -609,5 +615,254 @@ export class SupabaseIssuesRepository implements IssuesRepository {
       ...issue,
       labels,
     };
+  }
+
+  async listIssuesByStatus(input: {
+    projectId: string;
+    status: Issue["status"];
+  }): Promise<Issue[]> {
+    const { data, error } = await this.client
+      .from("issues")
+      .select()
+      .eq("project_id", input.projectId)
+      .eq("status", input.status)
+      .order("issue_number", { ascending: true });
+
+    assertQuerySucceeded("Failed to load issues by status", error);
+
+    const issues = (data ?? []).map(mapIssue);
+
+    const [labelsByIssueId] = await Promise.all([
+      this.listLabelsByIssueIds(
+        issues.map((issue) => issue.id),
+        input.projectId
+      ),
+    ]);
+
+    return issues.map((issue) => ({
+      ...issue,
+      labels: labelsByIssueId.get(issue.id) ?? [],
+    }));
+  }
+
+  async listIssuesByAssignee(input: {
+    projectId: string;
+    assigneeId: string;
+  }): Promise<Issue[]> {
+    const { data, error } = await this.client
+      .from("issues")
+      .select()
+      .eq("project_id", input.projectId)
+      .eq("assignee_id", input.assigneeId)
+      .order("issue_number", { ascending: true });
+
+    assertQuerySucceeded("Failed to load issues by assignee", error);
+
+    const issues = (data ?? []).map(mapIssue);
+
+    const [labelsByIssueId] = await Promise.all([
+      this.listLabelsByIssueIds(
+        issues.map((issue) => issue.id),
+        input.projectId
+      ),
+    ]);
+
+    return issues.map((issue) => ({
+      ...issue,
+      labels: labelsByIssueId.get(issue.id) ?? [],
+    }));
+  }
+
+  async listIssuesByPriority(input: {
+    projectId: string;
+    priority: Issue["priority"];
+  }): Promise<Issue[]> {
+    const { data, error } = await this.client
+      .from("issues")
+      .select()
+      .eq("project_id", input.projectId)
+      .eq("priority", input.priority)
+      .order("issue_number", { ascending: true });
+
+    assertQuerySucceeded("Failed to load issues by priority", error);
+
+    const issues = (data ?? []).map(mapIssue);
+
+    const [labelsByIssueId] = await Promise.all([
+      this.listLabelsByIssueIds(
+        issues.map((issue) => issue.id),
+        input.projectId
+      ),
+    ]);
+
+    return issues.map((issue) => ({
+      ...issue,
+      labels: labelsByIssueId.get(issue.id) ?? [],
+    }));
+  }
+
+  async listIssuesByLabel(input: {
+    projectId: string;
+    labelId: string;
+  }): Promise<Issue[]> {
+    // 먼저 해당 라벨이 붙은 이슈 ID들을 가져옴
+    const { data: issueLabelRows, error: issueLabelError } = await this.client
+      .from("issue_labels")
+      .select("issue_id")
+      .eq("project_id", input.projectId)
+      .eq("label_id", input.labelId);
+
+    assertQuerySucceeded("Failed to load issue labels", issueLabelError);
+
+    const issueIds = (issueLabelRows ?? []).map((row) => row.issue_id);
+
+    if (issueIds.length === 0) {
+      return [];
+    }
+
+    // 해당 이슈들을 가져옴
+    const { data, error } = await this.client
+      .from("issues")
+      .select()
+      .eq("project_id", input.projectId)
+      .in("id", issueIds)
+      .order("issue_number", { ascending: true });
+
+    assertQuerySucceeded("Failed to load issues by label", error);
+
+    const issues = (data ?? []).map(mapIssue);
+
+    const [labelsByIssueId] = await Promise.all([
+      this.listLabelsByIssueIds(
+        issues.map((issue) => issue.id),
+        input.projectId
+      ),
+    ]);
+
+    return issues.map((issue) => ({
+      ...issue,
+      labels: labelsByIssueId.get(issue.id) ?? [],
+    }));
+  }
+
+  async searchIssues(input: {
+    projectId: string;
+    query: string;
+  }): Promise<Issue[]> {
+    const { data, error } = await this.client
+      .from("issues")
+      .select()
+      .eq("project_id", input.projectId)
+      .or(`title.ilike.%${input.query}%,description.ilike.%${input.query}%`)
+      .order("issue_number", { ascending: true });
+
+    assertQuerySucceeded("Failed to search issues", error);
+
+    const issues = (data ?? []).map(mapIssue);
+
+    const [labelsByIssueId] = await Promise.all([
+      this.listLabelsByIssueIds(
+        issues.map((issue) => issue.id),
+        input.projectId
+      ),
+    ]);
+
+    return issues.map((issue) => ({
+      ...issue,
+      labels: labelsByIssueId.get(issue.id) ?? [],
+    }));
+  }
+
+  async getIssuesByProjectPage(input: {
+    projectId: string;
+    page: number;
+    limit: number;
+  }): Promise<{
+    issues: Issue[];
+    totalCount: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
+    // 전체 개수를 먼저 가져옴
+    const { count, error: countError } = await this.client
+      .from("issues")
+      .select("*", { count: "exact", head: true })
+      .eq("project_id", input.projectId);
+
+    assertQuerySucceeded("Failed to count issues", countError);
+
+    const totalCount = count ?? 0;
+    const offset = input.page * input.limit;
+    const totalPages = Math.ceil(totalCount / input.limit);
+
+    // 페이지네이션된 이슈들을 가져옴
+    const { data, error } = await this.client
+      .from("issues")
+      .select()
+      .eq("project_id", input.projectId)
+      .order("issue_number", { ascending: true })
+      .range(offset, offset + input.limit - 1);
+
+    assertQuerySucceeded("Failed to load issues page", error);
+
+    const issues = (data ?? []).map(mapIssue);
+
+    const [labelsByIssueId] = await Promise.all([
+      this.listLabelsByIssueIds(
+        issues.map((issue) => issue.id),
+        input.projectId
+      ),
+    ]);
+
+    return {
+      issues: issues.map((issue) => ({
+        ...issue,
+        labels: labelsByIssueId.get(issue.id) ?? [],
+      })),
+      totalCount,
+      page: input.page,
+      limit: input.limit,
+      totalPages,
+    };
+  }
+
+  async countIssuesByProject(projectId: string): Promise<number> {
+    const { count, error } = await this.client
+      .from("issues")
+      .select("*", { count: "exact", head: true })
+      .eq("project_id", projectId);
+
+    assertQuerySucceeded("Failed to count project issues", error);
+
+    return count ?? 0;
+  }
+
+  async countIssuesByStatus(
+    projectId: string
+  ): Promise<Record<Issue["status"], number>> {
+    const { data, error } = await this.client
+      .from("issues")
+      .select("status")
+      .eq("project_id", projectId);
+
+    assertQuerySucceeded("Failed to count issues by status", error);
+
+    const statusCounts: Record<Issue["status"], number> = {
+      Triage: 0,
+      Backlog: 0,
+      Todo: 0,
+      "In Progress": 0,
+      Done: 0,
+      Canceled: 0,
+      Closed: 0,
+    };
+
+    for (const row of data ?? []) {
+      const status = row.status as Issue["status"];
+      statusCounts[status] = (statusCounts[status] ?? 0) + 1;
+    }
+
+    return statusCounts;
   }
 }

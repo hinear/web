@@ -88,6 +88,44 @@ export interface UpdateIssueInput {
   version: number;
 }
 
+export interface ListIssuesByProjectInput {
+  projectId: string;
+}
+
+export interface ListIssuesByStatusInput extends ListIssuesByProjectInput {
+  status: IssueStatus;
+}
+
+export interface ListIssuesByAssigneeInput extends ListIssuesByProjectInput {
+  assigneeId: string;
+}
+
+export interface ListIssuesByPriorityInput extends ListIssuesByProjectInput {
+  priority: IssuePriority;
+}
+
+export interface ListIssuesByLabelInput extends ListIssuesByProjectInput {
+  labelId: string;
+}
+
+export interface SearchIssuesInput extends ListIssuesByProjectInput {
+  query: string;
+}
+
+export interface GetIssuesByProjectPageInput {
+  projectId: string;
+  page: number;
+  limit: number;
+}
+
+export interface PaginatedIssues {
+  issues: Issue[];
+  totalCount: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export interface IssuesRepository {
   createIssue(input: CreateIssueInput): Promise<Issue>;
   createComment(input: CreateCommentInput): Promise<Comment>;
@@ -99,6 +137,24 @@ export interface IssuesRepository {
   ): Promise<ActivityLogEntry>;
   getIssueById(issueId: string): Promise<Issue | null>;
   updateIssue(issueId: string, input: UpdateIssueInput): Promise<Issue>;
+
+  // 필터링 메서드
+  listIssuesByStatus(input: ListIssuesByStatusInput): Promise<Issue[]>;
+  listIssuesByAssignee(input: ListIssuesByAssigneeInput): Promise<Issue[]>;
+  listIssuesByPriority(input: ListIssuesByPriorityInput): Promise<Issue[]>;
+  listIssuesByLabel(input: ListIssuesByLabelInput): Promise<Issue[]>;
+
+  // 검색 메서드
+  searchIssues(input: SearchIssuesInput): Promise<Issue[]>;
+
+  // 페이지네이션 메서드
+  getIssuesByProjectPage(
+    input: GetIssuesByProjectPageInput
+  ): Promise<PaginatedIssues>;
+
+  // 카운트 메서드
+  countIssuesByProject(projectId: string): Promise<number>;
+  countIssuesByStatus(projectId: string): Promise<Record<IssueStatus, number>>;
 }
 
 export function isConflictError(error: unknown): error is ConflictError {
