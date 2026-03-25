@@ -55,7 +55,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={getButtonClassName(variant, size, className)}
         ref={ref}
         type={type}
-        {...(disabled !== undefined && { disabled })}
+        {...(disabled && { disabled: true })}
         {...props}
       />
     );
