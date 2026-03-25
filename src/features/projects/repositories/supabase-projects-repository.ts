@@ -285,75 +285,66 @@ export class SupabaseProjectsRepository implements ProjectsRepository {
   async getProjectInvitationByToken(
     token: string
   ): Promise<ProjectInvitation | null> {
-    const { data, error } = await this.client
-      .from("project_invitations")
-      .select()
-      .eq("token", token)
-      .maybeSingle();
+    const { data, error } = await this.client.rpc("get_invitation_by_token", {
+      p_token: token,
+    });
 
     assertQuerySucceeded("Failed to load project invitation", error);
 
-    return data ? mapProjectInvitation(data) : null;
+    if (!data || Array.isArray(data)) {
+      return null;
+    }
+
+    return mapProjectInvitation({
+      id: data.id,
+      project_id: data.project_id,
+      email: data.email,
+      role: data.role,
+      status: data.status,
+      token: data.token,
+      invited_by: data.invited_by,
+      expires_at: data.expires_at,
+      accepted_by: data.accepted_by,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+    });
   }
 
   async acceptProjectInvitation(
     token: string,
     actorId: string
   ): Promise<ProjectInvitation> {
-    const invitation = await this.getProjectInvitationByToken(token);
-
-    if (!invitation) {
-      throw createRepositoryError("UNKNOWN", "Invitation not found.");
-    }
-
-    if (invitation.status !== "pending") {
-      return invitation;
-    }
-
-    if (new Date(invitation.expiresAt).getTime() <= Date.now()) {
-      const { data, error } = await this.client
-        .from("project_invitations")
-        .update({
-          status: "expired",
-        })
-        .eq("id", invitation.id)
-        .select()
-        .single();
-
-      assertQuerySucceeded("Failed to expire project invitation", error);
-
-      return mapProjectInvitation(
-        assertDataPresent("Failed to expire project invitation", data)
-      );
-    }
-
-    const { error: memberError } = await this.client
-      .from("project_members")
-      .insert({
-        project_id: invitation.projectId,
-        role: "member",
-        user_id: actorId,
-      });
-
-    if (memberError && memberError.code !== "23505") {
-      assertQuerySucceeded("Failed to add invited project member", memberError);
-    }
-
-    const { data, error } = await this.client
-      .from("project_invitations")
-      .update({
-        accepted_by: actorId,
-        status: "accepted",
-      })
-      .eq("id", invitation.id)
-      .select()
-      .single();
+    const { data, error } = await this.client.rpc(
+      "accept_invitation_by_token",
+      {
+        p_token: token,
+        p_user_id: actorId,
+      }
+    );
 
     assertQuerySucceeded("Failed to accept project invitation", error);
 
-    return mapProjectInvitation(
-      assertDataPresent("Failed to accept project invitation", data)
-    );
+    if (!data || typeof data !== "object") {
+      throw createRepositoryError("UNKNOWN", "Failed to accept invitation");
+    }
+
+    // Check for error response
+    if ("error" in data) {
+      throw createRepositoryError("UNKNOWN", String(data.error));
+    }
+
+    // The RPC function returns {id, project_id, status}
+    // We need to fetch the full invitation details
+    const invitation = await this.getProjectInvitationByToken(token);
+
+    if (!invitation) {
+      throw createRepositoryError(
+        "UNKNOWN",
+        "Invitation not found after accept"
+      );
+    }
+
+    return invitation;
   }
 
   async resendProjectInvitation(

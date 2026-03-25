@@ -828,20 +828,6 @@ export function IssueDetailFullPageScreen({
                 minHeight="240px"
                 className="mt-4"
               />
-
-              <div className="mt-4 rounded-[12px] border border-[#E6E8EC] bg-[#FCFCFD] px-4 py-3">
-                <p className="text-[12px] font-[var(--app-font-weight-600)] text-[#6B7280]">
-                  Empty state reference
-                </p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <Chip size="sm" variant="violet">
-                    No activity
-                  </Chip>
-                  <Chip size="sm" variant="outline">
-                    Metadata view
-                  </Chip>
-                </div>
-              </div>
             </section>
 
             <section className="rounded-[16px] border border-[#E6E8EC] bg-white p-4">
