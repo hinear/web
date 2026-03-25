@@ -196,6 +196,9 @@
 - [ ] 관련 테스트 전체 실행 결과 확정
 - [ ] `0005_add_profiles.sql` 원격 적용 여부 최종 확인
 - [ ] 문서 전반 최신 상태 재정리 완료 여부 재확인
+- [ ] 전체 `typecheck` 적색 구간 정리
+  - 2026-03-26 기준 현재 `pnpm typecheck`는 이번 GitHub 변경 외의 기존 브랜치 오류로 실패한다.
+  - `.next/types`의 누락된 dashboard page 참조, `scripts/run-migration.ts`의 `pg` 타입, delete issue/danger button 관련 타입 에러가 남아 있다.
 
 ### 6. Current Product Follow-up
 
@@ -210,6 +213,8 @@
 - [x] 보드 검색/필터 서버 API 연동
 - [x] notifications preferences / subscribe / unsubscribe API 연결
 - [x] members / projects / issues search / comments 외부 API 라우트 확장
+- [x] GitHub OAuth 후 저장소 선택 자동 진입
+- [x] GitHub issue existing-link update path 연결
 - [ ] 알림 실제 전달 흐름 점검
 - [ ] `loadIssueDetail()` 예외 경로 단순화 검토
 

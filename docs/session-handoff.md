@@ -1,5 +1,28 @@
 # Session Handoff
 
+## 2026-03-26 Update
+
+이 문서의 오래된 GitHub integration / Supabase MCP 메모는 아래 최신 사실로 덮어쓴다.
+
+- Supabase MCP는 이 세션에서 정상 동작했고, 원격 스키마 조회와 마이그레이션 적용이 가능했다.
+- 원격 Supabase에는 GitHub 연동용 컬럼이 반영되었다.
+  - `projects.github_repo_owner`
+  - `projects.github_repo_name`
+  - `projects.github_integration_enabled`
+  - `issues.github_issue_id`
+  - `issues.github_issue_number`
+  - `issues.github_synced_at`
+  - `issues.github_sync_status`
+- `projects.github_access_token`, `projects.github_webhook_secret` 같은 평문 비밀 저장 컬럼은 추가하지 않았다.
+- 현재 GitHub issue sync는 GitHub App installation token 기반이다.
+- 서버에는 `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY` 환경변수가 필요하다.
+- 프로젝트 설정 페이지의 GitHub 연결은 "repo 메타데이터 저장 + one-way issue sync 준비" 수준까지 구현되었다.
+- `/api/github/repositories` 와 `/api/projects/[projectId]/github` 라우트는 존재한다.
+- GitHub OAuth 완료 후 `/projects/[projectId]/settings?github=select-repo` 로 복귀하면 저장소 선택 UI가 자동으로 열린다.
+- 이미 GitHub issue가 연결된 Hinear 이슈는 update path에서도 GitHub issue update를 백그라운드로 시도한다.
+- `/api/github/webhooks` 는 아직 구현되지 않았다.
+- 따라서 GitHub integration은 "초기 연결 + Hinear → GitHub one-way sync 기반" 까지가 최신 범위다.
+
 ## 2026-03-25 Update
 
 이 문서의 초기 내용은 2026-03-21~2026-03-23 기준 메모가 많아서, 아래 항목을 현재 기준 최신 사실로 우선 본다.
@@ -195,7 +218,7 @@
 - **Supabase MCP 서버 설정** (2026-03-23)
   - `.mcp.json`에 Supabase MCP 서버 추가
   - 프로젝트 ref: `pmyrrckkiomjwjqntymr`
-  - 인증 필요: 별도 터미널에서 `claude /mcp` 실행 필요
+  - 2026-03-26 기준 현재 Codex 세션에서 MCP 호출이 정상 응답한다
 
 ## Key Files
 
@@ -270,7 +293,7 @@ Additional UI check run in this session:
 
 ## Current State
 
-- Supabase MCP CLI login was completed, but this Codex session still returned `Auth required` from MCP tool calls
+- Historical note: an older session temporarily saw `Auth required` from MCP tool calls, but that is no longer the current state.
 - remote project URL: `https://pmyrrckkiomjwjqntymr.supabase.co`
 - remote migrations currently present:
   - `initial_project_issue_schema`
@@ -484,7 +507,7 @@ See [optimistic-locking.md](/Users/choiho/zerone/hinear/docs/issue-detail/optimi
     - `NOTIFICATION_PUBLIC_KEY`
   - 현재 push subscription이 메모리(Map)에 저장되어 서버 재시작 시 소실
   - DB 마이그레이션 `0007`, `0008`이 생성되었으나 아직 적용되지 않음
-  - Supabase MCP가 `.mcp.json`에 설정되었으나 인증 필요 (별도 터미널에서 `claude /mcp`)
+  - 이 메모는 당시 상태이며, 현재는 Supabase MCP 호출이 정상 동작한다
   - Service Worker가 `/public/sw.js`에 있으며 자동 등록됨
   - 알림 설정이 프로젝트 설정(`/projects/[projectId]/settings`) 페이지에 통합됨
 
@@ -494,7 +517,6 @@ See [optimistic-locking.md](/Users/choiho/zerone/hinear/docs/issue-detail/optimi
 Continue from docs/session-handoff.md, docs/todo.md on branch main.
 
 **Priority 1**: Complete PWA notification system
-- Authenticate Supabase MCP in separate terminal: `claude /mcp`
 - Apply migrations 0007, 0008 to database
 - Replace in-memory subscription storage with Supabase repository
 - Add notification preference toggles to settings UI
