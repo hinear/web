@@ -35,6 +35,8 @@ export interface ProjectsRepository {
   ): Promise<ProjectInvitation>;
   updateProject(input: UpdateProjectInput): Promise<Project>;
   getProjectById(projectId: string): Promise<Project | null>;
+  getProjectByKey(key: string): Promise<Project | null>;
+  listProjects(): Promise<Project[]>;
   listProjectMembers(projectId: string): Promise<ProjectMemberSummary[]>;
   listPendingProjectInvitations(
     projectId: string
@@ -42,4 +44,38 @@ export interface ProjectsRepository {
   removeProjectMember(projectId: string, userId: string): Promise<void>;
   resendProjectInvitation(invitationId: string): Promise<ProjectInvitation>;
   revokeProjectInvitation(invitationId: string): Promise<ProjectInvitation>;
+
+  // 누락됨 - 조회
+  listUserProjects(userId: string): Promise<Project[]>;
+  listProjectsByType(type: ProjectType): Promise<Project[]>;
+
+  // 누락됨 - 접근 제어 (필수)
+  checkProjectAccess(projectId: string, userId: string): Promise<boolean>;
+  validateProjectKey(key: string): Promise<boolean>;
+  projectExists(key: string): Promise<boolean>;
+}
+
+export interface GetProjectByKeyInput {
+  key: string;
+}
+
+export interface ListUserProjectsInput {
+  userId: string;
+}
+
+export interface ListProjectsByTypeInput {
+  type: ProjectType;
+}
+
+export interface CheckProjectAccessInput {
+  projectId: string;
+  userId: string;
+}
+
+export interface ValidateProjectKeyInput {
+  key: string;
+}
+
+export interface ProjectExistsInput {
+  key: string;
 }

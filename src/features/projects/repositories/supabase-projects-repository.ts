@@ -396,4 +396,106 @@ export class SupabaseProjectsRepository implements ProjectsRepository {
       assertDataPresent("Failed to revoke project invitation", data)
     );
   }
+
+  // 누락됨 - 조회 메서드
+  async getProjectByKey(key: string): Promise<Project | null> {
+    const { data, error } = await this.client
+      .from("projects")
+      .select()
+      .eq("key", key)
+      .maybeSingle();
+
+    assertQuerySucceeded("Failed to get project by key", error);
+
+    return data ? mapProject(data) : null;
+  }
+
+  async listProjects(): Promise<Project[]> {
+    const { data, error } = await this.client
+      .from("projects")
+      .select()
+      .order("created_at", { ascending: false });
+
+    assertQuerySucceeded("Failed to list projects", error);
+
+    return (data ?? []).map(mapProject);
+  }
+
+  async listUserProjects(userId: string): Promise<Project[]> {
+    const { data, error } = await this.client
+      .from("project_members")
+      .select(`
+        project_id,
+        projects (
+          id,
+          key,
+          name,
+          type,
+          issue_seq,
+          created_by,
+          created_at,
+          updated_at
+        )
+      `)
+      .eq("user_id", userId);
+
+    assertQuerySucceeded("Failed to list user projects", error);
+
+    const projects: Project[] = [];
+
+    for (const row of data ?? []) {
+      if (row.projects) {
+        projects.push(mapProject(row.projects as TableRow<"projects">));
+      }
+    }
+
+    return projects;
+  }
+
+  async listProjectsByType(type: string): Promise<Project[]> {
+    const { data, error } = await this.client
+      .from("projects")
+      .select()
+      .eq("type", type)
+      .order("created_at", { ascending: false });
+
+    assertQuerySucceeded("Failed to list projects by type", error);
+
+    return (data ?? []).map(mapProject);
+  }
+
+  // 누락됨 - 접근 제어 메서드
+  async checkProjectAccess(
+    projectId: string,
+    userId: string
+  ): Promise<boolean> {
+    const { data, error } = await this.client
+      .from("project_members")
+      .select("user_id")
+      .eq("project_id", projectId)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    assertQuerySucceeded("Failed to check project access", error);
+
+    return data !== null;
+  }
+
+  async validateProjectKey(key: string): Promise<boolean> {
+    // Project key should be 2-10 uppercase letters/numbers
+    const keyRegex = /^[A-Z0-9]{2,10}$/;
+    return keyRegex.test(key);
+  }
+
+  async projectExists(key: string): Promise<boolean> {
+    const { data, error } = await this.client
+      .from("projects")
+      .select("id")
+      .eq("key", key)
+      .maybeSingle();
+
+    assertQuerySucceeded("Failed to check if project exists", error);
+
+    return data !== null;
+  }
 }
