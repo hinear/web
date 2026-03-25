@@ -1,8 +1,7 @@
 import "server-only";
 
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
-import { buildAuthPath } from "@/features/auth/lib/next-path";
 import { getServerIssuesRepository } from "@/features/issues/repositories/server-issues-repository";
 import { getServerProjectsRepository } from "@/features/projects/repositories/server-projects-repository";
 import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
@@ -10,12 +9,13 @@ import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
 export async function loadIssueDetail(
   projectId: string,
   issueId: string,
-  returnTo: string
+  _returnTo: string
 ) {
+  // Auth check is done at layout level
   const actorId = await getAuthenticatedActorIdOrNull();
 
   if (!actorId) {
-    redirect(buildAuthPath(returnTo));
+    throw new Error("Authentication required");
   }
 
   const issuesRepository = await getServerIssuesRepository();

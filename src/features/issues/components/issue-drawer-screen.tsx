@@ -35,6 +35,7 @@ interface IssueDetailDrawerScreenProps {
   issue: Issue;
   lastEditedByName?: string;
   memberNamesById?: Record<string, string>;
+  onClose?: () => void;
 }
 
 interface IssueUpdateResponse {
@@ -98,6 +99,7 @@ export function IssueDetailDrawerScreen({
   issue,
   lastEditedByName,
   memberNamesById = {},
+  onClose,
 }: IssueDetailDrawerScreenProps) {
   const [issueState, setIssueState] = useState(issue);
   const [activityState, setActivityState] = useState(activityLog);
@@ -209,7 +211,7 @@ export function IssueDetailDrawerScreen({
   const visibleActivity = activityState.slice(0, 3);
 
   return (
-    <aside className="pointer-events-auto flex h-full max-h-[936px] w-full max-w-[688px] flex-col gap-4 overflow-hidden rounded-[20px] border border-[#E6E8EC] bg-white p-5 shadow-[-12px_20px_40px_rgba(15,23,42,0.12)]">
+    <aside className="pointer-events-auto my-6 mr-6 flex h-[calc(100vh-48px)] w-full flex-col gap-4 overflow-hidden rounded-[16px] border border-[#E6E8EC] bg-white p-6 shadow-[0_0_60px_-12px_rgba(15,23,42,0.25)]">
       {conflictInfo ? (
         <ConflictDialog
           currentVersion={conflictInfo.currentVersion}
@@ -232,12 +234,22 @@ export function IssueDetailDrawerScreen({
           >
             Open full page
           </Link>
-          <Link
-            className="rounded-[10px] border border-[#E6E8EC] bg-white px-3 py-[9px] text-[12px] leading-[12px] font-[var(--app-font-weight-600)] text-[#374151]"
-            href={boardHref}
-          >
-            Close
-          </Link>
+          {onClose ? (
+            <button
+              onClick={onClose}
+              className="rounded-[10px] border border-[#E6E8EC] bg-white px-3 py-[9px] text-[12px] leading-[12px] font-[var(--app-font-weight-600)] text-[#374151]"
+              type="button"
+            >
+              Close
+            </button>
+          ) : (
+            <Link
+              className="rounded-[10px] border border-[#E6E8EC] bg-white px-3 py-[9px] text-[12px] leading-[12px] font-[var(--app-font-weight-600)] text-[#374151]"
+              href={boardHref}
+            >
+              Close
+            </Link>
+          )}
         </div>
       </header>
 

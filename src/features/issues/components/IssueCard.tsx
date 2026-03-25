@@ -3,6 +3,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { BoardIssueCard } from "@/components/organisms/BoardIssueCard";
+import { getIssuePath } from "@/features/projects/lib/project-routes";
 import { cn } from "@/lib/utils";
 import type { Issue } from "@/specs/issue-detail.contract";
 
@@ -37,9 +38,7 @@ export function IssueCard({
     },
   });
 
-  const detailHref = projectId
-    ? `/projects/${projectId}/issues/${issue.id}`
-    : undefined;
+  const detailHref = projectId ? getIssuePath(projectId, issue.id) : undefined;
 
   const handleNavigate = () => {
     if (detailHref && onNavigate) {

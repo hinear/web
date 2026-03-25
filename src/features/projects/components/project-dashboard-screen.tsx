@@ -199,7 +199,7 @@ function RecentActivityList({
         issues.map((issue) => (
           <Link
             className="rounded-[14px] border border-[#E6E8EC] bg-white px-[14px] py-[14px] transition-colors hover:bg-[#F7F8FA]"
-            href={getIssuePath(projectId, issue.id)}
+            href={getIssuePath(projectId, issue.id, { view: "full" })}
             key={issue.id}
           >
             <p className="truncate text-[13px] leading-[1.35] font-[var(--app-font-weight-500)] text-[#111318]">
@@ -368,7 +368,7 @@ export function ProjectDashboardScreen({
                 recentIssues.map((issue) => (
                   <Link
                     className="flex items-start gap-3 border border-[#E8E8E8] bg-white px-4 py-[14px] transition-colors hover:bg-[#F7F8FA]"
-                    href={getIssuePath(project.id, issue.id)}
+                    href={getIssuePath(project.id, issue.id, { view: "full" })}
                     key={issue.id}
                   >
                     <span

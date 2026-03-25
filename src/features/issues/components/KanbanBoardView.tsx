@@ -4,6 +4,7 @@ import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
+import { toast } from "sonner";
 import { Chip } from "@/components/atoms/Chip";
 import { MobileIssueListAppBar } from "@/components/molecules/MobileIssueListAppBar";
 import { CreateIssueTabletModal } from "@/components/organisms/CreateIssueTabletModal";
@@ -130,6 +131,13 @@ export function KanbanBoardView({
 
   const boardErrorMessage = mutationError?.message ?? error?.message ?? null;
 
+  // Show toast on mutation error
+  React.useEffect(() => {
+    if (mutationError) {
+      toast.error("We couldn't update the board. Try again.");
+    }
+  }, [mutationError]);
+
   React.useEffect(() => {
     if (!createModalStatus) {
       return;
@@ -184,14 +192,6 @@ export function KanbanBoardView({
 
   return (
     <div className="flex h-full min-h-full flex-col gap-6">
-      {boardErrorMessage ? (
-        <div
-          className="rounded-[16px] border border-[#FCA5A5] bg-[#FEF2F2] px-4 py-3 text-[13px] font-medium text-[#991B1B]"
-          role="alert"
-        >
-          {boardErrorMessage}
-        </div>
-      ) : null}
       <div className="md:hidden">
         <div className="flex flex-col gap-4">
           <MobileIssueListAppBar

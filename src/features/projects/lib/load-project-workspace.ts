@@ -1,8 +1,7 @@
 import "server-only";
 
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
-import { buildAuthPath } from "@/features/auth/lib/next-path";
 import { getServerIssuesRepository } from "@/features/issues/repositories/server-issues-repository";
 import { getServerProjectsRepository } from "@/features/projects/repositories/server-projects-repository";
 import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
@@ -10,17 +9,19 @@ import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client"
 
 export async function loadProjectWorkspace(
   projectId: string,
-  returnTo: string
+  _returnTo: string
 ) {
+  // Auth check is now done at layout level to avoid duplicate checks in parallel routes
   const actorId = await getAuthenticatedActorIdOrNull();
-
-  if (!actorId) {
-    redirect(buildAuthPath(returnTo));
-  }
 
   const repository = await getServerProjectsRepository();
   const issuesRepository = await getServerIssuesRepository();
   const requestSupabase = await createRequestSupabaseServerClient();
+
+  if (!actorId) {
+    throw new Error("Authentication required");
+  }
+
   const accessibleProjectIdsPromise = requestSupabase
     .from("project_members")
     .select("project_id")

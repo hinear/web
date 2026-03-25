@@ -50,7 +50,7 @@ function MobileIssueCard({
   return (
     <Link
       className="flex w-full flex-col gap-[10px] rounded-[14px] border border-[var(--app-color-border-soft)] bg-[var(--app-color-white)] p-3 transition-colors hover:bg-[#F7F8FA]"
-      href={getIssuePath(projectId, issue.id)}
+      href={getIssuePath(projectId, issue.id, { view: "full" })}
     >
       <div className="flex items-start justify-between gap-3">
         <span className="text-[12px] leading-[12px] font-[var(--app-font-weight-600)] text-[var(--app-color-brand-500)]">
