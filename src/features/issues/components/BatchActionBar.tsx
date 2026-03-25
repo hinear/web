@@ -165,7 +165,7 @@ export function BatchActionBar({
               }}
               value=""
             >
-              <option disabled value="">
+              <option disabled value="" key="status-placeholder">
                 Status
               </option>
               {ISSUE_STATUSES.map((status) => (
@@ -188,7 +188,7 @@ export function BatchActionBar({
               }}
               value=""
             >
-              <option disabled value="">
+              <option disabled value="" key="assignee-placeholder">
                 Assignee
               </option>
               {assigneeOptions.map((option) => (
@@ -211,7 +211,7 @@ export function BatchActionBar({
               }}
               value=""
             >
-              <option disabled value="">
+              <option disabled value="" key="priority-placeholder">
                 Priority
               </option>
               {ISSUE_PRIORITIES.map((priority) => (

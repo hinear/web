@@ -1,4 +1,168 @@
-import type { NotificationData } from "@/features/notifications/types";
+import { createClient } from "@supabase/supabase-js";
+import { revalidatePath } from "next/cache";
+import webpush from "web-push";
+import { SupabaseNotificationPreferencesRepository } from "@/features/notifications/repositories/supabase-notification-preferences-repository";
+import { SupabasePushSubscriptionsRepository } from "@/features/notifications/repositories/supabase-push-subscriptions-repository";
+import type {
+  NotificationData,
+  PushSubscription,
+} from "@/features/notifications/types";
+
+const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY ?? "";
+const NOTIFICATION_PUBLIC_KEY = process.env.NOTIFICATION_PUBLIC_KEY ?? "";
+
+webpush.setVapidDetails(
+  "mailto:notifications@hinear.local",
+  VAPID_PUBLIC_KEY,
+  VAPID_PRIVATE_KEY
+);
+
+/**
+ * 알림 데이터로부터 대상 사용자 ID 목록을 추출합니다
+ */
+function extractTargetUserIds(data: NotificationData): string[] {
+  if (data.actor?.id) {
+    return [data.actor.id];
+  }
+
+  if (data.type === "project_invited") {
+    return [];
+  }
+
+  return [];
+}
+
+/**
+ * 알림 설정에 따라 구독을 필터링합니다
+ */
+async function filterSubscriptionsByPreferences(
+  subscriptions: PushSubscription[],
+  _userIds: string[],
+  _notificationType: NotificationData["type"],
+  _preferencesRepo: SupabaseNotificationPreferencesRepository
+): Promise<PushSubscription[]> {
+  return subscriptions;
+}
+
+function createNotificationPayload(data: NotificationData) {
+  const { type, issueIdentifier, actor } = data;
+
+  switch (type) {
+    case "issue_assigned":
+      return {
+        title: "이슈 할당 알림",
+        body: `${actor?.name || "사용자"}님이 ${issueIdentifier}를 당신에게 할당했습니다.`,
+        icon: "/icon.png",
+        tag: `issue-${data.issueId}-assigned`,
+        data,
+      };
+
+    case "issue_updated":
+      return {
+        title: "이슈 변경 알림",
+        body: `${actor?.name || "사용자"}님이 ${issueIdentifier}를 변경했습니다.`,
+        icon: "/icon.png",
+        tag: `issue-${data.issueId}-updated`,
+        data,
+      };
+
+    case "issue_status_changed": {
+      const { previousStatus, newStatus } = data.data as {
+        previousStatus: string;
+        newStatus: string;
+      };
+      return {
+        title: "상태 변경 알림",
+        body: `${issueIdentifier}가 '${previousStatus}'에서 '${newStatus}'(으)로 변경되었습니다.`,
+        icon: "/icon.png",
+        tag: `issue-${data.issueId}-status`,
+        data,
+      };
+    }
+
+    case "comment_added":
+      return {
+        title: "댓글 알림",
+        body: `${actor?.name || "사용자"}님이 ${issueIdentifier}에 댓글을 남겼습니다.`,
+        icon: "/icon.png",
+        tag: `issue-${data.issueId}-comment`,
+        data,
+      };
+
+    case "project_invited":
+      return {
+        title: "프로젝트 초대 알림",
+        body: `${data.projectName} 프로젝트에 초대되었습니다.`,
+        icon: "/icon.png",
+        tag: `project-${data.projectId}-invited`,
+        data,
+      };
+
+    default:
+      return {
+        title: "Hinear 알림",
+        body: "새로운 알림이 있습니다.",
+        icon: "/icon.png",
+        data,
+      };
+  }
+}
+
+/**
+ * 알림 전송 (서버 사이드용)
+ */
+async function sendNotification(data: NotificationData): Promise<void> {
+  try {
+    const payload = createNotificationPayload(data);
+    const targetUserIds = extractTargetUserIds(data);
+
+    if (targetUserIds.length === 0) {
+      return;
+    }
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
+    );
+
+    const subscriptionRepo = new SupabasePushSubscriptionsRepository(supabase);
+    const subscriptions =
+      await subscriptionRepo.getActiveSubscriptions(targetUserIds);
+
+    const preferencesRepo = new SupabaseNotificationPreferencesRepository(
+      supabase
+    );
+
+    const filteredSubscriptions = await filterSubscriptionsByPreferences(
+      subscriptions,
+      targetUserIds,
+      data.type,
+      preferencesRepo
+    );
+
+    for (const subscription of filteredSubscriptions) {
+      try {
+        await webpush.sendNotification(subscription, JSON.stringify(payload), {
+          vapidDetails: {
+            subject: "mailto:notifications@hinear.local",
+            publicKey: NOTIFICATION_PUBLIC_KEY,
+            privateKey: VAPID_PRIVATE_KEY,
+          },
+          TTL: 3600,
+        });
+      } catch (error) {
+        console.error("Failed to send notification:", error);
+      }
+    }
+
+    if (data.issueId) {
+      revalidatePath(`/projects/${data.projectId}/issues/${data.issueId}`);
+    }
+  } catch (error) {
+    console.error("Error sending notification:", error);
+  }
+}
 
 /**
  * 이슈 할당 알림 전송
@@ -94,25 +258,4 @@ export async function triggerProjectInvitedNotification(data: {
   };
 
   await sendNotification(notificationData);
-}
-
-/**
- * 알림 API 호출
- */
-async function sendNotification(data: NotificationData): Promise<void> {
-  try {
-    const response = await fetch("/api/notifications/send", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      console.error("Failed to send notification:", await response.text());
-    }
-  } catch (error) {
-    console.error("Error sending notification:", error);
-  }
 }
