@@ -5,6 +5,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import type {
   CreateCommentInput,
   CreateIssueInput,
+  DeleteIssueInput,
   GetIssuesByProjectPageInput,
   IssuesRepository,
   ListIssuesByAssigneeInput,
@@ -26,6 +27,7 @@ import type {
   Issue,
   Label,
 } from "@/features/issues/types";
+import { GitHubSyncService } from "@/lib/github/sync-service";
 import type { AppSupabaseServerClient } from "@/lib/supabase/server-client";
 import type {
   Json,
@@ -72,6 +74,10 @@ function mapIssue(row: TableRow<"issues">): Issue {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     version: row.version,
+    githubIssueId: (row as any).github_issue_id ?? null,
+    githubIssueNumber: (row as any).github_issue_number ?? null,
+    githubSyncedAt: (row as any).github_synced_at ?? null,
+    githubSyncStatus: (row as any).github_sync_status ?? "pending",
   };
 }
 
@@ -123,6 +129,48 @@ function getDescriptionUpdateSummary(previous: string, next: string): string {
 
 export class SupabaseIssuesRepository implements IssuesRepository {
   constructor(private readonly client: AppSupabaseServerClient) {}
+
+  private syncIssueCreationToGitHub(issue: Issue): void {
+    const syncService = new GitHubSyncService(this.client);
+    syncService
+      .syncIssueToGitHub({
+        projectId: issue.projectId,
+        issueId: issue.id,
+        issueNumber: issue.issueNumber,
+        identifier: issue.identifier,
+        title: issue.title,
+        description: issue.description,
+        status: issue.status,
+        labels: issue.labels,
+      })
+      .catch((error) => {
+        console.error("Background GitHub sync failed:", error);
+      });
+  }
+
+  private syncIssueUpdateToGitHub(issue: Issue): void {
+    if (!issue.githubIssueNumber || !issue.githubIssueId) {
+      return;
+    }
+
+    const syncService = new GitHubSyncService(this.client);
+    syncService
+      .updateGitHubIssue({
+        projectId: issue.projectId,
+        issueId: issue.id,
+        issueNumber: issue.issueNumber,
+        identifier: issue.identifier,
+        title: issue.title,
+        description: issue.description,
+        status: issue.status,
+        labels: issue.labels,
+        githubIssueId: issue.githubIssueId,
+        githubIssueNumber: issue.githubIssueNumber,
+      })
+      .catch((error) => {
+        console.error("Background GitHub update failed:", error);
+      });
+  }
 
   async listCommentsByIssueId(issueId: string): Promise<Comment[]> {
     const { data, error } = await this.client
@@ -329,6 +377,11 @@ export class SupabaseIssuesRepository implements IssuesRepository {
 
       assertQuerySucceeded("Failed to link issue labels", issueLabelsError);
     }
+
+    this.syncIssueCreationToGitHub({
+      ...issue,
+      labels,
+    });
 
     return {
       ...issue,
@@ -604,12 +657,14 @@ export class SupabaseIssuesRepository implements IssuesRepository {
       await this.appendActivityLog(activityEntry);
     }
 
-    const issue = mapIssue(assertDataPresent("Failed to update issue", data));
-
-    return {
-      ...issue,
+    const issue = {
+      ...mapIssue(assertDataPresent("Failed to update issue", data)),
       labels: currentIssue.labels,
     };
+
+    this.syncIssueUpdateToGitHub(issue);
+
+    return issue;
   }
 
   async getIssueById(issueId: string): Promise<Issue | null> {
@@ -885,6 +940,23 @@ export class SupabaseIssuesRepository implements IssuesRepository {
     }
 
     return statusCounts;
+  }
+
+  async deleteIssue(input: DeleteIssueInput): Promise<void> {
+    // 먼저 이슈가 존재하는지 확인
+    const issue = await this.getIssueById(input.issueId);
+
+    if (!issue) {
+      throw createRepositoryError("ISSUE_NOT_FOUND", "Issue not found.");
+    }
+
+    // 이슈 삭제 (cascade로 관련 데이터도 함께 삭제됨)
+    const { error } = await this.client
+      .from("issues")
+      .delete()
+      .eq("id", input.issueId);
+
+    assertQuerySucceeded("Failed to delete issue", error);
   }
 
   /**

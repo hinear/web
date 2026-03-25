@@ -42,6 +42,11 @@ export interface Issue {
   createdAt: string;
   updatedAt: string;
   version: number;
+  // GitHub integration fields
+  githubIssueId?: number | null;
+  githubIssueNumber?: number | null;
+  githubSyncedAt?: string | null;
+  githubSyncStatus?: "pending" | "synced" | "error";
 }
 
 export interface ConflictError {

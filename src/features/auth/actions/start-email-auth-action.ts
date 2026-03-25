@@ -133,3 +133,60 @@ export async function requireAuthRedirect(
 ): Promise<never> {
   return redirect(buildAuthPath(nextPath, reason));
 }
+
+function readProjectId(formData: FormData): string {
+  return String(formData.get("projectId") ?? "");
+}
+
+function appendGitHubRepoSelectionFlag(next: string): string {
+  const url = new URL(next, "http://localhost");
+  url.searchParams.set("github", "select-repo");
+
+  const search = url.searchParams.toString();
+  return `${url.pathname}${search ? `?${search}` : ""}${url.hash}`;
+}
+
+export async function startGitHubAuthAction(formData: FormData) {
+  const next = readNextPath(formData);
+  const reason = readReason(formData);
+  const projectId = readProjectId(formData);
+
+  if (!projectId) {
+    return redirect(
+      buildAuthStatusPath({
+        email: "",
+        error: "Project ID is required for GitHub integration.",
+        next,
+        reason,
+      })
+    );
+  }
+
+  const redirectTo = new URL("/auth/confirm", await getRequestOrigin());
+  redirectTo.searchParams.set("next", appendGitHubRepoSelectionFlag(next));
+  redirectTo.searchParams.set("github_project_id", projectId);
+
+  // OAuth starts with PKCE state that must be persisted on the request/response
+  // so the confirm callback can exchange the returned code for a session.
+  const supabase = await createRequestSupabaseServerClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    options: {
+      redirectTo: redirectTo.toString(),
+      scopes: "repo admin:repo_hook", // Required scopes for issue and webhook management
+    },
+    provider: "github",
+  });
+
+  if (error || !data.url) {
+    return redirect(
+      buildAuthStatusPath({
+        email: "",
+        error: "GitHub login could not be started.",
+        next,
+        reason,
+      })
+    );
+  }
+
+  return redirect(data.url);
+}

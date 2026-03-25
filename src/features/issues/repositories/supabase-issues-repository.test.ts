@@ -1,6 +1,17 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
+const githubSyncMocks = vi.hoisted(() => ({
+  syncIssueToGitHub: vi.fn().mockResolvedValue(null),
+  updateGitHubIssue: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@/lib/github/sync-service", () => ({
+  GitHubSyncService: class {
+    syncIssueToGitHub = githubSyncMocks.syncIssueToGitHub;
+    updateGitHubIssue = githubSyncMocks.updateGitHubIssue;
+  },
+}));
 
 import { createLabelKey } from "@/features/issues/lib/labels";
 import {
@@ -417,6 +428,10 @@ function createFakeIssuesClient(options?: {
 }
 
 describe("SupabaseIssuesRepository", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("creates missing labels and links them when creating an issue", async () => {
     const fake = createFakeIssuesClient({
       issueRows: [],
@@ -448,6 +463,7 @@ describe("SupabaseIssuesRepository", () => {
     ]);
     expect(fake.labelRows).toHaveLength(2);
     expect(fake.issueLabelRows).toHaveLength(2);
+    expect(githubSyncMocks.syncIssueToGitHub).toHaveBeenCalledTimes(1);
   });
 
   it("returns project issues with their labels attached", async () => {
@@ -505,6 +521,37 @@ describe("SupabaseIssuesRepository", () => {
     expect(result.updatedBy).toBe("user-2");
     expect(fake.issueRows[0]?.version).toBe(2);
     expect(fake.activityRows).toHaveLength(1);
+    expect(githubSyncMocks.updateGitHubIssue).not.toHaveBeenCalled();
+  });
+
+  it("updates linked GitHub issue on issue update", async () => {
+    const fake = createFakeIssuesClient({
+      issueRows: [
+        createSeedIssue({
+          github_issue_id: 1024,
+          github_issue_number: 77,
+          github_sync_status: "synced",
+          github_synced_at: "2026-03-26T00:00:00.000Z",
+        }),
+      ],
+    });
+    const repository = new SupabaseIssuesRepository(fake.client);
+
+    await repository.updateIssue("issue-1", {
+      title: "Synced title",
+      updatedBy: "user-2",
+      version: 1,
+    });
+
+    expect(githubSyncMocks.updateGitHubIssue).toHaveBeenCalledTimes(1);
+    expect(githubSyncMocks.updateGitHubIssue).toHaveBeenCalledWith(
+      expect.objectContaining({
+        issueId: "issue-1",
+        githubIssueId: 1024,
+        githubIssueNumber: 77,
+        title: "Synced title",
+      })
+    );
   });
 
   it("throws a conflict error when another update already advanced the version", async () => {

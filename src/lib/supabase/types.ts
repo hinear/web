@@ -69,6 +69,10 @@ export interface Database {
           created_by: string;
           description: string;
           due_date: string | null;
+          github_issue_id: number | null;
+          github_issue_number: number | null;
+          github_sync_status: string | null;
+          github_synced_at: string | null;
           id: string;
           identifier: string;
           issue_number: number;
@@ -86,6 +90,10 @@ export interface Database {
           created_by: string;
           description?: string;
           due_date?: string | null;
+          github_issue_id?: number | null;
+          github_issue_number?: number | null;
+          github_sync_status?: string | null;
+          github_synced_at?: string | null;
           id?: string;
           identifier?: string;
           issue_number?: number;
@@ -212,6 +220,9 @@ export interface Database {
         Row: {
           created_at: string;
           created_by: string;
+          github_integration_enabled: boolean | null;
+          github_repo_name: string | null;
+          github_repo_owner: string | null;
           id: string;
           issue_seq: number;
           key: string;
@@ -222,6 +233,9 @@ export interface Database {
         Insert: {
           created_at?: string;
           created_by: string;
+          github_integration_enabled?: boolean | null;
+          github_repo_name?: string | null;
+          github_repo_owner?: string | null;
           id?: string;
           issue_seq?: number;
           key: string;
