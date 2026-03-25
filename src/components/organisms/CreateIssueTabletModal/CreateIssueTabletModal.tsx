@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import * as React from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/atoms/Button";
 import { Field } from "@/components/atoms/Field";
@@ -98,6 +99,21 @@ export function CreateIssueTabletModal({
   const [description, setDescription] = React.useState(defaultDescription);
   const [dueDate, setDueDate] = React.useState<string | null>(defaultDueDate);
   const [labels, setLabels] = React.useState<string[]>(parsedDefaultLabels);
+  const [title, setTitle] = React.useState(defaultTitle);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    // Title 유효성 검사
+    if (!title.trim()) {
+      e.preventDefault();
+      toast.error("이슈 제목을 입력해주세요.");
+      return;
+    }
+
+    // 사용자 제출 핸들러 호출
+    if (onSubmit) {
+      onSubmit(e);
+    }
+  };
 
   return (
     <div
@@ -130,7 +146,7 @@ export function CreateIssueTabletModal({
         <form
           action={action}
           className="flex flex-col gap-5 rounded-[16px] border border-[var(--app-color-border-soft)] bg-[var(--app-color-white)] p-6"
-          onSubmit={onSubmit}
+          onSubmit={handleSubmit}
         >
           <div className="flex flex-col gap-2">
             <label
@@ -140,7 +156,8 @@ export function CreateIssueTabletModal({
               Title
             </label>
             <Field
-              defaultValue={defaultTitle}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               id="create-issue-title"
               name="title"
               placeholder="이슈 제목"
