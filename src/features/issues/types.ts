@@ -4,6 +4,7 @@ export const ISSUE_STATUSES = [
   "Todo",
   "In Progress",
   "Done",
+  "Closed",
   "Canceled",
 ] as const;
 
