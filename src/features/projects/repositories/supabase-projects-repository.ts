@@ -103,7 +103,7 @@ type ProjectInvitationRpcRow = {
   role: "member";
   status: ProjectInvitation["status"];
   token: string;
-  updated_at?: string;
+  updated_at: string;
 };
 
 function isProjectInvitationRpcRow(
