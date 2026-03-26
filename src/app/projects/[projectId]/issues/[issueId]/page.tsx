@@ -37,6 +37,16 @@ export default async function IssueDetailPage({
       availableLabels={availableLabels}
       boardHref={`/projects/${projectId}`}
       comments={issueDetail.comments}
+      githubRepository={
+        issueDetail.project.githubIntegrationEnabled &&
+        issueDetail.project.githubRepoOwner &&
+        issueDetail.project.githubRepoName
+          ? {
+              owner: issueDetail.project.githubRepoOwner,
+              name: issueDetail.project.githubRepoName,
+            }
+          : null
+      }
       initialNow={Date.now()}
       issue={issueDetail.issue}
       memberNamesById={issueDetail.memberNamesById}

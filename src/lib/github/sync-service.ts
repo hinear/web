@@ -15,6 +15,11 @@ export interface GitHubSyncServiceInput {
   labels: Array<{ name: string; color: string }>;
 }
 
+function isGitHubIssueSyncEnabled(): boolean {
+  const value = process.env.GITHUB_ISSUE_SYNC_ENABLED?.trim().toLowerCase();
+  return value === "enabled" || value === "true";
+}
+
 export class GitHubSyncService {
   constructor(
     private readonly client: AppSupabaseServerClient,
@@ -28,6 +33,10 @@ export class GitHubSyncService {
     githubIssueId: number;
     githubIssueNumber: number;
   } | null> {
+    if (!isGitHubIssueSyncEnabled()) {
+      return null;
+    }
+
     // Get project GitHub settings
     const { data: project } = await this.client
       .from("projects")
@@ -135,6 +144,10 @@ export class GitHubSyncService {
       githubIssueNumber: number;
     }
   ): Promise<void> {
+    if (!isGitHubIssueSyncEnabled()) {
+      return;
+    }
+
     const { data: project } = await this.client
       .from("projects")
       .select("github_integration_enabled, github_repo_owner, github_repo_name")

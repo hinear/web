@@ -1,6 +1,13 @@
 "use client";
 
-import { ChevronLeft, Ellipsis, Pencil, Trash2 } from "lucide-react";
+import {
+  ChevronLeft,
+  Ellipsis,
+  GitBranch,
+  Github,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -41,6 +48,7 @@ import type {
   Label,
 } from "@/features/issues/types";
 import { ISSUE_PRIORITIES, ISSUE_STATUSES } from "@/features/issues/types";
+import { getIssueBranchNamePreview } from "@/lib/github/branching";
 
 interface IssueDetailFullPageScreenProps {
   assigneeOptions?: Array<{
@@ -50,6 +58,10 @@ interface IssueDetailFullPageScreenProps {
   availableLabels?: Label[];
   boardHref?: string;
   initialNow: number;
+  githubRepository?: {
+    owner: string;
+    name: string;
+  } | null;
   issue: Issue;
   comments?: Comment[];
   activityLog?: ActivityLogEntry[];
@@ -65,6 +77,20 @@ interface CommentCreateResponse {
   activityEntry: ActivityLogEntry;
   comment: Comment;
 }
+
+interface GitHubBranchResponse {
+  branchName: string;
+  compareUrl: string;
+  created: boolean;
+  defaultBranch: string;
+  error?: string;
+  installUrl?: string | null;
+  repositoryFullName: string;
+  repositoryUrl: string;
+  success?: boolean;
+}
+
+type GitHubBranchIntent = "branch" | "pr";
 
 const EMPTY_COMMENTS: Comment[] = [];
 const EMPTY_ACTIVITY_LOG: ActivityLogEntry[] = [];
@@ -105,6 +131,7 @@ export function IssueDetailFullPageScreen({
   availableLabels: availableLabelsProp = [],
   boardHref,
   comments = EMPTY_COMMENTS,
+  githubRepository = null,
   initialNow,
   issue,
   memberNamesById = {},
@@ -141,7 +168,12 @@ export function IssueDetailFullPageScreen({
     requestedVersion: number;
   } | null>(null);
   const [isSaving, startSavingTransition] = useTransition();
+  const [isGitHubPending, startGitHubTransition] = useTransition();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [githubBranchName, setGitHubBranchName] = useState<string | null>(null);
+  const [branchModalIntent, setBranchModalIntent] =
+    useState<GitHubBranchIntent | null>(null);
+  const [branchTitleDraft, setBranchTitleDraft] = useState("");
 
   useEffect(() => {
     setNow(Date.now());
@@ -175,6 +207,10 @@ export function IssueDetailFullPageScreen({
     setDueDateDraft(issue.dueDate);
     setSelectedLabelIds(issue.labels.map((label) => label.id));
   }, [issue, comments, activityLog]);
+
+  useEffect(() => {
+    setBranchTitleDraft(issue.title);
+  }, [issue.title]);
 
   const hasPendingChanges =
     titleDraft.trim() !== issueState.title ||
@@ -497,8 +533,232 @@ export function IssueDetailFullPageScreen({
     });
   };
 
+  const ensureGitHubBranch = (
+    openPullRequest: boolean,
+    branchTitle: string
+  ) => {
+    startGitHubTransition(async () => {
+      try {
+        const response = await fetch(
+          `/internal/issues/${issueState.id}/github/branch`,
+          {
+            body: JSON.stringify({
+              branchTitle,
+            }),
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const data = (await response.json()) as GitHubBranchResponse;
+
+        if (!response.ok || !data.success) {
+          if (response.status === 409 && data.installUrl) {
+            toast.info("Redirecting to GitHub App installation...");
+            window.location.href = data.installUrl;
+            return;
+          }
+
+          throw new Error(data.error ?? "Failed to prepare GitHub workflow.");
+        }
+
+        setGitHubBranchName(data.branchName);
+        setBranchModalIntent(null);
+
+        if (openPullRequest) {
+          window.open(data.compareUrl, "_blank", "noopener,noreferrer");
+          toast.success(`Opened PR flow for ${data.branchName}.`);
+          return;
+        }
+
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(data.branchName);
+          toast.success(
+            data.created
+              ? `Branch ${data.branchName} created and copied.`
+              : `Branch ${data.branchName} is ready and copied.`
+          );
+          return;
+        }
+
+        toast.success(
+          data.created
+            ? `Branch ${data.branchName} created.`
+            : `Branch ${data.branchName} is ready.`
+        );
+      } catch (error) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Failed to prepare GitHub workflow."
+        );
+      }
+    });
+  };
+
+  const branchNamePreview = getIssueBranchNamePreview(
+    issueState,
+    branchTitleDraft
+  );
+  const isBranchTitleValid = branchTitleDraft.trim().length > 0;
+
+  const openBranchModal = (intent: GitHubBranchIntent) => {
+    setBranchTitleDraft(issueState.title);
+    setBranchModalIntent(intent);
+  };
+
+  const gitHubWorkflowCard = githubRepository ? (
+    <section className="rounded-[16px] border border-[#E6E8EC] bg-white p-4">
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[12px] font-[var(--app-font-weight-700)] text-[#5E6AD2]">
+              GitHub workflow
+            </p>
+            <h2 className="mt-1 text-[16px] font-[var(--app-font-weight-600)] text-[#111318]">
+              Branch and PR
+            </h2>
+            <p className="mt-1 text-[13px] leading-[1.5] text-[#6B7280]">
+              Create an issue branch from the repository default branch, then
+              open the GitHub compare page after you push commits.
+            </p>
+          </div>
+          <div className="rounded-full border border-[#E6E8EC] bg-[#FCFCFD] px-3 py-1 text-[11px] font-[var(--app-font-weight-600)] text-[#4B5563]">
+            {githubRepository.owner}/{githubRepository.name}
+          </div>
+        </div>
+
+        <div className="rounded-[14px] border border-[#E6E8EC] bg-[#FCFCFD] px-4 py-3">
+          <div className="flex items-center gap-2 text-[13px] font-[var(--app-font-weight-600)] text-[#111318]">
+            <GitBranch className="h-4 w-4 text-[#5E6AD2]" />
+            <span>
+              {githubBranchName ??
+                "Branch name will be generated from this issue."}
+            </span>
+          </div>
+          <p className="mt-1 text-[12px] leading-[1.5] text-[#6B7280]">
+            Branches follow the issue key and title, like{" "}
+            <span className="font-mono">{branchNamePreview}</span>
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            disabled={isGitHubPending}
+            onClick={() => openBranchModal("branch")}
+            size="sm"
+            variant="secondary"
+          >
+            <GitBranch className="mr-2 h-4 w-4" />
+            {isGitHubPending ? "Preparing..." : "Create branch"}
+          </Button>
+          <Button
+            disabled={isGitHubPending}
+            onClick={() => openBranchModal("pr")}
+            size="sm"
+          >
+            <Github className="mr-2 h-4 w-4" />
+            {isGitHubPending ? "Preparing..." : "Open PR"}
+          </Button>
+        </div>
+      </div>
+    </section>
+  ) : null;
+
   return (
     <main className="min-h-screen bg-[#FCFCFD]">
+      {branchModalIntent ? (
+        <div className="fixed inset-0 z-50 flex items-start justify-center px-4 py-10">
+          <button
+            aria-label="Close GitHub branch modal"
+            className="absolute inset-0 bg-[rgba(15,23,42,0.36)]"
+            onClick={() => setBranchModalIntent(null)}
+            type="button"
+          />
+          <div className="relative z-10 w-full max-w-[560px] rounded-[24px] border border-[#E6E8EC] bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[12px] font-[var(--app-font-weight-700)] text-[#5E6AD2]">
+                  GitHub branch name
+                </p>
+                <h2 className="mt-1 text-[24px] leading-[1.1] font-[var(--app-font-weight-700)] text-[#111318]">
+                  {branchModalIntent === "pr"
+                    ? "Name the branch before opening PR"
+                    : "Name the branch before creating it"}
+                </h2>
+                <p className="mt-2 text-[14px] leading-[1.5] text-[#6B7280]">
+                  The branch format is fixed to prefix, issue number, and your
+                  custom title.
+                </p>
+              </div>
+              <button
+                className="rounded-[10px] border border-[#E6E8EC] px-3 py-2 text-[12px] font-[var(--app-font-weight-600)] text-[#6B7280] hover:bg-[#F8FAFC]"
+                onClick={() => setBranchModalIntent(null)}
+                type="button"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <label
+                  className="text-[12px] font-[var(--app-font-weight-700)] text-[#111318]"
+                  htmlFor="github-branch-title"
+                >
+                  Custom branch title
+                </label>
+                <Field
+                  id="github-branch-title"
+                  onChange={(event) => setBranchTitleDraft(event.target.value)}
+                  placeholder="for example fix-login-redirect"
+                  value={branchTitleDraft}
+                />
+                <p className="text-[12px] leading-[1.5] text-[#6B7280]">
+                  Use a short working title. We will slugify it automatically.
+                </p>
+              </div>
+
+              <div className="rounded-[16px] border border-[#E6E8EC] bg-[#FCFCFD] p-4">
+                <p className="text-[11px] font-[var(--app-font-weight-700)] tracking-[0.08em] text-[#6B7280] uppercase">
+                  Preview
+                </p>
+                <p className="mt-2 font-mono text-[14px] text-[#111318]">
+                  {branchNamePreview}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end gap-3">
+                <Button
+                  onClick={() => setBranchModalIntent(null)}
+                  size="sm"
+                  variant="secondary"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  disabled={isGitHubPending || !isBranchTitleValid}
+                  onClick={() =>
+                    ensureGitHubBranch(
+                      branchModalIntent === "pr",
+                      branchTitleDraft
+                    )
+                  }
+                  size="sm"
+                >
+                  {isGitHubPending
+                    ? "Preparing..."
+                    : branchModalIntent === "pr"
+                      ? "Continue to PR"
+                      : "Create branch"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <div className="flex flex-col gap-4 px-4 py-4 md:hidden">
         {conflictInfo ? (
           <ConflictDialog
@@ -589,6 +849,8 @@ export function IssueDetailFullPageScreen({
             updated
           </p>
         </IssuePanel>
+
+        {gitHubWorkflowCard}
 
         <IssuePanel className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-3">
@@ -829,6 +1091,8 @@ export function IssueDetailFullPageScreen({
 
         <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
           <div className="flex flex-col gap-4">
+            {gitHubWorkflowCard}
+
             <section className="rounded-[16px] border border-[#E6E8EC] bg-white p-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">

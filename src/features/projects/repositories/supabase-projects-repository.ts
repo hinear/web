@@ -52,6 +52,9 @@ function mapProject(row: TableRow<"projects">): Project {
     createdBy: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    githubRepoOwner: row.github_repo_owner,
+    githubRepoName: row.github_repo_name,
+    githubIntegrationEnabled: row.github_integration_enabled ?? false,
   };
 }
 

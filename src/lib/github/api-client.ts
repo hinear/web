@@ -1,9 +1,11 @@
 import "server-only";
 
 export interface GitHubRepository {
+  default_branch: string;
   id: number;
   name: string;
   full_name: string;
+  html_url: string;
   owner: {
     login: string;
   };
@@ -23,6 +25,13 @@ export interface GitHubIssue {
   body: string | null;
   state: "open" | "closed";
   html_url: string;
+}
+
+export interface GitHubBranch {
+  name: string;
+  commit: {
+    sha: string;
+  };
 }
 
 export class GitHubApiClient {
@@ -52,6 +61,34 @@ export class GitHubApiClient {
 
   async getRepository(owner: string, name: string): Promise<GitHubRepository> {
     return this.fetch<GitHubRepository>(`/repos/${owner}/${name}`);
+  }
+
+  async getBranch(
+    owner: string,
+    name: string,
+    branch: string
+  ): Promise<GitHubBranch> {
+    return this.fetch<GitHubBranch>(
+      `/repos/${owner}/${name}/branches/${encodeURIComponent(branch)}`
+    );
+  }
+
+  async createBranch(
+    owner: string,
+    name: string,
+    branch: string,
+    sha: string
+  ): Promise<void> {
+    await this.fetch(`/repos/${owner}/${name}/git/refs`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ref: `refs/heads/${branch}`,
+        sha,
+      }),
+    });
   }
 
   async getUser(): Promise<GitHubUser> {

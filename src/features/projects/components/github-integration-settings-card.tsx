@@ -221,7 +221,8 @@ export function GitHubIntegrationSettingsCard({
           GitHub Integration
         </h2>
         <p className="text-[13px] text-[#6B7280]">
-          Connect a GitHub repository to enable issue synchronization.
+          Connect a GitHub repository to enable branch creation and pull request
+          flow.
         </p>
       </div>
 
