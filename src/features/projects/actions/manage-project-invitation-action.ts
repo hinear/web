@@ -8,7 +8,10 @@ import { sendProjectInvitationEmail } from "@/lib/email/send-project-invitation-
 import { findUserIdByEmail } from "@/lib/notifications/find-user-id-by-email";
 import { triggerProjectInvitedNotification } from "@/lib/notifications/triggers";
 import { getRequestOrigin } from "@/lib/request-origin";
-import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
+import {
+  getAuthenticatedActorIdOrNull,
+  getAuthenticatedUserOrNull,
+} from "@/lib/supabase/server-auth";
 
 function getInvitationActionNotice(action: "resend" | "revoke", email: string) {
   return action === "resend"
@@ -16,11 +19,32 @@ function getInvitationActionNotice(action: "resend" | "revoke", email: string) {
     : `Invitation revoked for ${email}.`;
 }
 
+function getInviterLabel(
+  userId: string,
+  user: {
+    email?: string | null;
+    user_metadata?: Record<string, unknown> | null;
+  } | null
+): string {
+  const fullName =
+    typeof user?.user_metadata?.full_name === "string"
+      ? user.user_metadata.full_name.trim()
+      : "";
+  const name =
+    typeof user?.user_metadata?.name === "string"
+      ? user.user_metadata.name.trim()
+      : "";
+  const email = user?.email?.trim() ?? "";
+
+  return fullName || name || email || userId;
+}
+
 export async function manageProjectInvitationAction(
   projectId: string,
   formData: FormData
 ) {
   const actorId = await getAuthenticatedActorIdOrNull();
+  const user = await getAuthenticatedUserOrNull();
 
   if (!actorId) {
     return requireAuthRedirect(`/projects/${projectId}#project-access`);
@@ -36,10 +60,11 @@ export async function manageProjectInvitationAction(
     const project = await repository.getProjectById(projectId);
     const origin = await getRequestOrigin();
     const invitedUserId = await findUserIdByEmail(invitation.email);
+    const inviterLabel = getInviterLabel(actorId, user);
     const emailSent = await sendProjectInvitationEmail({
       expiresAt: invitation.expiresAt,
       inviteLink: `${origin}/invite/${invitation.token}`,
-      invitedBy: actorId,
+      invitedBy: inviterLabel,
       projectName: project?.name ?? "your project",
       to: invitation.email,
     });

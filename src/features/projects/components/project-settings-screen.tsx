@@ -6,7 +6,6 @@ import { toast } from "sonner";
 
 import { getButtonClassName } from "@/components/atoms/Button";
 import { SidebarDesktop } from "@/components/organisms/SidebarDesktop";
-import { NotificationSettingsCard } from "@/features/notifications/components/NotificationSettingsCard";
 import { GitHubIntegrationSettingsCard } from "@/features/projects/components/github-integration-settings-card";
 import { ProjectMetadataForm } from "@/features/projects/components/project-metadata-form";
 import { ProjectAccessCard } from "@/features/projects/components/project-operation-cards";
@@ -189,9 +188,6 @@ export function ProjectSettingsScreen({
                   noticeMessage={inviteNoticeMessage}
                   projectType={project.type}
                 />
-
-                <NotificationSettingsCard />
-
                 <GitHubIntegrationSettingsCard projectId={project.id} />
 
                 <div className="rounded-[20px] border border-red-200 bg-red-50 p-6">

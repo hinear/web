@@ -4,6 +4,7 @@ const {
   findUserIdByEmailMock,
   getServerProjectsRepositoryMock,
   getAuthenticatedActorIdOrNullMock,
+  getAuthenticatedUserOrNullMock,
   getRequestOriginMock,
   requireAuthRedirectMock,
   redirectMock,
@@ -13,6 +14,7 @@ const {
   findUserIdByEmailMock: vi.fn(),
   getServerProjectsRepositoryMock: vi.fn(),
   getAuthenticatedActorIdOrNullMock: vi.fn(),
+  getAuthenticatedUserOrNullMock: vi.fn(),
   getRequestOriginMock: vi.fn(),
   requireAuthRedirectMock: vi.fn(),
   redirectMock: vi.fn(),
@@ -34,6 +36,7 @@ vi.mock("@/features/projects/repositories/server-projects-repository", () => ({
 
 vi.mock("@/lib/supabase/server-auth", () => ({
   getAuthenticatedActorIdOrNull: getAuthenticatedActorIdOrNullMock,
+  getAuthenticatedUserOrNull: getAuthenticatedUserOrNullMock,
 }));
 
 vi.mock("@/lib/request-origin", () => ({
@@ -60,6 +63,10 @@ describe("inviteProjectMemberAction", () => {
     vi.clearAllMocks();
     findUserIdByEmailMock.mockResolvedValue("user-22");
     getRequestOriginMock.mockResolvedValue("https://hinear.app");
+    getAuthenticatedUserOrNullMock.mockResolvedValue({
+      email: "owner@example.com",
+      user_metadata: { full_name: "Owner Name" },
+    });
     sendProjectInvitationEmailMock.mockResolvedValue(true);
     triggerProjectInvitedNotificationMock.mockResolvedValue(undefined);
   });
@@ -91,7 +98,7 @@ describe("inviteProjectMemberAction", () => {
     expect(sendProjectInvitationEmailMock).toHaveBeenCalledWith({
       expiresAt: "2026-04-01T00:00:00.000Z",
       inviteLink: "https://hinear.app/invite/token-1",
-      invitedBy: "user-11",
+      invitedBy: "Owner Name",
       projectName: "Project Alpha",
       to: "teammate@example.com",
     });

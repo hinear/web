@@ -9,9 +9,9 @@ import { IssueStatusBadge } from "@/features/issues/components/IssueStatusBadge"
 import type { Issue } from "@/features/issues/types";
 import {
   getIssuePath,
+  getProfileSettingsPath,
   getProjectOverviewPath,
   getProjectPath,
-  getProjectSettingsPath,
 } from "@/features/projects/lib/project-routes";
 import type { Project } from "@/features/projects/types";
 
@@ -75,13 +75,13 @@ function ProjectOverviewMobileHeader({ project }: { project: Project }) {
           Open Project
         </Link>
         <Link
-          aria-label="Project settings"
+          aria-label="Profile settings"
           className={getButtonClassName(
             "secondary",
             "sm",
             "h-[34px] w-[34px] rounded-[10px] px-0 py-0"
           )}
-          href={getProjectSettingsPath(project.id)}
+          href={getProfileSettingsPath()}
         >
           <Settings aria-hidden="true" className="h-[14px] w-[14px]" />
         </Link>
@@ -248,8 +248,9 @@ export function ProjectOverviewScreen({
             </Link>
             <SidebarItem
               className="w-full"
-              href={getProjectSettingsPath(project.id)}
-              variant="settings"
+              href={getProfileSettingsPath()}
+              icon={<Settings className="h-4 w-4" />}
+              label="Profile settings"
             />
           </div>
         </div>
@@ -305,9 +306,9 @@ export function ProjectOverviewScreen({
               </Link>
               <Link
                 className={getButtonClassName("secondary", "sm")}
-                href={getProjectSettingsPath(project.id)}
+                href={getProfileSettingsPath()}
               >
-                Settings
+                Profile settings
               </Link>
             </div>
           </div>

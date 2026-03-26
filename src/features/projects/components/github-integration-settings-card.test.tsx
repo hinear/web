@@ -24,6 +24,7 @@ vi.mock("@/features/auth/components/github-auth-button", () => ({
   GitHubAuthButton: () => <button type="button">Connect with GitHub</button>,
 }));
 
+import { toast } from "sonner";
 import { GitHubIntegrationSettingsCard } from "@/features/projects/components/github-integration-settings-card";
 
 describe("GitHubIntegrationSettingsCard", () => {
@@ -139,5 +140,27 @@ describe("GitHubIntegrationSettingsCard", () => {
         })
       );
     });
+  });
+
+  it("shows a read-only message instead of error toast for non-owners", async () => {
+    const fetchMock = vi.spyOn(global, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          success: false,
+          error: "Only project owners can manage GitHub integration",
+        }),
+        { status: 403 }
+      )
+    );
+
+    render(<GitHubIntegrationSettingsCard projectId="project-1" />);
+
+    await screen.findByText("Read-only access");
+    expect(
+      screen.getByText("Only project owners can manage GitHub integration")
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Connect with GitHub")).not.toBeInTheDocument();
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledWith("/api/projects/project-1/github");
   });
 });

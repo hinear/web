@@ -35,6 +35,7 @@ export function GitHubIntegrationSettingsCard({
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [selectedRepo, setSelectedRepo] = useState("");
   const [showRepoSelector, setShowRepoSelector] = useState(false);
+  const [readOnlyMessage, setReadOnlyMessage] = useState<string | null>(null);
 
   const loadSettings = useCallback(async () => {
     try {
@@ -42,9 +43,16 @@ export function GitHubIntegrationSettingsCard({
       const data = await response.json();
 
       if (!response.ok || !data.success) {
+        if (response.status === 403) {
+          setReadOnlyMessage(
+            data.error ?? "Only project owners can manage GitHub integration."
+          );
+          return;
+        }
         throw new Error(data.error ?? "Failed to load GitHub settings");
       }
 
+      setReadOnlyMessage(null);
       setSettings(data.settings);
     } catch (error) {
       console.error("Failed to load GitHub settings:", error);
@@ -231,6 +239,13 @@ export function GitHubIntegrationSettingsCard({
           >
             {saving ? "Disconnecting..." : "Disconnect Repository"}
           </button>
+        </div>
+      ) : readOnlyMessage ? (
+        <div className="rounded-lg border border-[#E6E8EC] bg-[#FCFCFD] p-4">
+          <p className="text-sm font-medium text-[#111318]">Read-only access</p>
+          <p className="mt-2 text-xs leading-5 text-[#6B7280]">
+            {readOnlyMessage}
+          </p>
         </div>
       ) : showRepoSelector ? (
         <div className="flex flex-col gap-3 rounded-lg border border-[#E6E8EC] bg-[#FCFCFD] p-4">

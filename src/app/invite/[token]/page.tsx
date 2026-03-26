@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { InvitationAcceptCard } from "@/features/projects/components/project-operation-cards";
 import { getServiceProjectsRepository } from "@/features/projects/repositories/service-projects-repository";
+import { createServiceRoleSupabaseClient } from "@/lib/supabase/server-client";
 
 interface InvitePageProps {
   params: Promise<{
@@ -13,28 +14,70 @@ interface InvitePageProps {
   }>;
 }
 
+function getTokenPrefix(token: string) {
+  return token.slice(0, 8);
+}
+
 export default async function InvitePage({
   params,
   searchParams,
 }: InvitePageProps) {
   const { token } = await params;
   const query = await searchParams;
+  const tokenPrefix = getTokenPrefix(token);
   const repository = await getServiceProjectsRepository();
   const invitation = await repository.getProjectInvitationByToken(token);
 
   if (!invitation) {
+    console.warn("[invite/page] invitation lookup returned no rows", {
+      tokenPrefix,
+    });
     notFound();
   }
 
-  const project = await repository.getProjectById(invitation.projectId);
+  console.info("[invite/page] invitation resolved", {
+    email: invitation.email,
+    projectId: invitation.projectId,
+    status: invitation.status,
+    tokenPrefix,
+  });
+
+  const serviceSupabase = createServiceRoleSupabaseClient();
+  const [{ data: project }, { data: inviterProfile }] = await Promise.all([
+    serviceSupabase
+      .from("projects")
+      .select("id, name, type")
+      .eq("id", invitation.projectId)
+      .maybeSingle(),
+    serviceSupabase
+      .from("profiles")
+      .select("display_name")
+      .eq("id", invitation.invitedBy)
+      .maybeSingle(),
+  ]);
 
   if (!project) {
+    console.warn(
+      "[invite/page] project lookup failed after invitation lookup",
+      {
+        invitationId: invitation.id,
+        projectId: invitation.projectId,
+        tokenPrefix,
+      }
+    );
     notFound();
   }
 
-  const inviter = (await repository.listProjectMembers(project.id)).find(
-    (member) => member.id === invitation.invitedBy
-  );
+  const inviterName =
+    inviterProfile?.display_name?.trim() || invitation.invitedBy;
+  console.info("[invite/page] rendering invitation page", {
+    invitedBy: inviterName,
+    projectId: project.id,
+    projectName: project.name,
+    queryError: query.error ?? null,
+    status: invitation.status,
+    tokenPrefix,
+  });
   const noticeMessage =
     invitation.status === "accepted"
       ? "This invitation was already accepted. You can open the project directly."
@@ -63,18 +106,20 @@ export default async function InvitePage({
             month: "short",
             day: "numeric",
           }).format(new Date(invitation.expiresAt))}
-          invitedBy={inviter?.name ?? invitation.invitedBy}
+          invitedBy={inviterName}
           noticeMessage={noticeMessage}
           projectName={project.name}
           projectType={project.type}
           status={invitation.status}
         />
-        <Link
-          className="text-center text-[13px] font-medium text-[#6B7280]"
-          href={`/projects/${project.id}`}
-        >
-          Open project details
-        </Link>
+        {invitation.status === "accepted" ? (
+          <Link
+            className="text-center text-[13px] font-medium text-[#6B7280]"
+            href={`/projects/${project.id}`}
+          >
+            Open project details
+          </Link>
+        ) : null}
       </div>
     </main>
   );

@@ -70,9 +70,11 @@ describe("ProjectOverviewScreen", () => {
         .some((link) => link.getAttribute("href") === "/projects/project-1")
     ).toBe(true);
     expect(
-      screen.getByRole("link", { name: "Project settings" })
-    ).toHaveAttribute("href", "/projects/project-1/settings");
-    expect(screen.getByText("Project dashboard")).toBeInTheDocument();
+      screen
+        .getAllByRole("link", { name: "Profile settings" })
+        .some((link) => link.getAttribute("href") === "/projects/profile")
+    ).toBe(true);
+    expect(screen.getAllByText("Overview").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Total issues").length).toBeGreaterThan(0);
     expect(screen.getByText("Recent activity")).toBeInTheDocument();
     expect(
@@ -86,6 +88,6 @@ describe("ProjectOverviewScreen", () => {
             "/projects/project-1/issues/issue-1?view=full"
         )
     ).toBe(true);
-    expect(screen.getAllByText("Settings").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Profile settings").length).toBeGreaterThan(0);
   });
 });

@@ -1,12 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@/features/notifications/components/NotificationSettingsCard", () => ({
-  NotificationSettingsCard: () => (
-    <div data-testid="notification-settings-mock">Notification Settings</div>
-  ),
-}));
-
 vi.mock(
   "@/features/projects/components/github-integration-settings-card",
   () => ({
@@ -73,9 +67,8 @@ describe("ProjectSettingsScreen", () => {
     // Check form fields
     expect(screen.getByDisplayValue("Web Platform")).toBeInTheDocument();
     expect(screen.getByDisplayValue("WEB")).toBeInTheDocument();
-    // Check notification settings card is rendered
     expect(
-      screen.getByTestId("notification-settings-mock")
+      screen.getByTestId("github-integration-settings-mock")
     ).toBeInTheDocument();
   });
 });
