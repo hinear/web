@@ -45,6 +45,7 @@ export interface ProjectInvitation {
   expiresAt: string;
   acceptedBy: string | null;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface ProjectMemberSummary {

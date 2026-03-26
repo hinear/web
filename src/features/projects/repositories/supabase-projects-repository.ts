@@ -89,6 +89,7 @@ function mapProjectInvitation(
     expiresAt: row.expires_at,
     acceptedBy: row.accepted_by,
     createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }
 
@@ -367,6 +368,7 @@ export class SupabaseProjectsRepository implements ProjectsRepository {
       expires_at: data.expires_at,
       accepted_by: data.accepted_by,
       created_at: data.created_at,
+      updated_at: data.updated_at,
     });
   }
 
