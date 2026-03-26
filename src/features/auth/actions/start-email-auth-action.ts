@@ -162,31 +162,10 @@ export async function startGitHubAuthAction(formData: FormData) {
     );
   }
 
-  const redirectTo = new URL("/auth/confirm", await getRequestOrigin());
-  redirectTo.searchParams.set("next", appendGitHubRepoSelectionFlag(next));
-  redirectTo.searchParams.set("github_project_id", projectId);
+  // GitHub App OAuth Flow 사용 (앱 로그인과 독립적)
+  const origin = await getRequestOrigin();
+  const githubAuthUrl = new URL("/api/github/auth", origin);
+  githubAuthUrl.searchParams.set("projectId", projectId);
 
-  // OAuth starts with PKCE state that must be persisted on the request/response
-  // so the confirm callback can exchange the returned code for a session.
-  const supabase = await createRequestSupabaseServerClient();
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    options: {
-      redirectTo: redirectTo.toString(),
-      scopes: "repo admin:repo_hook", // Required scopes for issue and webhook management
-    },
-    provider: "github",
-  });
-
-  if (error || !data.url) {
-    return redirect(
-      buildAuthStatusPath({
-        email: "",
-        error: "GitHub login could not be started.",
-        next,
-        reason,
-      })
-    );
-  }
-
-  return redirect(data.url);
+  return redirect(githubAuthUrl.toString());
 }
