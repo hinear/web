@@ -104,7 +104,7 @@ type ProjectInvitationRpcRow = {
   role: "member";
   status: ProjectInvitation["status"];
   token: string;
-  updated_at: string;
+  updated_at?: string | null;
 };
 
 function isProjectInvitationRpcRow(
@@ -118,6 +118,34 @@ function isProjectInvitationRpcRow(
       "email" in value &&
       "token" in value
   );
+}
+
+type AcceptProjectInvitationRpcResult = {
+  already_accepted?: boolean;
+  error?: string;
+  id: string;
+  project_id: string;
+  status: ProjectInvitation["status"];
+};
+
+function isAcceptProjectInvitationRpcResult(
+  value: unknown
+): value is AcceptProjectInvitationRpcResult {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      "id" in value &&
+      "project_id" in value &&
+      "status" in value
+  );
+}
+
+function getRpcSingleRow<T>(value: unknown): T | null {
+  if (Array.isArray(value)) {
+    return (value[0] as T | undefined) ?? null;
+  }
+
+  return (value as T | null) ?? null;
 }
 
 function createInvitationDraft(
@@ -353,22 +381,24 @@ export class SupabaseProjectsRepository implements ProjectsRepository {
 
     assertQuerySucceeded("Failed to load project invitation", error);
 
-    if (!isProjectInvitationRpcRow(data)) {
+    const row = getRpcSingleRow<unknown>(data);
+
+    if (!isProjectInvitationRpcRow(row)) {
       return null;
     }
 
     return mapProjectInvitation({
-      id: data.id,
-      project_id: data.project_id,
-      email: data.email,
-      role: data.role,
-      status: data.status,
-      token: data.token,
-      invited_by: data.invited_by,
-      expires_at: data.expires_at,
-      accepted_by: data.accepted_by,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
+      id: row.id,
+      project_id: row.project_id,
+      email: row.email,
+      role: row.role,
+      status: row.status,
+      token: row.token,
+      invited_by: row.invited_by,
+      expires_at: row.expires_at,
+      accepted_by: row.accepted_by,
+      created_at: row.created_at,
+      updated_at: row.updated_at ?? row.created_at,
     });
   }
 
@@ -388,7 +418,7 @@ export class SupabaseProjectsRepository implements ProjectsRepository {
 
     assertQuerySucceeded("Failed to accept project invitation", error);
 
-    if (!isProjectInvitationRpcRow(data)) {
+    if (!isAcceptProjectInvitationRpcResult(data)) {
       throw createRepositoryError("UNKNOWN", "Failed to accept invitation");
     }
 

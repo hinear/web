@@ -163,6 +163,44 @@ function createFakeProjectsClient(options?: {
         return { data: insertedProject, error: null };
       }
 
+      if (fn === "get_invitation_by_token") {
+        const token = String(args.p_token);
+        const invitation =
+          invitationRows.find((row) => row.token === token) ?? null;
+
+        return {
+          data: invitation ? [invitation] : [],
+          error: maybeError("project_invitations"),
+        };
+      }
+
+      if (fn === "accept_invitation_by_token") {
+        const token = String(args.p_token);
+        const userId = String(args.p_user_id);
+        const invitation =
+          invitationRows.find((row) => row.token === token) ?? null;
+
+        if (!invitation) {
+          return {
+            data: { error: "Invitation not found" },
+            error: maybeError("project_invitations"),
+          };
+        }
+
+        invitation.status = "accepted";
+        invitation.accepted_by = userId;
+        invitation.updated_at ??= invitation.created_at;
+
+        return {
+          data: {
+            id: invitation.id,
+            project_id: invitation.project_id,
+            status: invitation.status,
+          },
+          error: maybeError("project_invitations"),
+        };
+      }
+
       throw new Error(`Unexpected rpc: ${fn}`);
     },
     from(table: string) {
@@ -386,6 +424,7 @@ function createFakeProjectsClient(options?: {
               created_at: "2026-03-21T00:00:00.000Z",
               role: "member",
               status: "pending",
+              updated_at: "2026-03-21T00:00:00.000Z",
               ...payload,
             };
 
@@ -519,6 +558,7 @@ describe("SupabaseProjectsRepository", () => {
           role: "member",
           status: "pending",
           token: "token-1",
+          updated_at: "2026-03-21T00:00:00.000Z",
         },
       ],
       memberRows: [
@@ -664,6 +704,7 @@ describe("SupabaseProjectsRepository", () => {
           role: "member",
           status: "pending",
           token: "token-1",
+          updated_at: "2026-03-21T00:00:00.000Z",
         },
       ],
     });
@@ -675,6 +716,66 @@ describe("SupabaseProjectsRepository", () => {
     expect(resent.id).toBe("invitation-1");
     expect(resent.token).not.toBe("token-1");
     expect(revoked.status).toBe("revoked");
+  });
+
+  it("loads an invitation by token from a table-returning RPC response", async () => {
+    const fake = createFakeProjectsClient({
+      invitationRows: [
+        {
+          accepted_by: null,
+          created_at: "2026-03-21T00:00:00.000Z",
+          email: "pending@example.com",
+          expires_at: "2026-03-28T00:00:00.000Z",
+          id: "invitation-1",
+          invited_by: "user-1",
+          project_id: "project-1",
+          role: "member",
+          status: "pending",
+          token: "token-1",
+          updated_at: "2026-03-21T00:00:00.000Z",
+        },
+      ],
+    });
+    const repository = new SupabaseProjectsRepository(fake.client);
+
+    const invitation = await repository.getProjectInvitationByToken("token-1");
+
+    expect(invitation).toMatchObject({
+      id: "invitation-1",
+      email: "pending@example.com",
+      projectId: "project-1",
+      status: "pending",
+      token: "token-1",
+    });
+  });
+
+  it("accepts an invitation via JSON RPC result and reloads the invitation", async () => {
+    const fake = createFakeProjectsClient({
+      invitationRows: [
+        {
+          accepted_by: null,
+          created_at: "2026-03-21T00:00:00.000Z",
+          email: "pending@example.com",
+          expires_at: "2026-03-28T00:00:00.000Z",
+          id: "invitation-1",
+          invited_by: "user-1",
+          project_id: "project-1",
+          role: "member",
+          status: "pending",
+          token: "token-1",
+          updated_at: "2026-03-21T00:00:00.000Z",
+        },
+      ],
+    });
+    const repository = new SupabaseProjectsRepository(fake.client);
+
+    const invitation = await repository.acceptProjectInvitation(
+      "token-1",
+      "user-2"
+    );
+
+    expect(invitation.status).toBe("accepted");
+    expect(invitation.acceptedBy).toBe("user-2");
   });
 
   it("removes a project member through the repository contract", async () => {
