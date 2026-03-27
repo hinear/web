@@ -1,7 +1,7 @@
 import { Plus, Search } from "lucide-react";
 import * as React from "react";
 
-import { cn } from "@/lib/utils";
+import { cn, hasExplicitAction } from "@/lib/utils";
 
 export interface MobileIssueListAppBarProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -14,9 +14,18 @@ export interface MobileIssueListAppBarProps
 function IconActionButton({
   className,
   children,
+  disabled = false,
   type = "button",
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  const resolvedDisabled =
+    disabled ||
+    !hasExplicitAction({
+      disabled,
+      onClick: props.onClick,
+      type,
+    });
+
   return (
     <button
       className={cn(
@@ -24,6 +33,12 @@ function IconActionButton({
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-color-brand-300)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
         className
       )}
+      disabled={resolvedDisabled}
+      title={
+        resolvedDisabled && !disabled
+          ? "This action is not available yet."
+          : props.title
+      }
       type={type}
       {...props}
     >

@@ -425,16 +425,20 @@ export function KanbanBoardView({
     selectedIssueIds,
     toggleIssue,
   } = useIssueSelection();
-  const { issues, loading, error, mutationError, updateIssue } = useIssues(
-    projectId,
-    {
-      assigneeIds: assigneeFilter ? [assigneeFilter] : [],
-      labelIds: labelFilter ? [labelFilter] : [],
-      priorities: priorityFilter ? [priorityFilter as IssuePriority] : [],
-      searchQuery: deferredSearchInput,
-      statuses: statusFilter ? [statusFilter as IssueStatus] : [],
-    }
-  );
+  const {
+    issues,
+    loading,
+    error,
+    isUpdatingIssues,
+    mutationError,
+    updateIssue,
+  } = useIssues(projectId, {
+    assigneeIds: assigneeFilter ? [assigneeFilter] : [],
+    labelIds: labelFilter ? [labelFilter] : [],
+    priorities: priorityFilter ? [priorityFilter as IssuePriority] : [],
+    searchQuery: deferredSearchInput,
+    statuses: statusFilter ? [statusFilter as IssueStatus] : [],
+  });
   const availableLabels = getAvailableLabels(issues);
   const filters: BoardFilterState = {
     assigneeId: assigneeFilter,
@@ -452,6 +456,15 @@ export function KanbanBoardView({
     filters.labelId,
   ].filter(Boolean).length;
   const shouldShowFilters = isFilterPanelOpen || activeFilterCount > 0;
+
+  const openIssueCreateFlow = React.useCallback(() => {
+    if (createIssueAction) {
+      setCreateModalStatus("Triage");
+      return;
+    }
+
+    router.push(getProjectIssueCreatePath(projectId));
+  }, [createIssueAction, projectId, router]);
 
   const openIssueDrawer = React.useCallback(
     (issue: Issue) => {
@@ -622,9 +635,7 @@ export function KanbanBoardView({
       <div className="md:hidden">
         <div className="flex flex-col gap-4">
           <MobileIssueListAppBar
-            onCreateClick={() =>
-              router.push(getProjectIssueCreatePath(projectId))
-            }
+            onCreateClick={openIssueCreateFlow}
             onSearchClick={() => setIsFilterPanelOpen((open) => !open)}
             title={projectName}
           />
@@ -675,6 +686,12 @@ export function KanbanBoardView({
               totalCount={issues.length}
             />
           ) : null}
+          {!shouldShowFilters ? (
+            <p className="text-[12px] leading-[1.45] text-[#6B7280]">
+              Use search or filters to narrow the board, or open the issue
+              create flow to capture new work.
+            </p>
+          ) : null}
           <MobileIssueSections
             issues={filteredIssues}
             onEnterSelectionMode={handleMobileEnterSelectionMode}
@@ -701,7 +718,7 @@ export function KanbanBoardView({
           eyebrow={`${projectName} / ${projectKey ?? "PRJ"}`}
           filterActive={shouldShowFilters}
           issues={filteredIssues}
-          onCreateClick={() => setCreateModalStatus("Triage")}
+          onCreateClick={openIssueCreateFlow}
           onFilterClick={() => setIsFilterPanelOpen((open) => !open)}
           onSearchValueChange={(event) => setSearchInput(event.target.value)}
           onSelectionModeToggle={handleSelectionModeToggle}
@@ -732,6 +749,18 @@ export function KanbanBoardView({
             resultCount={filteredIssues.length}
             totalCount={issues.length}
           />
+        ) : null}
+        {!shouldShowFilters ? (
+          <p className="text-[12px] leading-[1.45] text-[#6B7280]">
+            Search, filter, or open the issue create flow to keep work moving
+            from the board.
+          </p>
+        ) : null}
+        {isUpdatingIssues ? (
+          <p className="text-[12px] leading-[1.45] text-[#4338CA]">
+            Updating the board. Duplicate status changes are temporarily blocked
+            until the current request finishes.
+          </p>
         ) : null}
 
         <div className="min-h-0 flex-1 overflow-hidden">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   getMutationErrorCode,
@@ -57,6 +57,8 @@ export function useIssues(projectId: string, options: UseIssuesOptions = {}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [mutationError, setMutationError] = useState<Error | null>(null);
+  const [pendingIssueIds, setPendingIssueIds] = useState<string[]>([]);
+  const pendingIssueIdsRef = useRef<string[]>([]);
   const searchQuery = options.searchQuery?.trim() ?? "";
   const statuses = normalizeValues(options.statuses);
   const priorities = normalizeValues(options.priorities);
@@ -120,8 +122,14 @@ export function useIssues(projectId: string, options: UseIssuesOptions = {}) {
   }, [projectId, searchRequestBody, shouldUseSearchApi]);
 
   const updateIssue = async (issueId: string, updates: IssueUpdateInput) => {
+    if (pendingIssueIdsRef.current.includes(issueId)) {
+      return undefined;
+    }
+
     try {
       setMutationError(null);
+      pendingIssueIdsRef.current = [...pendingIssueIdsRef.current, issueId];
+      setPendingIssueIds(pendingIssueIdsRef.current);
       const response = await fetch(`/internal/issues/${issueId}`, {
         method: "PUT",
         headers: {
@@ -154,8 +162,21 @@ export function useIssues(projectId: string, options: UseIssuesOptions = {}) {
     } catch (err) {
       setMutationError(err instanceof Error ? err : new Error("Unknown error"));
       throw err;
+    } finally {
+      pendingIssueIdsRef.current = pendingIssueIdsRef.current.filter(
+        (id) => id !== issueId
+      );
+      setPendingIssueIds(pendingIssueIdsRef.current);
     }
   };
 
-  return { issues, loading, error, mutationError, updateIssue };
+  return {
+    error,
+    isUpdatingIssues: pendingIssueIds.length > 0,
+    issues,
+    loading,
+    mutationError,
+    pendingIssueIds,
+    updateIssue,
+  };
 }

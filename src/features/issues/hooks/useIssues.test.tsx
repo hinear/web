@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useIssues } from "@/features/issues/hooks/useIssues";
@@ -134,6 +134,86 @@ describe("useIssues", () => {
       priorities: ["High"],
       projectId: "project-1",
       statuses: ["Todo"],
+    });
+  });
+
+  it("tracks pending issue updates and prevents duplicate requests for the same issue", async () => {
+    let resolveRequest: ((value: unknown) => void) | null = null;
+
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          issues: [],
+        }),
+      })
+      .mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveRequest = resolve;
+          })
+      );
+
+    const { result } = renderHook(() => useIssues("project-1"));
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    fetchMock.mockClear();
+
+    let firstRequest: Promise<unknown> | undefined;
+
+    await act(async () => {
+      firstRequest = result.current.updateIssue("issue-1", {
+        status: "Done",
+      });
+    });
+
+    await waitFor(() =>
+      expect(result.current.pendingIssueIds).toEqual(["issue-1"])
+    );
+
+    let duplicateRequest: Promise<unknown> | undefined;
+
+    await act(async () => {
+      duplicateRequest = result.current.updateIssue("issue-1", {
+        status: "Canceled",
+      });
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(result.current.isUpdatingIssues).toBe(true);
+    await expect(duplicateRequest).resolves.toBeUndefined();
+
+    await act(async () => {
+      resolveRequest?.({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          issue: {
+            id: "issue-1",
+            identifier: "WEB-1",
+            title: "Board issue",
+            status: "Done",
+            priority: "Medium",
+            assigneeId: null,
+            labels: [],
+            issueNumber: 1,
+            projectId: "project-1",
+            description: "",
+            createdBy: "user-1",
+            updatedBy: "user-1",
+            dueDate: null,
+            createdAt: "2026-03-25T00:00:00.000Z",
+            updatedAt: "2026-03-25T00:00:00.000Z",
+            version: 1,
+          },
+        }),
+      });
+      await firstRequest;
+    });
+
+    await waitFor(() => {
+      expect(result.current.pendingIssueIds).toEqual([]);
+      expect(result.current.isUpdatingIssues).toBe(false);
     });
   });
 });

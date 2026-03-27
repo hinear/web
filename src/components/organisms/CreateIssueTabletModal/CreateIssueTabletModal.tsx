@@ -14,7 +14,7 @@ import { createLabelAction } from "@/features/issues/actions/create-label-action
 import { getLabelsAction } from "@/features/issues/actions/get-labels-action";
 import { createLabelKey, getLabelColor } from "@/features/issues/lib/labels";
 import type { Label } from "@/features/issues/types";
-import { cn } from "@/lib/utils";
+import { cn, hasExplicitAction } from "@/lib/utils";
 
 const MarkdownEditor = dynamic(
   () =>
@@ -111,6 +111,7 @@ export function CreateIssueTabletModal({
   const [description, setDescription] = React.useState(defaultDescription);
   const [dueDate, setDueDate] = React.useState<string | null>(defaultDueDate);
   const [availableLabels, setAvailableLabels] = React.useState<Label[]>([]);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [selectedLabelIds, setSelectedLabelIds] = React.useState<string[]>([]);
   const [title, setTitle] = React.useState(defaultTitle);
 
@@ -177,6 +178,13 @@ export function CreateIssueTabletModal({
     selectedLabelIds.includes(label.id)
   );
   const labelsFormValue = selectedLabels.map((label) => label.name).join(", ");
+  const canCloseModal = hasExplicitAction({
+    onClick: onClose,
+  });
+  const canCancel = hasExplicitAction({
+    onClick: onCancel,
+  });
+  const canSubmit = action != null || onSubmit != null;
 
   const handleLabelToggle = (labelId: string) => {
     setSelectedLabelIds((current) =>
@@ -219,7 +227,7 @@ export function CreateIssueTabletModal({
     toast.error(result.error || "Failed to create label");
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     // Title 유효성 검사
     if (!title.trim()) {
       e.preventDefault();
@@ -227,9 +235,36 @@ export function CreateIssueTabletModal({
       return;
     }
 
+    if (isSubmitting) {
+      e.preventDefault();
+      return;
+    }
+
+    setIsSubmitting(true);
+
     // 사용자 제출 핸들러 호출
     if (onSubmit) {
-      onSubmit(e);
+      try {
+        await Promise.resolve(onSubmit(e));
+      } catch (error) {
+        e.preventDefault();
+        setIsSubmitting(false);
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "We couldn't create the issue. Try again."
+        );
+        return;
+      }
+
+      if (e.defaultPrevented || !action) {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    if (!action) {
+      setIsSubmitting(false);
     }
   };
 
@@ -254,7 +289,15 @@ export function CreateIssueTabletModal({
           <button
             aria-label="Close modal"
             className="inline-flex h-[34px] w-[34px] items-center justify-center rounded-[10px] border border-[var(--app-color-border-soft)] bg-[var(--app-color-surface-50)] text-[var(--app-color-gray-500)]"
+            disabled={!canCloseModal || isSubmitting}
             onClick={onClose}
+            title={
+              canCloseModal
+                ? isSubmitting
+                  ? "Wait for the current submit request to finish before closing."
+                  : undefined
+                : "This close action is not available."
+            }
             type="button"
           >
             <X aria-hidden="true" className="h-[14px] w-[14px]" />
@@ -409,13 +452,33 @@ export function CreateIssueTabletModal({
           </div>
 
           <div className="flex items-center justify-end gap-[10px]">
-            <Button onClick={onCancel} type="button" variant="secondary">
+            <Button
+              disabled={!canCancel || isSubmitting}
+              onClick={onCancel}
+              type="button"
+              variant="secondary"
+            >
               Cancel
             </Button>
-            <Button type="submit" variant="primary">
-              Create issue
+            <Button
+              disabled={!canSubmit || isSubmitting}
+              type="submit"
+              variant="primary"
+            >
+              {isSubmitting ? "Creating issue..." : "Create issue"}
             </Button>
           </div>
+          {isSubmitting ? (
+            <p className="text-right text-[12px] leading-5 font-medium text-[#4F46E5]">
+              Creating your issue now. Duplicate submits are blocked until this
+              request finishes.
+            </p>
+          ) : null}
+          {!canSubmit ? (
+            <p className="text-right text-[12px] leading-5 font-medium text-[#6B7280]">
+              Connect this modal to a create action before enabling submission.
+            </p>
+          ) : null}
         </form>
       </div>
     </div>
