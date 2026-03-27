@@ -215,10 +215,11 @@ const handleLabelToggle = React.useCallback((labelId: string) => {
 **File**: `.github/workflows/performance.yml`
 
 **Features**:
-- Automatic performance testing on PRs
-- Bundle size validation
-- Regression detection
-- Automated issue creation on failure
+- Optional diagnostics only (manual dispatch + weekly schedule)
+- Real performance suite execution (`pnpm test tests/performance --run`)
+- Real bundle analysis generation (`ANALYZE=true pnpm build`)
+- Artifact upload for analysis outputs
+- Not configured as a required merge guardrail
 
 ## Best Practices
 
@@ -268,4 +269,4 @@ const handleLabelToggle = React.useCallback((labelId: string) => {
 
 ## Last Updated
 
-2026-03-26 - Initial implementation complete
+2026-03-27 - CI/CD workflow state aligned with 008-github-cicd-audit governance

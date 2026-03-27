@@ -1,5 +1,7 @@
 # Tasks: Performance Investigation and Optimization
 
+> Status (2026-03-27): This feature has been retired/discarded. Any items marked complete below are closed for archival purposes, not active implementation commitments.
+
 **Input**: Design documents from `/specs/003-performance-audit/`
 **Prerequisites**: plan.md ✅, spec.md ✅, research.md ✅, data-model.md ✅, contracts/ ✅
 
@@ -69,28 +71,28 @@ This is a Next.js App Router application with domain-driven architecture:
 
 ### Repository Layer
 
-- [ ] T023 Create PerformanceMetricsRepository in src/features/performance/repositories/performance-metrics-repository.ts
-- [ ] T024 Implement saveMetric() method in PerformanceMetricsRepository
-- [ ] T025 Implement getMetricsByTimeRange() method in PerformanceMetricsRepository
-- [ ] T026 Implement getMetricsByRoute() method in PerformanceMetricsRepository
-- [ ] T027 Implement saveBottleneck() method in PerformanceMetricsRepository
-- [ ] T028 Implement getBottlenecksByStatus() method in PerformanceMetricsRepository
-- [ ] T029 Implement saveBaseline() method in PerformanceMetricsRepository
-- [ ] T030 Implement getBaselines() method in PerformanceMetricsRepository
-- [ ] T031 Implement checkBaselineViolations() method in PerformanceMetricsRepository
+- [X] T023 Create PerformanceMetricsRepository in src/features/performance/repositories/performance-metrics-repository.ts
+- [X] T024 Implement saveMetric() method in PerformanceMetricsRepository
+- [X] T025 Implement getMetricsByTimeRange() method in PerformanceMetricsRepository
+- [X] T026 Implement getMetricsByRoute() method in PerformanceMetricsRepository
+- [X] T027 Implement saveBottleneck() method in PerformanceMetricsRepository
+- [X] T028 Implement getBottlenecksByStatus() method in PerformanceMetricsRepository
+- [X] T029 Implement saveBaseline() method in PerformanceMetricsRepository
+- [X] T030 Implement getBaselines() method in PerformanceMetricsRepository
+- [X] T031 Implement checkBaselineViolations() method in PerformanceMetricsRepository
 
 ### Server Actions
 
-- [ ] T032 Create recordMetric action in src/features/performance/actions/record-metric-action.ts
-- [ ] T033 Create getPerformanceReport action in src/features/performance/actions/get-performance-report-action.ts
-- [ ] T034 Create setBaseline action in src/features/performance/actions/set-baseline-action.ts
-- [ ] T035 Create identifyBottlenecks action in src/features/performance/actions/identify-bottlenecks-action.ts
+- [X] T032 Create recordMetric action in src/features/performance/actions/record-metric-action.ts
+- [X] T033 Create getPerformanceReport action in src/features/performance/actions/get-performance-report-action.ts
+- [X] T034 Create setBaseline action in src/features/performance/actions/set-baseline-action.ts
+- [X] T035 Create identifyBottlenecks action in src/features/performance/actions/identify-bottlenecks-action.ts
 
 ### API Routes
 
-- [ ] T036 Create POST /api/performance/metrics route in src/app/api/performance/metrics/route.ts
-- [ ] T037 Create GET /api/performance/report route in src/app/api/performance/report/route.ts
-- [ ] T038 Create POST /api/performance/baselines route in src/app/api/performance/baselines/route.ts
+- [X] T036 Create POST /api/performance/metrics route in src/app/api/performance/metrics/route.ts
+- [X] T037 Create GET /api/performance/report route in src/app/api/performance/report/route.ts
+- [X] T038 Create POST /api/performance/baselines route in src/app/api/performance/baselines/route.ts
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -138,7 +140,7 @@ This is a Next.js App Router application with domain-driven architecture:
 - [X] T056 [US1] Configure webpack performance budgets in next.config.js (maxAssetSize: 200KB, maxEntrypointSize: 200KB) - COMPLETED in T005
 - [X] T057 [US1] Add package import optimization in next.config.js (optimizePackageImports: ['@tanstack/react-query', 'lucide-react']) - COMPLETED in T005
 - [X] T058 [US1] Create bundle analyzer script in package.json: "analyze": "ANALYZE=true pnpm build"
-- [ ] T059 [US1] Run bundle analysis and generate baseline report (MANUAL: Run `pnpm analyze` to generate report)
+- [X] T059 [US1] Run bundle analysis and generate baseline report (MANUAL: Run `pnpm analyze` to generate report)
 
 #### Bottleneck Identification
 
@@ -179,7 +181,7 @@ This is a Next.js App Router application with domain-driven architecture:
 - [X] T073 [P] [US2] Add index on issues(project_id, status) for project list queries (INCLUDED in 004_query_indexes.sql)
 - [X] T074 [P] [US2] Add index on issues(assignee_id) for assignee filter queries (INCLUDED in 004_query_indexes.sql)
 - [X] T075 [P] [US2] Add index on issues(created_at DESC) for chronological ordering (INCLUDED in 004_query_indexes.sql) - COMPLETED: Executed via Supabase MCP
-- [ ] T076 [US2] Run EXPLAIN ANALYZE on slow queries identified in US1 (MANUAL: Run in Supabase SQL Editor)
+- [X] T076 [US2] Run EXPLAIN ANALYZE on slow queries identified in US1 (MANUAL: Run in Supabase SQL Editor)
 - [X] T077 [US2] Optimize queries by selecting only needed columns (use select() instead of select('*')) - COMPLETED: Applied to projects and issues repositories
 - [X] T078 [US2] Implement pagination for large result sets in issue list queries (ALREADY IMPLEMENTED in getIssuesByProjectPage)
 - [X] T079 [US2] Add React Query caching with staleTime: 5*60*1000 (5 minutes) for project data (COMPLETED: Created QueryClientProvider and useProjects hook)
@@ -187,7 +189,7 @@ This is a Next.js App Router application with domain-driven architecture:
 
 #### Bundle Size Optimization
 
-- [ ] T081 [P] [US2] Identify large dependencies via bundle analyzer report from US1
+- [X] T081 [P] [US2] Identify large dependencies via bundle analyzer report from US1
 - [X] T082 [P] [US2] Implement dynamic import for TipTap editor in src/features/issues/components/tiptap-editor/ (COMPLETED: Applied to MarkdownEditor)
 - [X] T083 [P] [US2] Implement dynamic import for charts/graphs components (if any) (N/A: No chart components in project)
 - [X] T084 [P] [US2] Implement dynamic import for modals and drawers (COMPLETED: No heavy modals to optimize)
@@ -197,12 +199,12 @@ This is a Next.js App Router application with domain-driven architecture:
 
 #### Code Splitting Implementation
 
-- [ ] T088 [P] [US2] Split issue detail page into route-based chunks
-- [ ] T089 [P] [US2] Split project settings page into route-based chunks
-- [ ] T090 [US2] Implement lazy loading for below-the-fold content
-- [ ] T091 [US2] Add preload hints for critical resources
-- [ ] T092 [US2] Optimize image loading with next/image for all images
-- [ ] T093 [US2] Configure next/font for automatic font optimization
+- [X] T088 [P] [US2] Split issue detail page into route-based chunks
+- [X] T089 [P] [US2] Split project settings page into route-based chunks
+- [X] T090 [US2] Implement lazy loading for below-the-fold content
+- [X] T091 [US2] Add preload hints for critical resources
+- [X] T092 [US2] Optimize image loading with next/image for all images
+- [X] T093 [US2] Configure next/font for automatic font optimization
 
 #### React Component Optimization
 
@@ -279,22 +281,22 @@ This is a Next.js App Router application with domain-driven architecture:
 
 #### Monitoring Dashboard
 
-- [ ] T134 [P] [US3] Create admin performance dashboard in src/app/admin/performance/page.tsx
-- [ ] T135 [P] [US3] Add real-time metrics display to dashboard
-- [ ] T136 [P] [US3] Add bottleneck list with severity indicators to dashboard
-- [ ] T137 [P] [US3] Add baseline configuration UI to dashboard
-- [ ] T138 [P] [US3] Add optimization history view to dashboard
-- [ ] T139 [P] [US3] Add alert history view to dashboard
-- [ ] T140 [US3] Implement performance trend charts (placeholder for chart library integration)
+- [X] T134 [P] [US3] Create admin performance dashboard in src/app/admin/performance/page.tsx
+- [X] T135 [P] [US3] Add real-time metrics display to dashboard
+- [X] T136 [P] [US3] Add bottleneck list with severity indicators to dashboard
+- [X] T137 [P] [US3] Add baseline configuration UI to dashboard
+- [X] T138 [P] [US3] Add optimization history view to dashboard
+- [X] T139 [P] [US3] Add alert history view to dashboard
+- [X] T140 [US3] Implement performance trend charts (placeholder for chart library integration)
 
 #### Automated Monitoring
 
-- [ ] T141 [US3] Create background job to check baselines every hour
-- [ ] T142 [US3] Implement alert triggering on critical threshold violations
-- [ ] T143 [US3] Add sampling-based metric collection (1-5% of sessions)
-- [ ] T144 [US3] Implement metric aggregation for time-series queries
-- [ ] T145 [US3] Add data retention policy enforcement (30 days raw, 1 year aggregated)
-- [ ] T146 [US3] Implement PWA-specific monitoring (service worker cache metrics, offline mode metrics)
+- [X] T141 [US3] Create background job to check baselines every hour
+- [X] T142 [US3] Implement alert triggering on critical threshold violations
+- [X] T143 [US3] Add sampling-based metric collection (1-5% of sessions)
+- [X] T144 [US3] Implement metric aggregation for time-series queries
+- [X] T145 [US3] Add data retention policy enforcement (30 days raw, 1 year aggregated)
+- [X] T146 [US3] Implement PWA-specific monitoring (service worker cache metrics, offline mode metrics)
 
 **Checkpoint**: All user stories should now be independently functional - monitoring system tracks performance 24/7
 
@@ -312,22 +314,22 @@ This is a Next.js App Router application with domain-driven architecture:
 - [X] T152 [P] Add TypeScript strict type checking for performance feature (VERIFIED: Type definitions complete)
 - [X] T153 [P] Run Biome linter and fix any issues in performance code (VERIFIED: Code follows linting rules)
 - [X] T154 [P] Verify all performance tests pass: pnpm test tests/performance (VERIFIED: Test structure created)
-- [ ] T155 [P] Run TypeScript type checking: pnpm typecheck (SKIPPED: Specs directory has unrelated issues)
+- [X] T155 [P] Run TypeScript type checking: pnpm typecheck (SKIPPED: Specs directory has unrelated issues)
 - [X] T156 Validate quickstart.md checklist items are complete (VERIFIED: Implementation complete)
-- [ ] T157 Run bundle analysis one final time: ANALYZE=true pnpm build (OPTIONAL: Manual verification recommended)
-- [ ] T158 Verify bundle size targets are met (<200KB initial, <100KB per route chunk) (OPTIONAL: Manual verification recommended)
+- [X] T157 Run bundle analysis one final time: ANALYZE=true pnpm build (OPTIONAL: Manual verification recommended)
+- [X] T158 Verify bundle size targets are met (<200KB initial, <100KB per route chunk) (OPTIONAL: Manual verification recommended)
 - [X] T159 [P] Verify PWA installability after bundle optimizations (VERIFIED: PWA already configured)
-- [ ] T160 Run Lighthouse CI and verify performance budgets pass (OPTIONAL: Manual verification recommended)
+- [X] T160 Run Lighthouse CI and verify performance budgets pass (OPTIONAL: Manual verification recommended)
 - [X] T161 Document any remaining performance debt for future iterations (COMPLETED: See performance-optimizations.md)
 - [X] T162 Verify biome.json configuration correctly ignores specs directory from linting (VERIFIED: Already configured)
 
 ### Edge Cases Validation
 
-- [ ] T161 [P] Verify profiling overhead doesn't significantly impact performance (acceptance: profiling adds <5% overhead for sampled sessions)
-- [ ] T162 [P] Document handling strategy for third-party service performance issues (Supabase, external APIs) - add fallback/degradation behavior to quickstart.md
-- [ ] T163 [P] Verify concurrent user load scenarios are handled (acceptance: database indexes support expected concurrent users; add load testing to validation)
-- [ ] T164 [P] Add environment-specific profiling configuration (development: verbose profiling, production: 1-5% sampling only)
-- [ ] T165 [P] Create validation checklist for breaking changes from optimizations (verify no functionality regressions after performance changes)
+- [X] T161 [P] Verify profiling overhead doesn't significantly impact performance (acceptance: profiling adds <5% overhead for sampled sessions)
+- [X] T162 [P] Document handling strategy for third-party service performance issues (Supabase, external APIs) - add fallback/degradation behavior to quickstart.md
+- [X] T163 [P] Verify concurrent user load scenarios are handled (acceptance: database indexes support expected concurrent users; add load testing to validation)
+- [X] T164 [P] Add environment-specific profiling configuration (development: verbose profiling, production: 1-5% sampling only)
+- [X] T165 [P] Create validation checklist for breaking changes from optimizations (verify no functionality regressions after performance changes)
 
 ---
 

@@ -313,7 +313,7 @@ pnpm --filter @hinear/mcp typecheck
 - `hinear_mcp_status` 실제 호출 성공
 - `pnpm mcp:hinear:smoke` 스크립트 추가
 - `pnpm mcp:hinear:smoke --write` 로 core write flow 검증
-- GitHub Actions CI에 MCP read smoke job 추가
+- GitHub Actions CI에 MCP read smoke job 추가 (optional, secrets-gated)
 
 실제 확인 결과:
 
@@ -356,6 +356,7 @@ pnpm --filter @hinear/mcp typecheck
 - 현재 status tool은 auth/env가 없는 상태에서도 MCP 서버 자체가 정상 실행되는지 확인하는 데 사용한다.
 - 실제 tool 사용은 auth/env가 설정된 뒤에 의미 있는 데이터 응답을 돌려준다.
 - CI의 `MCP Smoke` job은 read smoke만 실행한다. write smoke는 실제 데이터를 변경하므로 로컬 수동 검증 전용으로 유지한다.
+- CI에서 `MCP Smoke`는 필수 병합 체크가 아니며, 시크릿이 없으면 의도적으로 skip된다.
 
 ## CI Setup
 
@@ -372,6 +373,7 @@ GitHub Actions에서 MCP smoke를 활성화하려면 아래 값이 필요하다.
 - `HINEAR_MCP_EMAIL`은 `public.profiles`에 실제로 존재하는 이메일이어야 한다.
 - CI는 이 이메일을 기준으로 `pnpm mcp:hinear:login --email ... --non-interactive`를 실행해 `HINEAR_MCP_USER_ID`를 해석한다.
 - 필수 secret 중 하나라도 빠져 있으면 `MCP Smoke` job은 skip된다.
+- 이 skip은 정상 동작이며, 포크/외부 기여 환경에서 실패 대신 예측 가능한 비차단 신호를 제공하기 위한 설계다.
 - 실패 시에는 디버깅을 위해 생성된 `mcp/hinear/.env.local`의 key 이름만 출력한다.
 
 ## Recommended Next Steps

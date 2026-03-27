@@ -221,9 +221,9 @@
 
 ### 7. 003 Recovery Follow-up
 
-- [ ] webpack asset size warning 축소
-- [ ] `loadIssueDetail()` 예외 경로 단순화 검토
-- [ ] older `specs/003-performance-audit/` 문서와 현재 baseline의 차이 정리
+- [x] webpack asset size warning 축소 (CLOSED: 003 feature retired on 2026-03-27)
+- [x] `loadIssueDetail()` 예외 경로 단순화 검토 (CLOSED: moved to Current Product Follow-up)
+- [x] older `specs/003-performance-audit/` 문서와 현재 baseline의 차이 정리 (CLOSED: 003 feature retired on 2026-03-27)
 
 ### 6. Current Product Follow-up
 

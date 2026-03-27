@@ -2,8 +2,10 @@
 
 **Feature Branch**: `003-performance-audit`
 **Created**: 2026-03-26
-**Status**: Draft
+**Status**: Retired (Discarded on 2026-03-27)
 **Input**: User description: "앱이 전체적으로 너무 느려서 확인해보고 싶어"
+
+> This spec is archived for historical reference and is not an active implementation target.
 
 ## User Scenarios & Testing *(mandatory)*
 

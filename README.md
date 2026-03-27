@@ -38,7 +38,14 @@ GitHub Actions is configured for:
 
 - `CI`
   - runs on every push and pull request
+  - `Verify` is the required merge baseline check
   - installs dependencies, then runs `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`
+  - includes `Workflow Governance` and `Dependency Risk` guardrail jobs for workflow/dependency changes
+  - includes `MCP Smoke` as an optional secrets-gated check (skips when required secrets are missing)
+- `Performance Diagnostics (Optional)`
+  - runs on manual dispatch and weekly schedule
+  - runs real performance suite + bundle analysis and uploads artifacts
+  - intentionally non-required for merge
 
 Deployment is expected to use Vercel Git Integration:
 
@@ -46,6 +53,15 @@ Deployment is expected to use Vercel Git Integration:
 - pushes to `main` trigger Vercel production deployments
 
 No GitHub Actions Vercel deploy workflow is checked in right now to avoid duplicating Vercel's default deployment pipeline.
+
+### Failure Response (Maintainers)
+
+- `Verify` failure: treat as merge-blocking, fix code or tests before merge
+- `Workflow Governance` failure: remove placeholder logic or restore required workflow/job naming stability
+- `Dependency Risk` failure: update lockfile with manifest changes and avoid wildcard/latest dependency pins
+- `MCP Smoke` skipped: expected in repositories/forks without secrets
+- `MCP Smoke` failure (when secrets exist): investigate MCP env resolution and rerun after fix
+- `Performance Diagnostics (Optional)` failure: investigate as tech-debt/perf signal, not as a branch-protection blocker
 
 ## Docs
 
