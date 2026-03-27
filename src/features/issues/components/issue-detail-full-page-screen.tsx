@@ -8,7 +8,6 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
@@ -21,6 +20,7 @@ import { Select } from "@/components/atoms/Select";
 import { ConflictDialog } from "@/components/molecules/ConflictDialog";
 import { DueDateField } from "@/components/molecules/DueDateField";
 import { LabelSelector } from "@/components/molecules/LabelSelector";
+import { MarkdownEditor } from "@/components/molecules/MarkdownEditor";
 import { createLabelAction } from "@/features/issues/actions/create-label-action";
 import { updateIssueLabelsAction } from "@/features/issues/actions/update-issue-labels-action";
 import { IssueActivityItem } from "@/features/issues/components/IssueActivityItem";
@@ -50,22 +50,6 @@ import type {
 } from "@/features/issues/types";
 import { ISSUE_PRIORITIES, ISSUE_STATUSES } from "@/features/issues/types";
 import { usePerformanceProfiler } from "@/features/performance/hooks/usePerformanceProfiler";
-
-// Dynamic import for MarkdownEditor (optimizes bundle size)
-const MarkdownEditor = dynamic(
-  () =>
-    import("@/components/molecules/MarkdownEditor").then((m) => ({
-      default: m.MarkdownEditor,
-    })),
-  {
-    loading: () => (
-      <div className="flex items-center justify-center p-8 bg-gray-100 rounded-lg">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-transparent" />
-      </div>
-    ),
-    ssr: false,
-  }
-);
 
 import { getIssueBranchNamePreview } from "@/lib/github/branching";
 import { hasMeaningfulRichTextContent } from "@/lib/rich-text";
@@ -114,6 +98,7 @@ type GitHubBranchIntent = "branch" | "pr";
 
 const EMPTY_COMMENTS: Comment[] = [];
 const EMPTY_ACTIVITY_LOG: ActivityLogEntry[] = [];
+const EMPTY_LABELS: Label[] = [];
 
 function isIssueUpdateResponse(value: unknown): value is IssueUpdateResponse {
   return Boolean(
@@ -148,7 +133,7 @@ function isConflictError(value: unknown): value is ConflictError {
 export function IssueDetailFullPageScreen({
   activityLog = EMPTY_ACTIVITY_LOG,
   assigneeOptions = [],
-  availableLabels: availableLabelsProp = [],
+  availableLabels: availableLabelsProp = EMPTY_LABELS,
   boardHref,
   comments = EMPTY_COMMENTS,
   githubRepository = null,
@@ -185,8 +170,6 @@ export function IssueDetailFullPageScreen({
   }, [issue, availableLabelsProp]);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingCommentBody, setEditingCommentBody] = useState("");
-  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [conflictInfo, setConflictInfo] = useState<{
     currentVersion: number;
     requestedVersion: number;
@@ -281,9 +264,7 @@ export function IssueDetailFullPageScreen({
   };
 
   const saveAllChanges = () => {
-    setErrorMessage(null);
     setConflictInfo(null);
-    setFeedbackMessage(null);
 
     startSavingTransition(async () => {
       try {
@@ -368,9 +349,7 @@ export function IssueDetailFullPageScreen({
   };
 
   const submitComment = () => {
-    setErrorMessage(null);
     setConflictInfo(null);
-    setFeedbackMessage(null);
 
     startSavingTransition(async () => {
       try {
@@ -795,17 +774,6 @@ export function IssueDetailFullPageScreen({
           />
         ) : null}
 
-        {errorMessage ? (
-          <div className="rounded-[14px] border border-[#FCA5A5] bg-[#FEF2F2] px-4 py-3 text-[13px] font-medium text-[#991B1B]">
-            {errorMessage}
-          </div>
-        ) : null}
-        {feedbackMessage ? (
-          <div className="rounded-[14px] border border-[#C7D2FE] bg-[#EEF2FF] px-4 py-3 text-[13px] font-medium text-[#3730A3]">
-            {feedbackMessage}
-          </div>
-        ) : null}
-
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2">
             {boardHref ? (
@@ -1003,6 +971,7 @@ export function IssueDetailFullPageScreen({
           <div className="flex justify-end">
             <Button
               disabled={isSaving || !hasCommentContent}
+              loading={isSaving}
               onClick={submitComment}
               size="sm"
               variant="secondary"
@@ -1099,6 +1068,7 @@ export function IssueDetailFullPageScreen({
             ) : null}
             <Button
               disabled={isSaving || !hasPendingChanges}
+              loading={isSaving}
               onClick={saveAllChanges}
               size="sm"
             >
@@ -1106,17 +1076,6 @@ export function IssueDetailFullPageScreen({
             </Button>
           </div>
         </div>
-
-        {errorMessage ? (
-          <div className="rounded-[14px] border border-[#FCA5A5] bg-[#FEF2F2] px-4 py-3 text-[13px] font-medium text-[#991B1B]">
-            {errorMessage}
-          </div>
-        ) : null}
-        {feedbackMessage ? (
-          <div className="rounded-[14px] border border-[#C7D2FE] bg-[#EEF2FF] px-4 py-3 text-[13px] font-medium text-[#3730A3]">
-            {feedbackMessage}
-          </div>
-        ) : null}
 
         <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
           <div className="flex flex-col gap-4">
@@ -1271,9 +1230,14 @@ export function IssueDetailFullPageScreen({
                   className="mt-2"
                   projectId={issueState.projectId}
                 />
+                <p className="mt-2 text-[12px] leading-[1.45] text-[#6B7280]">
+                  Post updates here so the latest context is visible to everyone
+                  reviewing this issue.
+                </p>
                 <div className="mt-3 flex justify-end">
                   <Button
                     disabled={isSaving || !hasCommentContent}
+                    loading={isSaving}
                     onClick={submitComment}
                     size="sm"
                     variant="secondary"
@@ -1447,6 +1411,10 @@ export function IssueDetailFullPageScreen({
                 <p className="text-[12px] font-medium text-red-700">
                   Once you delete an issue, there is no going back. Please be
                   certain.
+                </p>
+                <p className="mt-2 text-[12px] leading-[1.45] text-red-700">
+                  Deleting removes the issue from the board and closes this
+                  detail view after the server confirms the change.
                 </p>
                 <button
                   className="mt-3 rounded-[10px] bg-red-600 px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"

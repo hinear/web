@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
@@ -13,6 +12,7 @@ import { Select } from "@/components/atoms/Select";
 import { Skeleton } from "@/components/atoms/Skeleton";
 import { ConflictDialog } from "@/components/molecules/ConflictDialog";
 import { DueDateField } from "@/components/molecules/DueDateField";
+import { MarkdownEditor } from "@/components/molecules/MarkdownEditor";
 import { IssueActivityItem } from "@/features/issues/components/IssueActivityItem";
 import { IssueCommentMeta } from "@/features/issues/components/IssueCommentMeta";
 import { IssueDateMeta } from "@/features/issues/components/IssueDateMeta";
@@ -38,21 +38,6 @@ import type {
 } from "@/features/issues/types";
 import { ISSUE_PRIORITIES, ISSUE_STATUSES } from "@/features/issues/types";
 import { hasMeaningfulRichTextContent } from "@/lib/rich-text";
-
-const MarkdownEditor = dynamic(
-  () =>
-    import("@/components/molecules/MarkdownEditor").then((module) => ({
-      default: module.MarkdownEditor,
-    })),
-  {
-    loading: () => (
-      <div className="flex items-center justify-center rounded-lg bg-gray-100 p-8">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-transparent" />
-      </div>
-    ),
-    ssr: false,
-  }
-);
 
 interface IssueDetailScreenProps {
   boardHref?: string;

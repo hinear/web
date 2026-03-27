@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -11,6 +10,7 @@ import { Select } from "@/components/atoms/Select";
 import { ConflictDialog } from "@/components/molecules/ConflictDialog";
 import { DueDateField } from "@/components/molecules/DueDateField";
 import { LabelSelector } from "@/components/molecules/LabelSelector";
+import { MarkdownEditor } from "@/components/molecules/MarkdownEditor";
 import { createLabelAction } from "@/features/issues/actions/create-label-action";
 import { updateIssueLabelsAction } from "@/features/issues/actions/update-issue-labels-action";
 import { IssueActivityItem } from "@/features/issues/components/IssueActivityItem";
@@ -33,21 +33,6 @@ import type {
   Label,
 } from "@/features/issues/types";
 import { ISSUE_PRIORITIES, ISSUE_STATUSES } from "@/features/issues/types";
-
-const MarkdownEditor = dynamic(
-  () =>
-    import("@/components/molecules/MarkdownEditor").then((module) => ({
-      default: module.MarkdownEditor,
-    })),
-  {
-    loading: () => (
-      <div className="flex items-center justify-center rounded-lg bg-gray-100 p-8">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-transparent" />
-      </div>
-    ),
-    ssr: false,
-  }
-);
 
 interface IssueDetailDrawerScreenProps {
   activityLog?: ActivityLogEntry[];
@@ -521,12 +506,21 @@ export function IssueDetailDrawerScreen({
       </div>
 
       <footer className="flex items-center justify-between gap-4">
-        <p className="text-[12px] leading-[1.45] font-[var(--app-font-weight-500)] text-[#6B7280]">
-          Scroll inside this drawer for more. Full page remains the source of
-          truth for deeper edits.
-        </p>
+        <div className="flex flex-col gap-2">
+          <p className="text-[12px] leading-[1.45] font-[var(--app-font-weight-500)] text-[#6B7280]">
+            Scroll inside this drawer for more. Full page remains the source of
+            truth for deeper edits and comment history.
+          </p>
+          <Link
+            className="text-[12px] leading-[12px] font-[var(--app-font-weight-700)] text-[#4338CA]"
+            href={fullPageHref}
+          >
+            Open full page to comment
+          </Link>
+        </div>
         <Button
           disabled={isSaving || !hasPendingChanges}
+          loading={isSaving}
           onClick={saveChanges}
           size="sm"
         >

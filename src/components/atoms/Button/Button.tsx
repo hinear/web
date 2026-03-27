@@ -34,6 +34,7 @@ export function getButtonClassName(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  loading?: boolean;
   size?: ButtonSize;
   variant?: ButtonVariant;
 }
@@ -42,6 +43,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       className,
+      loading = false,
       size = "sm",
       type = "button",
       variant = "primary",
@@ -55,9 +57,17 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={getButtonClassName(variant, size, className)}
         ref={ref}
         type={type}
-        {...(disabled && { disabled: true })}
+        {...(disabled || loading ? { disabled: true } : {})}
         {...props}
-      />
+      >
+        {loading ? (
+          <span
+            aria-hidden="true"
+            className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"
+          />
+        ) : null}
+        {props.children}
+      </button>
     );
   }
 );
