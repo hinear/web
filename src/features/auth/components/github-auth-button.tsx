@@ -45,9 +45,11 @@ export function GitHubAuthButton({
 }: GitHubAuthButtonProps) {
   return (
     <form action={startGitHubAuthAction}>
-      <input name="next" type="hidden" value={next} />
-      <input name="projectId" type="hidden" value={projectId} />
-      {reason ? <input name="reason" type="hidden" value={reason} /> : null}
+      <input name="next" readOnly type="hidden" value={next} />
+      <input name="projectId" readOnly type="hidden" value={projectId} />
+      {reason ? (
+        <input name="reason" readOnly type="hidden" value={reason} />
+      ) : null}
       <GitHubAuthSubmitButton />
     </form>
   );

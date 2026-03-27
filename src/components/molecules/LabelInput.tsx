@@ -101,7 +101,7 @@ export function LabelInput({
           className="w-full rounded-[10px] border border-[var(--app-color-border-soft)] bg-[var(--app-color-white)] px-4 py-3 text-[14px] leading-[14px] font-normal text-[var(--app-color-black)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-color-brand-300)] focus-visible:ring-offset-2 placeholder:text-[var(--app-color-gray-400)]"
           id={id}
         />
-        {name && <input type="hidden" name={name} value={formValue} />}
+        {name && <input name={name} readOnly type="hidden" value={formValue} />}
       </div>
 
       {/* 제안 라벨 */}

@@ -24,12 +24,7 @@ import type {
 import { GitHubSyncService } from "@/lib/github/sync-service";
 import { trackQuery } from "@/lib/performance/query-tracker";
 import type { AppSupabaseServerClient } from "@/lib/supabase/server-client";
-import type {
-  Json,
-  TableInsert,
-  TableRow,
-  TableUpdate,
-} from "@/lib/supabase/types";
+import type { Json, TableInsert, TableUpdate } from "@/lib/supabase/types";
 
 function assertQuerySucceeded(
   context: string,

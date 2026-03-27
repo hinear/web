@@ -133,9 +133,6 @@ export class BaselineManager {
     const saved = await performanceMetricsRepository.saveBaseline({
       metricName: baseline.metricName,
       route: baseline.route,
-      currentValue: 0, // TODO: Get current value
-      thresholdType: "warning",
-      thresholdValue: baseline.warningThreshold,
       targetValue: baseline.targetValue,
       warningThreshold: baseline.warningThreshold,
       criticalThreshold: baseline.criticalThreshold,
@@ -146,9 +143,9 @@ export class BaselineManager {
     const cacheKey = baseline.route
       ? `${baseline.metricName}:${baseline.route}`
       : baseline.metricName;
-    this.baselineCache.set(cacheKey, saved as any);
+    this.baselineCache.set(cacheKey, saved);
 
-    return saved as any;
+    return saved;
   }
 
   /**

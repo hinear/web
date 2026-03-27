@@ -3,8 +3,6 @@
 
 "use server";
 
-import type { Environment } from "../contracts";
-import { performanceMetricsRepository } from "../repositories/performance-metrics-repository";
 import type { RecordMetricInput } from "../types";
 
 /**
@@ -52,18 +50,5 @@ export async function recordMetricsBatch(
   } catch (error) {
     console.error("[recordMetricsBatch] Failed to record metrics:", error);
     // Don't throw - metric recording failures should not break the app
-  }
-}
-
-/**
- * Get the current environment from context
- */
-function getCurrentEnvironment(): string {
-  if (process.env.NODE_ENV === "production") {
-    return "production";
-  } else if (process.env.NODE_ENV === "test") {
-    return "staging";
-  } else {
-    return "development";
   }
 }

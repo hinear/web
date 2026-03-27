@@ -1,5 +1,37 @@
 # Session Handoff
 
+## 2026-03-27 Update
+
+`005-rebuild-003-build` 브랜치의 003 복구 baseline은 현재 실제로 통과하는 상태다.
+
+- `pnpm typecheck` 통과
+  - 현재 기준 명령은 `next typegen && tsc --noEmit -p tsconfig.typecheck.json`
+- `pnpm build` 통과
+- affected critical tests 통과
+  - `tests/performance/bottleneck-tracker.test.ts`
+  - `tests/performance/regression.test.ts`
+  - `src/lib/react-query/query-provider.test.tsx`
+  - `src/lib/supabase/use-supabase-client.test.tsx`
+  - `src/features/projects/actions/create-project-action.test.ts`
+  - `src/features/projects/components/project-overview-screen.test.tsx`
+  - `src/features/issues/components/issue-detail-screen.test.tsx`
+  - `src/app/api/issues/[issueId]/route.test.ts`
+  - 결과: 8 files, 19 tests passed
+
+이번 복구에서 핵심으로 정리된 내용:
+
+- `@next/bundle-analyzer`, `web-vitals` 의존성 누락 복구
+- stale `.next/dev/types`에만 남아 있던 MCP token route 참조 분리
+- performance repository / bottleneck tracker / regression detector 계약 정렬
+- React Query provider typing 및 Supabase browser client hook 추가
+- `/projects/new` → `/projects/[projectId]` → `/projects/[projectId]/issues/[issueId]` 핵심 흐름 유지 확인
+
+현재 deferred:
+
+- webpack asset size warnings
+- issue detail privileged read-path 단순화
+- 오래된 003 문서와 recovered baseline의 전면 동기화
+
 ## 2026-03-26 Update
 
 이 문서의 오래된 GitHub integration / Supabase MCP 메모는 아래 최신 사실로 덮어쓴다.
@@ -50,7 +82,7 @@
 
 ## Current Branch
 
-- `main`
+- `005-rebuild-003-build`
 
 ## What Was Completed
 

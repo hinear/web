@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import dynamic from "next/dynamic";
 import * as React from "react";
 import { toast } from "sonner";
 
@@ -9,12 +10,26 @@ import { Field } from "@/components/atoms/Field";
 import { Select } from "@/components/atoms/Select";
 import { DueDateField } from "@/components/molecules/DueDateField";
 import { LabelSelector } from "@/components/molecules/LabelSelector";
-import { MarkdownEditor } from "@/components/molecules/MarkdownEditor";
 import { createLabelAction } from "@/features/issues/actions/create-label-action";
 import { getLabelsAction } from "@/features/issues/actions/get-labels-action";
 import { createLabelKey, getLabelColor } from "@/features/issues/lib/labels";
 import type { Label } from "@/features/issues/types";
 import { cn } from "@/lib/utils";
+
+const MarkdownEditor = dynamic(
+  () =>
+    import("@/components/molecules/MarkdownEditor").then((module) => ({
+      default: module.MarkdownEditor,
+    })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center rounded-lg bg-gray-100 p-8">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-transparent" />
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 interface SelectOption {
   label: string;
@@ -334,6 +349,7 @@ export function CreateIssueTabletModal({
               <input
                 id="create-issue-due-date"
                 name="dueDate"
+                readOnly
                 type="hidden"
                 value={dueDate ?? ""}
               />
@@ -360,7 +376,12 @@ export function CreateIssueTabletModal({
                 selectedLabelIds={selectedLabelIds}
               />
             </div>
-            <input name="labels" type="hidden" value={labelsFormValue} />
+            <input
+              name="labels"
+              readOnly
+              type="hidden"
+              value={labelsFormValue}
+            />
           </div>
 
           <div className="flex flex-col gap-2">
@@ -381,6 +402,7 @@ export function CreateIssueTabletModal({
             <input
               id="create-issue-description"
               name="description"
+              readOnly
               type="hidden"
               value={description}
             />

@@ -50,6 +50,17 @@
 
 ## Current State
 
+- `005-rebuild-003-build` 브랜치 기준 003 복구 baseline은 현재 녹색이다.
+  - `pnpm typecheck` 통과
+  - `pnpm build` 통과
+  - 핵심 테스트 세트 8 files / 19 tests 통과
+- 이번 복구에서 직접 정리한 영역:
+  - performance repository / tracker / regression detector 계약
+  - React Query provider typing
+  - project hook import/query cache surface
+  - standalone typecheck route graph handling
+- 현재 남은 위험은 release-blocking build 오류가 아니라 webpack asset size warning 쪽이다.
+
 - 원격 Supabase 프로젝트 URL: `https://pmyrrckkiomjwjqntymr.supabase.co`
 - `codex mcp login supabase`는 완료됐지만, 현재 세션의 MCP tool은 여전히 `Auth required`를 반환했다
 - 적용된 마이그레이션
@@ -193,12 +204,18 @@
 
 ### 5. Finalization
 
-- [ ] 관련 테스트 전체 실행 결과 확정
+- [x] 관련 테스트 전체 실행 결과 확정
 - [ ] `0005_add_profiles.sql` 원격 적용 여부 최종 확인
 - [ ] 문서 전반 최신 상태 재정리 완료 여부 재확인
-- [ ] 전체 `typecheck` 적색 구간 정리
-  - 2026-03-26 기준 현재 `pnpm typecheck`는 이번 GitHub 변경 외의 기존 브랜치 오류로 실패한다.
-  - `.next/types`의 누락된 dashboard page 참조, `scripts/run-migration.ts`의 `pg` 타입, delete issue/danger button 관련 타입 에러가 남아 있다.
+- [x] 전체 `typecheck` 적색 구간 정리
+  - `pnpm typecheck`는 `next typegen && tsc --noEmit -p tsconfig.typecheck.json` 기준으로 녹색 복구 완료
+  - stale `.next/dev/types` MCP token route 참조는 standalone typecheck 경로에서 제거됨
+
+### 7. 003 Recovery Follow-up
+
+- [ ] webpack asset size warning 축소
+- [ ] `loadIssueDetail()` 예외 경로 단순화 검토
+- [ ] older `specs/003-performance-audit/` 문서와 현재 baseline의 차이 정리
 
 ### 6. Current Product Follow-up
 

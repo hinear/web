@@ -25,8 +25,7 @@ export async function generatePerformanceReport(
   try {
     // Fetch metrics for the time range
     const metrics = await performanceMetricsRepository.getMetricsByTimeRange(
-      query.timeRange.start,
-      query.timeRange.end
+      query.timeRange
     );
 
     // Fetch baselines
@@ -132,7 +131,7 @@ export async function exportPerformanceReport(
  * });
  * ```
  */
-export async function identifyAndSaveBottlenecks(options: {
+export async function identifyAndSaveBottlenecks(_options: {
   timeRange: { start: Date; end: Date };
 }): Promise<{
   identified: number;
@@ -183,8 +182,11 @@ export async function getPerformanceTrends(options: {
     };
 
     const metrics = await performanceMetricsRepository.getMetricsByTimeRange(
-      timeRange.start,
-      timeRange.end
+      timeRange,
+      {
+        name: options.metricName,
+        route: options.route,
+      }
     );
 
     // Sort by timestamp

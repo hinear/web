@@ -51,7 +51,7 @@ export class RegressionDetector {
     timeRange: { start: Date; end: Date },
     options?: {
       route?: string;
-      environment?: string;
+      environment?: PerformanceMetric["environment"];
     }
   ): Promise<Regression[]> {
     const regressions: Regression[] = [];

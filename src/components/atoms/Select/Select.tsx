@@ -104,7 +104,7 @@ export const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
     return (
       <div className="relative w-full" ref={rootRef}>
         {name ? (
-          <input name={name} type="hidden" value={selectedValue} />
+          <input name={name} readOnly type="hidden" value={selectedValue} />
         ) : null}
         <button
           aria-controls={listboxId}

@@ -53,6 +53,7 @@ export function ProjectMetadataForm({
         >
           <input
             name="pendingInvitationCount"
+            readOnly
             type="hidden"
             value={String(pendingInvitationCount)}
           />

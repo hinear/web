@@ -603,7 +603,7 @@ describe("SupabaseIssuesRepository", () => {
     expect(isRepositoryError(error)).toBe(true);
     expect((error as RepositoryError).code).toBe("FORBIDDEN");
     expect((error as Error).message).toContain(
-      "Failed to load project issues: new row violates row-level security policy"
+      "Failed to list issues by project: new row violates row-level security policy"
     );
   });
 });

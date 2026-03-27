@@ -67,6 +67,7 @@ export function PerformanceProfiler() {
           <h3 className="font-semibold text-sm">Performance Profiling</h3>
         </div>
         <button
+          type="button"
           onClick={() => setIsVisible(false)}
           className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
         >

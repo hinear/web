@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 import { buildAuthPath } from "@/features/auth/lib/next-path";
 import { ProjectModalProvider } from "@/features/projects/components/project-modal-provider";
+import { QueryClientProvider } from "@/lib/react-query/query-provider";
 import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
 
 export default async function ProjectLayout({
@@ -28,9 +29,9 @@ export default async function ProjectLayout({
   const { projectId } = await params;
 
   return (
-    <>
+    <QueryClientProvider>
       {children}
       <ProjectModalProvider projectId={projectId} />
-    </>
+    </QueryClientProvider>
   );
 }

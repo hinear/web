@@ -129,7 +129,9 @@ export const LabelSelector = React.memo(function LabelSelector({
   return (
     <div className={cn("relative", className)} ref={dropdownRef}>
       <div
-        role="button"
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        role="combobox"
         tabIndex={disabled ? -1 : 0}
         onClick={handleTriggerClick}
         onKeyDown={handleTriggerKeyDown}

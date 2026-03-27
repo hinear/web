@@ -198,7 +198,7 @@ async function listProfilesByIds(
 
   const { data, error } = await client
     .from("profiles")
-    .select("id, display_name, avatar_url")
+    .select("*")
     .in("id", uniqueIds);
 
   assertQuerySucceeded("Failed to load profiles", error);

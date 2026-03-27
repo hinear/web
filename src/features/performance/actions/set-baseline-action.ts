@@ -26,9 +26,6 @@ export async function setBaseline(input: CreateBaselineInput): Promise<void> {
     await performanceMetricsRepository.saveBaseline({
       metricName: input.metricName,
       route: input.route || null,
-      currentValue: 0, // TODO: Get current value
-      thresholdType: "warning",
-      thresholdValue: input.warningThreshold,
       targetValue: input.targetValue,
       warningThreshold: input.warningThreshold,
       criticalThreshold: input.criticalThreshold,
@@ -144,21 +141,13 @@ export async function updateBaseline(
  * ```
  */
 export async function deleteBaseline(
-  metricName: string,
-  route?: string
+  _metricName: string,
+  _route?: string
 ): Promise<void> {
   try {
-    await performanceMetricsRepository.saveBaseline({
-      metricName,
-      route: route || null,
-      currentValue: 0,
-      thresholdType: "warning",
-      thresholdValue: 0,
-      targetValue: 0,
-      warningThreshold: 0,
-      criticalThreshold: 0,
-      unit: "",
-    });
+    console.warn(
+      "[deleteBaseline] Delete not yet implemented. Remove the baseline directly from storage if needed."
+    );
   } catch (error) {
     console.error("[deleteBaseline] Failed to delete baseline:", error);
     throw error;

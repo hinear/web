@@ -244,7 +244,13 @@ export interface BaselineManager {
   setBaseline(
     baseline: Omit<PerformanceBaseline, "id" | "createdAt" | "updatedAt">
   ): Promise<void>;
-  checkBaselines(): Promise<BaselineViolation[]>;
+  checkBaselines(
+    metrics: Array<{
+      name: string;
+      value: number;
+      route?: string | null;
+    }>
+  ): Promise<BaselineViolation[]>;
   deleteBaseline(metricName: string, route?: string): Promise<void>;
   getAllBaselines(): Promise<PerformanceBaseline[]>;
 }
@@ -253,7 +259,10 @@ export interface BaselineManager {
  * Tracker for performance bottlenecks
  */
 export interface BottleneckTracker {
-  identifyBottlenecks(): Promise<PerformanceBottleneck[]>;
+  identifyBottlenecks(
+    metrics: PerformanceMetric[],
+    baselines?: Map<string, { targetValue: number; unit: string }>
+  ): Promise<Omit<PerformanceBottleneck, "id">[]>;
   updateStatus(id: string, status: BottleneckStatus): Promise<void>;
   getBottlenecks(
     filters?: Partial<{
@@ -264,7 +273,15 @@ export interface BottleneckTracker {
   ): Promise<PerformanceBottleneck[]>;
   getBottleneck(id: string): Promise<PerformanceBottleneck | null>;
   recordOptimization(
-    record: Omit<OptimizationRecord, "id" | "createdAt" | "verifiedAt">
+    bottleneckId: string,
+    record: Omit<
+      OptimizationRecord,
+      | "id"
+      | "bottleneckId"
+      | "improvementPercentage"
+      | "createdAt"
+      | "verifiedAt"
+    >
   ): Promise<void>;
 }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
@@ -12,7 +13,6 @@ import { Select } from "@/components/atoms/Select";
 import { Skeleton } from "@/components/atoms/Skeleton";
 import { ConflictDialog } from "@/components/molecules/ConflictDialog";
 import { DueDateField } from "@/components/molecules/DueDateField";
-import { MarkdownEditor } from "@/components/molecules/MarkdownEditor";
 import { IssueActivityItem } from "@/features/issues/components/IssueActivityItem";
 import { IssueCommentMeta } from "@/features/issues/components/IssueCommentMeta";
 import { IssueDateMeta } from "@/features/issues/components/IssueDateMeta";
@@ -38,6 +38,21 @@ import type {
 } from "@/features/issues/types";
 import { ISSUE_PRIORITIES, ISSUE_STATUSES } from "@/features/issues/types";
 import { hasMeaningfulRichTextContent } from "@/lib/rich-text";
+
+const MarkdownEditor = dynamic(
+  () =>
+    import("@/components/molecules/MarkdownEditor").then((module) => ({
+      default: module.MarkdownEditor,
+    })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center rounded-lg bg-gray-100 p-8">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-transparent" />
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 interface IssueDetailScreenProps {
   boardHref?: string;
@@ -287,6 +302,8 @@ export function IssueDetailScreen({
   );
   const [assigneeDraft, setAssigneeDraft] = useState(issue.assigneeId ?? "");
   const [commentDraft, setCommentDraft] = useState("");
+  const [isDescriptionEditorOpen, setIsDescriptionEditorOpen] = useState(false);
+  const [isCommentComposerOpen, setIsCommentComposerOpen] = useState(false);
   const [conflictInfo, setConflictInfo] = useState<{
     currentVersion: number;
     requestedVersion: number;
@@ -632,14 +649,25 @@ export function IssueDetailScreen({
                 </Chip>
               </div>
               <div className="mt-4">
-                <MarkdownEditor
-                  value={descriptionDraft}
-                  onChange={(value) => setDescriptionDraft(value)}
-                  placeholder="Add a description..."
-                  minHeight="220px"
-                  issueId={issueState.id}
-                  projectId={issueState.projectId}
-                />
+                {isDescriptionEditorOpen ||
+                descriptionDraft !== issueState.description ? (
+                  <MarkdownEditor
+                    value={descriptionDraft}
+                    onChange={(value) => setDescriptionDraft(value)}
+                    placeholder="Add a description..."
+                    minHeight="220px"
+                    issueId={issueState.id}
+                    projectId={issueState.projectId}
+                  />
+                ) : (
+                  <button
+                    className="flex min-h-[160px] w-full items-center justify-center rounded-[16px] border border-dashed border-[#D7DCE5] bg-[#FCFCFD] px-6 py-8 text-[14px] font-medium text-[#6B7280] transition hover:border-[#C7D2FE] hover:text-[#3730A3]"
+                    onClick={() => setIsDescriptionEditorOpen(true)}
+                    type="button"
+                  >
+                    Edit description
+                  </button>
+                )}
               </div>
               <div className="mt-4 flex justify-end">
                 <Button
@@ -677,24 +705,36 @@ export function IssueDetailScreen({
                 >
                   Add comment
                 </label>
-                <MarkdownEditor
-                  className="mt-2"
-                  issueId={issueState.id}
-                  minHeight="120px"
-                  onChange={setCommentDraft}
-                  placeholder="Write a comment..."
-                  projectId={issueState.projectId}
-                  value={commentDraft}
-                />
-                <div className="mt-3 flex justify-end">
-                  <Button
-                    disabled={isSaving || !hasCommentContent}
-                    onClick={submitComment}
-                    size="sm"
+                {isCommentComposerOpen || commentDraft.length > 0 ? (
+                  <>
+                    <MarkdownEditor
+                      className="mt-2"
+                      issueId={issueState.id}
+                      minHeight="120px"
+                      onChange={setCommentDraft}
+                      placeholder="Write a comment..."
+                      projectId={issueState.projectId}
+                      value={commentDraft}
+                    />
+                    <div className="mt-3 flex justify-end">
+                      <Button
+                        disabled={isSaving || !hasCommentContent}
+                        onClick={submitComment}
+                        size="sm"
+                      >
+                        Post comment
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <button
+                    className="mt-2 flex min-h-[88px] w-full items-center justify-center rounded-[12px] border border-dashed border-[#D7DCE5] bg-white px-4 py-6 text-[13px] font-medium text-[#6B7280] transition hover:border-[#C7D2FE] hover:text-[#3730A3]"
+                    onClick={() => setIsCommentComposerOpen(true)}
+                    type="button"
                   >
-                    Post comment
-                  </Button>
-                </div>
+                    Write a comment
+                  </button>
+                )}
               </div>
 
               {commentsState.length > 0 ? (

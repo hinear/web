@@ -1,6 +1,7 @@
 "use client";
 
 import { CalendarDays, X } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import * as React from "react";
 import { toast } from "sonner";
@@ -8,13 +9,27 @@ import { toast } from "sonner";
 import { Field } from "@/components/atoms/Field";
 import { Select } from "@/components/atoms/Select";
 import { LabelSelector } from "@/components/molecules/LabelSelector";
-import { MarkdownEditor } from "@/components/molecules/MarkdownEditor";
 import { createLabelAction } from "@/features/issues/actions/create-label-action";
 import { getLabelsAction } from "@/features/issues/actions/get-labels-action";
 import { createLabelKey, getLabelColor } from "@/features/issues/lib/labels";
 import type { Label } from "@/features/issues/types";
 import { usePerformanceProfiler } from "@/features/performance/hooks/usePerformanceProfiler";
 import { cn } from "@/lib/utils";
+
+const MarkdownEditor = dynamic(
+  () =>
+    import("@/components/molecules/MarkdownEditor").then((module) => ({
+      default: module.MarkdownEditor,
+    })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center rounded-lg bg-gray-100 p-8">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-transparent" />
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 interface SelectOption {
   label: string;
@@ -402,7 +417,7 @@ export function MobileIssueCreateScreen({
               selectedLabelIds={selectedLabelIds}
             />
           </div>
-          <input name="labels" type="hidden" value={labelsFormValue} />
+          <input name="labels" readOnly type="hidden" value={labelsFormValue} />
         </div>
 
         <div className="flex flex-col gap-2">
@@ -424,7 +439,12 @@ export function MobileIssueCreateScreen({
             placeholder="# 요약\n이슈 개요를 짧게 적어주세요..."
             minHeight="108px"
           />
-          <input type="hidden" name="description" value={description} />
+          <input
+            name="description"
+            readOnly
+            type="hidden"
+            value={description}
+          />
           <p className="text-[11px] leading-[1.45] font-[var(--app-font-weight-500)] text-[#8A90A2]">
             /로 checklist나 code block을 추가할 수 있습니다.
           </p>

@@ -117,28 +117,41 @@ HeaderAction.displayName = "HeaderAction";
 export const HeaderSearchField = React.forwardRef<
   HTMLInputElement,
   HeaderSearchFieldProps
->(({ className, label = "Search", type = "text", ...props }, ref) => {
-  return (
-    <label
-      className={cn(
-        "flex w-[220px] items-center gap-2 rounded-[10px] border border-[var(--app-color-border-soft)] bg-[var(--app-color-white)] px-3 py-[9px] text-left",
-        "focus-within:ring-2 focus-within:ring-[var(--app-color-brand-300)] focus-within:ring-offset-2",
-        className
-      )}
-    >
-      <Search
-        aria-hidden="true"
-        className="h-[14px] w-[14px] shrink-0 text-[var(--app-color-gray-400)]"
-      />
-      <input
-        {...props}
-        className="w-full border-none bg-transparent text-[13px] leading-[13px] font-normal text-[var(--app-color-ink-900)] outline-none placeholder:text-[var(--app-color-gray-400)]"
-        placeholder={label}
-        ref={ref}
-        type={type}
-      />
-    </label>
-  );
-});
+>(
+  (
+    { className, label = "Search", onChange, onInput, type = "text", ...props },
+    ref
+  ) => {
+    const isReadOnlyField =
+      props.value !== undefined &&
+      onChange === undefined &&
+      onInput === undefined;
+
+    return (
+      <label
+        className={cn(
+          "flex w-[220px] items-center gap-2 rounded-[10px] border border-[var(--app-color-border-soft)] bg-[var(--app-color-white)] px-3 py-[9px] text-left",
+          "focus-within:ring-2 focus-within:ring-[var(--app-color-brand-300)] focus-within:ring-offset-2",
+          className
+        )}
+      >
+        <Search
+          aria-hidden="true"
+          className="h-[14px] w-[14px] shrink-0 text-[var(--app-color-gray-400)]"
+        />
+        <input
+          {...props}
+          className="w-full border-none bg-transparent text-[13px] leading-[13px] font-normal text-[var(--app-color-ink-900)] outline-none placeholder:text-[var(--app-color-gray-400)]"
+          onChange={onChange}
+          onInput={onInput}
+          placeholder={label}
+          readOnly={isReadOnlyField || props.readOnly}
+          ref={ref}
+          type={type}
+        />
+      </label>
+    );
+  }
+);
 
 HeaderSearchField.displayName = "HeaderSearchField";

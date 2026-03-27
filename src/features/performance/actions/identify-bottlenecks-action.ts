@@ -6,7 +6,7 @@
 import {
   BottleneckCategory,
   BottleneckSeverity,
-  type BottleneckStatus,
+  BottleneckStatus,
 } from "../contracts";
 import { performanceMetricsRepository } from "../repositories/performance-metrics-repository";
 import type { CreateBottleneckInput, RecordOptimizationInput } from "../types";
@@ -27,10 +27,8 @@ export async function identifyBottlenecks(): Promise<void> {
       end: new Date(),
     };
 
-    const metrics = await performanceMetricsRepository.getMetricsByTimeRange(
-      timeRange.start,
-      timeRange.end
-    );
+    const metrics =
+      await performanceMetricsRepository.getMetricsByTimeRange(timeRange);
 
     // Analyze metrics for bottlenecks
     const bottlenecks = analyzeMetricsForBottlenecks(metrics);
@@ -40,7 +38,7 @@ export async function identifyBottlenecks(): Promise<void> {
       try {
         await performanceMetricsRepository.saveBottleneck({
           ...bottleneck,
-          status: "IDENTIFIED",
+          status: BottleneckStatus.IDENTIFIED,
           identifiedAt: new Date(),
           resolvedAt: null,
         });
@@ -213,10 +211,14 @@ export async function recordOptimization(
 
     await performanceMetricsRepository.saveOptimizationRecord({
       bottleneckId: input.bottleneckId,
-      action: input.title,
-      impact: input.description,
-      appliedAt: new Date(),
-      result: `Improved from ${input.beforeValue} to ${input.afterValue}`,
+      title: input.title,
+      description: input.description,
+      beforeValue: input.beforeValue,
+      afterValue: input.afterValue,
+      improvementPercentage,
+      implementation: input.implementation,
+      createdAt: new Date(),
+      verifiedAt: null,
     });
 
     // Update bottleneck status to RESOLVED

@@ -1,54 +1,78 @@
-import { createClient } from "@/lib/supabase/server-client";
+import { createServiceRoleSupabaseClient } from "@/lib/supabase/server-client";
+import type {
+  BottleneckCategory,
+  BottleneckSeverity,
+  BottleneckStatus,
+  Environment,
+  OptimizationRecord,
+  PerformanceBaseline,
+  PerformanceBottleneck,
+  PerformanceMetric,
+} from "../types";
 
-// Types
-export interface Bottleneck {
+type Bottleneck = PerformanceBottleneck;
+
+interface PerformanceBottleneckRow {
   id: string;
   title: string;
-  category: string;
-  severity: string;
-  currentValue: number;
-  targetValue: number;
+  category: BottleneckCategory;
+  severity: BottleneckSeverity;
+  current_value: number;
+  target_value: number;
   unit: string;
   impact: string;
   suggestion: string;
-  status: string;
-  identifiedAt: Date;
-  resolvedAt: Date | null;
-  location?: string;
-  description?: string;
+  status: BottleneckStatus;
+  identified_at: string;
+  resolved_at: string | null;
+  location: string | null;
+  description: string | null;
 }
 
-export interface PerformanceBaseline {
+interface PerformanceMetricRow {
   id: string;
-  metricName: string;
+  name: string;
+  value: number;
+  unit: PerformanceMetric["unit"];
+  timestamp: string;
   route: string | null;
-  currentValue: number;
-  thresholdType: "warning" | "critical";
-  thresholdValue: number;
-  targetValue: number;
-  warningThreshold: number;
-  criticalThreshold: number;
-  unit: string;
-  updatedAt: Date;
+  environment: Environment;
+  metadata: Record<string, unknown> | null;
 }
 
-export interface OptimizationRecord {
+interface PerformanceBaselineRow {
   id: string;
-  bottleneckId: string;
-  action: string;
-  impact: string;
-  appliedAt: Date;
-  result: string;
+  metric_name: string;
+  route: string | null;
+  target_value: number;
+  warning_threshold: number;
+  critical_threshold: number;
+  unit: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface OptimizationRecordRow {
+  id: string;
+  bottleneck_id: string;
+  title: string;
+  description: string;
+  before_value: number;
+  after_value: number;
+  improvement_percentage: number;
+  implementation: string;
+  created_at: string;
+  verified_at: string | null;
 }
 
 // Repository class
 export class PerformanceMetricsRepository {
-  private supabase = createClient();
+  private supabase = createServiceRoleSupabaseClient();
 
   async recordBottleneck(
     bottleneck: Omit<Bottleneck, "id">
   ): Promise<Bottleneck> {
-    const { data, error } = await this.supabase
+    const { data, error } = await (this.supabase as any)
       .from("performance_bottlenecks")
       .insert({
         title: bottleneck.title,
@@ -76,21 +100,23 @@ export class PerformanceMetricsRepository {
       throw error;
     }
 
+    const row = data as PerformanceBottleneckRow;
+
     return {
-      id: data.id,
-      title: data.title,
-      category: data.category,
-      severity: data.severity,
-      currentValue: Number(data.current_value),
-      targetValue: Number(data.target_value),
-      unit: data.unit,
-      impact: data.impact,
-      suggestion: data.suggestion,
-      status: data.status,
-      identifiedAt: new Date(data.identified_at),
-      resolvedAt: data.resolved_at ? new Date(data.resolved_at) : null,
-      location: data.location,
-      description: data.description,
+      id: row.id,
+      title: row.title,
+      category: row.category,
+      severity: row.severity,
+      currentValue: Number(row.current_value),
+      targetValue: Number(row.target_value),
+      unit: row.unit,
+      impact: row.impact,
+      suggestion: row.suggestion,
+      status: row.status,
+      identifiedAt: new Date(row.identified_at),
+      resolvedAt: row.resolved_at ? new Date(row.resolved_at) : null,
+      location: row.location ?? "",
+      description: row.description ?? "",
     };
   }
 
@@ -101,15 +127,31 @@ export class PerformanceMetricsRepository {
   }
 
   async getMetricsByTimeRange(
-    startTime: Date,
-    endTime: Date
+    timeRange: { start: Date; end: Date },
+    options?: {
+      environment?: Environment;
+      name?: string;
+      route?: string;
+    }
   ): Promise<PerformanceMetric[]> {
-    const { data, error } = await this.supabase
+    let query = (this.supabase as any)
       .from("performance_metrics")
       .select("*")
-      .gte("timestamp", startTime.toISOString())
-      .lte("timestamp", endTime.toISOString())
+      .gte("timestamp", timeRange.start.toISOString())
+      .lte("timestamp", timeRange.end.toISOString())
       .order("timestamp", { ascending: true });
+
+    if (options?.environment) {
+      query = query.eq("environment", options.environment);
+    }
+    if (options?.name) {
+      query = query.eq("name", options.name);
+    }
+    if (options?.route) {
+      query = query.eq("route", options.route);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error(
@@ -119,7 +161,7 @@ export class PerformanceMetricsRepository {
       throw error;
     }
 
-    return data.map((m) => ({
+    return (data as PerformanceMetricRow[]).map((m) => ({
       id: m.id,
       name: m.name,
       value: Number(m.value),
@@ -127,7 +169,7 @@ export class PerformanceMetricsRepository {
       timestamp: new Date(m.timestamp),
       route: m.route,
       environment: m.environment,
-      metadata: m.metadata,
+      metadata: m.metadata ?? null,
     }));
   }
 
@@ -136,7 +178,7 @@ export class PerformanceMetricsRepository {
     severity?: string;
     status?: string;
   }): Promise<Bottleneck[]> {
-    let query = this.supabase
+    let query = (this.supabase as any)
       .from("performance_bottlenecks")
       .select("*")
       .order("identified_at", { ascending: false });
@@ -161,11 +203,13 @@ export class PerformanceMetricsRepository {
       throw error;
     }
 
-    return data.map((b) => ({
+    return (data as PerformanceBottleneckRow[]).map((b) => ({
       id: b.id,
       title: b.title,
       category: b.category,
       severity: b.severity,
+      description: b.description ?? "",
+      location: b.location ?? "",
       currentValue: Number(b.current_value),
       targetValue: Number(b.target_value),
       unit: b.unit,
@@ -178,7 +222,7 @@ export class PerformanceMetricsRepository {
   }
 
   async getBaselines(): Promise<PerformanceBaseline[]> {
-    const { data, error } = await this.supabase
+    const { data, error } = await (this.supabase as any)
       .from("performance_baselines")
       .select("*")
       .order("metric_name");
@@ -188,30 +232,31 @@ export class PerformanceMetricsRepository {
       throw error;
     }
 
-    return data.map((b) => ({
+    return (data as PerformanceBaselineRow[]).map((b) => ({
       id: b.id,
       metricName: b.metric_name,
       route: b.route,
-      currentValue: Number(b.current_value),
-      thresholdType: b.threshold_type,
-      thresholdValue: Number(b.threshold_value),
       targetValue: Number(b.target_value),
+      warningThreshold: Number(b.warning_threshold),
+      criticalThreshold: Number(b.critical_threshold),
+      unit: b.unit,
+      createdAt: new Date(b.created_at),
       updatedAt: new Date(b.updated_at),
     }));
   }
 
   async saveBaseline(
-    baseline: Omit<PerformanceBaseline, "id" | "updatedAt">
+    baseline: Omit<PerformanceBaseline, "id" | "createdAt" | "updatedAt">
   ): Promise<PerformanceBaseline> {
-    const { data, error } = await this.supabase
+    const { data, error } = await (this.supabase as any)
       .from("performance_baselines")
       .upsert({
         metric_name: baseline.metricName,
         route: baseline.route,
-        current_value: baseline.currentValue,
-        threshold_type: baseline.thresholdType,
-        threshold_value: baseline.thresholdValue,
         target_value: baseline.targetValue,
+        warning_threshold: baseline.warningThreshold,
+        critical_threshold: baseline.criticalThreshold,
+        unit: baseline.unit,
       })
       .select()
       .single();
@@ -221,29 +266,36 @@ export class PerformanceMetricsRepository {
       throw error;
     }
 
+    const row = data as PerformanceBaselineRow;
+
     return {
-      id: data.id,
-      metricName: data.metric_name,
-      route: data.route,
-      currentValue: Number(data.current_value),
-      thresholdType: data.threshold_type,
-      thresholdValue: Number(data.threshold_value),
-      targetValue: Number(data.target_value),
-      updatedAt: new Date(data.updated_at),
+      id: row.id,
+      metricName: row.metric_name,
+      route: row.route,
+      targetValue: Number(row.target_value),
+      warningThreshold: Number(row.warning_threshold),
+      criticalThreshold: Number(row.critical_threshold),
+      unit: row.unit,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
     };
   }
 
   async saveOptimizationRecord(
     record: Omit<OptimizationRecord, "id">
   ): Promise<OptimizationRecord> {
-    const { data, error } = await this.supabase
+    const { data, error } = await (this.supabase as any)
       .from("optimization_records")
       .insert({
         bottleneck_id: record.bottleneckId,
-        action: record.action,
-        impact: record.impact,
-        applied_at: record.appliedAt.toISOString(),
-        result: record.result,
+        title: record.title,
+        description: record.description,
+        before_value: record.beforeValue,
+        after_value: record.afterValue,
+        improvement_percentage: record.improvementPercentage,
+        implementation: record.implementation,
+        created_at: record.createdAt.toISOString(),
+        verified_at: record.verifiedAt?.toISOString() ?? null,
       })
       .select()
       .single();
@@ -256,24 +308,30 @@ export class PerformanceMetricsRepository {
       throw error;
     }
 
+    const row = data as OptimizationRecordRow;
+
     return {
-      id: data.id,
-      bottleneckId: data.bottleneck_id,
-      action: data.action,
-      impact: data.impact,
-      appliedAt: new Date(data.applied_at),
-      result: data.result,
+      id: row.id,
+      bottleneckId: row.bottleneck_id,
+      title: row.title,
+      description: row.description,
+      beforeValue: Number(row.before_value),
+      afterValue: Number(row.after_value),
+      improvementPercentage: Number(row.improvement_percentage),
+      implementation: row.implementation,
+      createdAt: new Date(row.created_at),
+      verifiedAt: row.verified_at ? new Date(row.verified_at) : null,
     };
   }
 
   async getOptimizationRecords(
     bottleneckId: string
   ): Promise<OptimizationRecord[]> {
-    const { data, error } = await this.supabase
+    const { data, error } = await (this.supabase as any)
       .from("optimization_records")
       .select("*")
       .eq("bottleneck_id", bottleneckId)
-      .order("applied_at", { ascending: false });
+      .order("created_at", { ascending: false });
 
     if (error) {
       console.error(
@@ -283,13 +341,17 @@ export class PerformanceMetricsRepository {
       throw error;
     }
 
-    return data.map((r) => ({
+    return (data as OptimizationRecordRow[]).map((r) => ({
       id: r.id,
       bottleneckId: r.bottleneck_id,
-      action: r.action,
-      impact: r.impact,
-      appliedAt: new Date(r.applied_at),
-      result: r.result,
+      title: r.title,
+      description: r.description,
+      beforeValue: Number(r.before_value),
+      afterValue: Number(r.after_value),
+      improvementPercentage: Number(r.improvement_percentage),
+      implementation: r.implementation,
+      createdAt: new Date(r.created_at),
+      verifiedAt: r.verified_at ? new Date(r.verified_at) : null,
     }));
   }
 }

@@ -21,7 +21,10 @@ function getQueryClient() {
     return createQueryClient();
   }
   // Browser: create a singleton client
-  return (clientQueryClientSingleton ??= createQueryClient());
+  if (!clientQueryClientSingleton) {
+    clientQueryClientSingleton = createQueryClient();
+  }
+  return clientQueryClientSingleton;
 }
 
 export function QueryClientProvider({
@@ -35,7 +38,7 @@ export function QueryClientProvider({
     <ReactQueryClientProvider client={queryClient}>
       {children}
       {process.env.NODE_ENV === "development" && (
-        <ReactQueryDevtools initialIsOpen={false} position="bottom-right" />
+        <ReactQueryDevtools initialIsOpen={false} />
       )}
     </ReactQueryClientProvider>
   );

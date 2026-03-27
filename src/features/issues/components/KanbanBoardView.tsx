@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
@@ -8,7 +9,6 @@ import { toast } from "sonner";
 import { Chip } from "@/components/atoms/Chip";
 import { Select } from "@/components/atoms/Select/Select";
 import { MobileIssueListAppBar } from "@/components/molecules/MobileIssueListAppBar";
-import { CreateIssueTabletModal } from "@/components/organisms/CreateIssueTabletModal";
 import { LinearDashboardHeader } from "@/components/organisms/LinearDashboardHeader";
 import { MobileIssueSections } from "@/components/organisms/MobileIssueSections";
 import { getProjectIssueCreatePath } from "@/features/projects/lib/project-routes";
@@ -22,6 +22,22 @@ import {
 import { useIssueSelection } from "../hooks/useIssueSelection";
 import { useIssues } from "../hooks/useIssues";
 import { KanbanBoard } from "./KanbanBoard";
+
+const CreateIssueTabletModal = dynamic(
+  () =>
+    import("@/components/organisms/CreateIssueTabletModal").then((module) => ({
+      default: module.CreateIssueTabletModal,
+    })),
+  {
+    loading: () => (
+      <div className="relative z-10 w-full max-w-[720px] rounded-[16px] border border-[var(--app-color-border-soft)] bg-[var(--app-color-white)] p-6 shadow-[0_24px_48px_rgba(15,23,42,0.14)]">
+        <div className="h-6 w-40 animate-pulse rounded bg-[var(--app-color-gray-100)]" />
+        <div className="mt-6 h-11 animate-pulse rounded-[10px] bg-[var(--app-color-gray-100)]" />
+        <div className="mt-4 h-40 animate-pulse rounded-[10px] bg-[var(--app-color-gray-100)]" />
+      </div>
+    ),
+  }
+);
 
 interface KanbanBoardViewProps {
   assigneeOptions?: Array<{

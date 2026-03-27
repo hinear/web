@@ -1,5 +1,7 @@
 # Performance Optimizations
 
+> 2026-03-27 note: This document still describes the original 003 intent plus implemented optimizations. The current recovered baseline for build stability is documented in `specs/005-rebuild-003-build/`.
+
 ## Overview
 
 This document describes all performance optimizations implemented as part of the Performance Investigation and Optimization feature (003-performance-audit).
@@ -57,6 +59,7 @@ This document describes all performance optimizations implemented as part of the
 **Files Created**:
 - `src/lib/react-query/query-client.ts` - Query client configuration
 - `src/lib/react-query/query-provider.tsx` - React Query provider
+- `src/lib/supabase/use-supabase-client.ts` - Browser Supabase client hook for active query graph
 - `src/features/projects/hooks/use-projects.ts` - Project data hooks
 - `src/features/issues/hooks/use-issues.ts` - Issue data hooks
 

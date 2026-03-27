@@ -397,16 +397,19 @@ export function ProjectAccessCard({
                   <form action={invitationAction}>
                     <input
                       name="invitationId"
+                      readOnly
                       type="hidden"
                       value={invitation.id}
                     />
                     <input
                       name="invitationEmail"
+                      readOnly
                       type="hidden"
                       value={invitation.email}
                     />
                     <input
                       name="invitationAction"
+                      readOnly
                       type="hidden"
                       value="resend"
                     />
@@ -417,16 +420,19 @@ export function ProjectAccessCard({
                   <form action={invitationAction}>
                     <input
                       name="invitationId"
+                      readOnly
                       type="hidden"
                       value={invitation.id}
                     />
                     <input
                       name="invitationEmail"
+                      readOnly
                       type="hidden"
                       value={invitation.email}
                     />
                     <input
                       name="invitationAction"
+                      readOnly
                       type="hidden"
                       value="revoke"
                     />
@@ -500,9 +506,15 @@ export function ProjectAccessCard({
                   </span>
                   {canManageAccess && member.canRemove ? (
                     <form action={memberAction}>
-                      <input name="memberId" type="hidden" value={member.id} />
+                      <input
+                        name="memberId"
+                        readOnly
+                        type="hidden"
+                        value={member.id}
+                      />
                       <input
                         name="memberName"
+                        readOnly
                         type="hidden"
                         value={member.name}
                       />

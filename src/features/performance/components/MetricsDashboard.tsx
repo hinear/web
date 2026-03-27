@@ -4,7 +4,7 @@
 "use client";
 
 import { Activity, Database, Package, Zap } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { PerformanceBottleneck } from "../types";
 import {
   formatMetricValue,
@@ -36,11 +36,7 @@ export function MetricsDashboard({ timeRange }: MetricsDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadReport();
-  }, [loadReport]);
-
-  async function loadReport() {
+  const loadReport = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -64,7 +60,11 @@ export function MetricsDashboard({ timeRange }: MetricsDashboardProps) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [timeRange.end, timeRange.start]);
+
+  useEffect(() => {
+    loadReport();
+  }, [loadReport]);
 
   if (loading) {
     return (
@@ -190,9 +190,9 @@ export function MetricsDashboard({ timeRange }: MetricsDashboardProps) {
         <section>
           <h2 className="text-lg font-semibold mb-4">Recommendations</h2>
           <div className="space-y-2">
-            {recommendations.map((recommendation: string, index: number) => (
+            {recommendations.map((recommendation: string) => (
               <div
-                key={index}
+                key={recommendation}
                 className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800"
               >
                 {recommendation}

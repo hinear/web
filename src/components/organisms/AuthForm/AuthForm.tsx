@@ -90,8 +90,10 @@ export function AuthForm({
             type="email"
           />
         </div>
-        <input name="next" type="hidden" value={next} />
-        {reason ? <input name="reason" type="hidden" value={reason} /> : null}
+        <input name="next" readOnly type="hidden" value={next} />
+        {reason ? (
+          <input name="reason" readOnly type="hidden" value={reason} />
+        ) : null}
         <Button size="md" type="submit">
           {submitLabel}
         </Button>

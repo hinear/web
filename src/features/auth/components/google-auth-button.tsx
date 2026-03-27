@@ -35,8 +35,10 @@ function GoogleAuthSubmitButton() {
 export function GoogleAuthButton({ next, reason }: GoogleAuthButtonProps) {
   return (
     <form action={startGoogleAuthAction}>
-      <input name="next" type="hidden" value={next} />
-      {reason ? <input name="reason" type="hidden" value={reason} /> : null}
+      <input name="next" readOnly type="hidden" value={next} />
+      {reason ? (
+        <input name="reason" readOnly type="hidden" value={reason} />
+      ) : null}
       <GoogleAuthSubmitButton />
     </form>
   );

@@ -2,28 +2,30 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
   getIssueByIdMock,
+  getAuthenticatedActorIdOrNullMock,
   getServerIssuesRepositoryMock,
   revalidatePathMock,
-  requireAuthRedirectMock,
   updateIssueMock,
 } = vi.hoisted(() => ({
   getIssueByIdMock: vi.fn(),
+  getAuthenticatedActorIdOrNullMock: vi.fn(),
   getServerIssuesRepositoryMock: vi.fn(),
   revalidatePathMock: vi.fn(),
-  requireAuthRedirectMock: vi.fn(),
   updateIssueMock: vi.fn(),
 }));
+
+vi.mock("server-only", () => ({}));
 
 vi.mock("next/cache", () => ({
   revalidatePath: revalidatePathMock,
 }));
 
-vi.mock("@/features/auth/actions/start-email-auth-action", () => ({
-  requireAuthRedirect: requireAuthRedirectMock,
-}));
-
 vi.mock("@/features/issues/repositories/server-issues-repository", () => ({
   getServerIssuesRepository: getServerIssuesRepositoryMock,
+}));
+
+vi.mock("@/lib/supabase/server-auth", () => ({
+  getAuthenticatedActorIdOrNull: getAuthenticatedActorIdOrNullMock,
 }));
 
 import { batchUpdateIssuesAction } from "@/features/issues/actions/batch-update-issues-action";
@@ -35,7 +37,7 @@ describe("batchUpdateIssuesAction", () => {
       getIssueById: getIssueByIdMock,
       updateIssue: updateIssueMock,
     });
-    requireAuthRedirectMock.mockResolvedValue("user-1");
+    getAuthenticatedActorIdOrNullMock.mockResolvedValue("user-1");
   });
 
   it("updates each issue using the latest stored version", async () => {

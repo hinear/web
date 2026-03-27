@@ -1,5 +1,7 @@
 # Quick Start Guide: Performance Investigation and Optimization
 
+> 2026-03-27 recovery note: For the currently accepted recovered baseline and validation loop, use `specs/005-rebuild-003-build/` as the source of truth. This document remains useful for original 003 intent, but not for the active build-stability gate.
+
 **Feature**: 003-performance-audit
 **Date**: 2026-03-26
 **Phase**: Phase 1 - Design & Contracts

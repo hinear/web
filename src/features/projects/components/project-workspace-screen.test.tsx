@@ -1,6 +1,18 @@
 import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+vi.mock("@/components/organisms/SidebarDesktop", () => ({
+  SidebarDesktop: ({ projectTitle }: { projectTitle: string }) => (
+    <div data-testid="sidebar-desktop">{projectTitle}</div>
+  ),
+}));
+vi.mock("@/features/issues/components/KanbanBoardView", () => ({
+  KanbanBoardView: ({ projectName }: { projectName: string }) => (
+    <div data-testid="kanban-board-view">{projectName}</div>
+  ),
+}));
+
 import { ProjectWorkspaceScreen } from "@/features/projects/components/project-workspace-screen";
 
 describe("ProjectWorkspaceScreen", () => {
@@ -39,8 +51,12 @@ describe("ProjectWorkspaceScreen", () => {
       />
     );
 
-    // Check for basic elements that should be present
-    expect(screen.getByText("Web Platform")).toBeInTheDocument();
+    expect(screen.getByTestId("sidebar-desktop")).toHaveTextContent(
+      "Web Platform"
+    );
+    expect(screen.getByTestId("kanban-board-view")).toHaveTextContent(
+      "Web Platform"
+    );
   });
 
   it("renders a workspace notice when invitation acceptance completes", () => {
@@ -90,7 +106,11 @@ describe("ProjectWorkspaceScreen", () => {
       />
     );
 
-    // Check for basic elements
-    expect(screen.getByText("Web Platform")).toBeInTheDocument();
+    expect(screen.getByTestId("sidebar-desktop")).toHaveTextContent(
+      "Web Platform"
+    );
+    expect(screen.getByTestId("kanban-board-view")).toHaveTextContent(
+      "Web Platform"
+    );
   });
 });

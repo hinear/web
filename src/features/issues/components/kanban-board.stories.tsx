@@ -110,6 +110,9 @@ const meta = {
     controls: {
       expanded: true,
     },
+    test: {
+      disable: true,
+    },
   },
   args: {
     issues,

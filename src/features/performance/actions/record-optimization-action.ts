@@ -30,10 +30,14 @@ export async function recordOptimization(
 
     await performanceMetricsRepository.saveOptimizationRecord({
       bottleneckId: input.bottleneckId,
-      action: input.title,
-      impact: input.description,
-      appliedAt: new Date(),
-      result: `Improved from ${input.beforeValue} to ${input.afterValue}`,
+      title: input.title,
+      description: input.description,
+      beforeValue: input.beforeValue,
+      afterValue: input.afterValue,
+      improvementPercentage,
+      implementation: input.implementation,
+      createdAt: new Date(),
+      verifiedAt: null,
     });
 
     // Update bottleneck status to RESOLVED
@@ -116,11 +120,11 @@ export async function getOptimizationSummary(bottleneckId: string): Promise<{
     return {
       bottleneckId,
       optimizations: records.map((r) => ({
-        title: r.action,
-        beforeValue: 0,
-        afterValue: 0,
-        improvementPercentage: 0,
-        createdAt: r.appliedAt,
+        title: r.title,
+        beforeValue: r.beforeValue,
+        afterValue: r.afterValue,
+        improvementPercentage: r.improvementPercentage,
+        createdAt: r.createdAt,
       })),
       totalImprovement,
     };
@@ -171,17 +175,22 @@ export async function generateOptimizationReport(_options: {
       );
 
       if (records.length > 0) {
-        // TODO: Calculate actual improvement
+        const averageImprovement =
+          records.reduce(
+            (sum, record) => sum + record.improvementPercentage,
+            0
+          ) / records.length;
+
         allImprovements.push({
           title: bottleneck.title,
-          improvementPercentage: 0,
+          improvementPercentage: averageImprovement,
           category: bottleneck.category,
         });
 
         optimizationsByCategory[bottleneck.category] =
           (optimizationsByCategory[bottleneck.category] || 0) + 1;
 
-        // totalImprovement += avgImprovement;
+        // totalImprovement += averageImprovement;
       }
     }
 

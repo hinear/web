@@ -1,11 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Setup mocks first, before imports
-const createIssueFlowMock = vi.fn();
-const getServerIssuesRepositoryMock = vi.fn();
-const getAuthenticatedActorIdOrNullMock = vi.fn();
-const requireAuthRedirectMock = vi.fn();
-const redirectMock = vi.fn();
+const {
+  createIssueFlowMock,
+  getAuthenticatedActorIdOrNullMock,
+  getServerIssuesRepositoryMock,
+  redirectMock,
+  requireAuthRedirectMock,
+} = vi.hoisted(() => ({
+  createIssueFlowMock: vi.fn(),
+  getAuthenticatedActorIdOrNullMock: vi.fn(),
+  getServerIssuesRepositoryMock: vi.fn(),
+  redirectMock: vi.fn(),
+  requireAuthRedirectMock: vi.fn(),
+}));
 
 vi.mock("next/navigation", () => ({
   redirect: redirectMock,
@@ -27,7 +34,6 @@ vi.mock("@/lib/supabase/server-auth", () => ({
   getAuthenticatedActorIdOrNull: getAuthenticatedActorIdOrNullMock,
 }));
 
-// Import after mocks are set up
 import { createIssueAction } from "@/features/issues/actions/create-issue-action";
 
 describe.skip("createIssueAction", () => {

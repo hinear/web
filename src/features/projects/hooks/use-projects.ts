@@ -1,12 +1,12 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createProjectsRepository } from "@/features/projects/repositories/supabase-projects-repository";
 import type {
   CreateProjectInput,
   DeleteProjectInput,
   UpdateProjectInput,
-} from "@/features/projects/types";
+} from "@/features/projects/contracts";
+import { createProjectsRepository } from "@/features/projects/repositories/supabase-projects-repository";
 import {
   cacheTimes,
   queryKeys,
@@ -28,8 +28,8 @@ export function useProjects() {
   return useQuery({
     queryKey: queryKeys.projects.lists(),
     queryFn: () => repository.listProjects(),
-    staleTime: staleTimes.projectList ?? staleTimes.project,
-    gcTime: cacheTimes.projectList ?? cacheTimes.project,
+    staleTime: staleTimes.project,
+    gcTime: cacheTimes.project,
   });
 }
 
@@ -117,15 +117,4 @@ export function useDeleteProject() {
       queryClient.invalidateQueries({ queryKey: queryKeys.projects.lists() });
     },
   });
-}
-
-/**
- * Helper function to create repository instances
- * Note: This should be moved to a factory pattern in production
- */
-function _createProjectsRepository(client: any) {
-  const {
-    SupabaseProjectsRepository,
-  } = require("@/features/projects/repositories/supabase-projects-repository");
-  return new SupabaseProjectsRepository(client);
 }

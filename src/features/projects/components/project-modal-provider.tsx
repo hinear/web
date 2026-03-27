@@ -1,10 +1,22 @@
 "use client";
 
-import { AnimatePresence } from "framer-motion";
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { IssueDetailDrawerWithRouter } from "@/features/issues/components/issue-drawer-with-router";
 import type { ActivityLogEntry, Issue, Label } from "@/features/issues/types";
+
+const IssueDetailDrawerWithRouter = dynamic(
+  () =>
+    import("@/features/issues/components/issue-drawer-with-router").then(
+      (module) => ({
+        default: module.IssueDetailDrawerWithRouter,
+      })
+    ),
+  {
+    loading: () => null,
+    ssr: false,
+  }
+);
 
 interface ModalData {
   activityLog: ActivityLogEntry[];
@@ -71,19 +83,18 @@ export function ProjectModalProvider({ projectId }: { projectId: string }) {
   }, [issueId, projectId, router]);
 
   return (
-    <AnimatePresence initial={false} mode="sync">
-      {modalData && !isLoading && (
-        <IssueDetailDrawerWithRouter
-          key={modalData.issueId}
-          availableLabels={modalData.availableLabels}
-          boardHref={`/projects/${projectId}`}
-          fullPageHref={`/projects/${projectId}/issues/${modalData.issueId}?view=full`}
-          activityLog={modalData.activityLog}
-          assigneeOptions={modalData.assigneeOptions}
-          issue={modalData.issue}
-          memberNamesById={modalData.memberNamesById}
-        />
-      )}
-    </AnimatePresence>
+    modalData &&
+    !isLoading && (
+      <IssueDetailDrawerWithRouter
+        key={modalData.issueId}
+        availableLabels={modalData.availableLabels}
+        boardHref={`/projects/${projectId}`}
+        fullPageHref={`/projects/${projectId}/issues/${modalData.issueId}?view=full`}
+        activityLog={modalData.activityLog}
+        assigneeOptions={modalData.assigneeOptions}
+        issue={modalData.issue}
+        memberNamesById={modalData.memberNamesById}
+      />
+    )
   );
 }

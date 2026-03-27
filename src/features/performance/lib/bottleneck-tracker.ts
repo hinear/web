@@ -7,13 +7,13 @@
  * Identifies, tracks, and manages performance bottlenecks throughout their lifecycle.
  */
 
-import type { BottleneckCategory, BottleneckSeverity } from "../contracts";
-import { performanceMetricsRepository } from "../repositories/performance-metrics-repository";
-import type {
+import {
+  BottleneckCategory,
+  type BottleneckSeverity,
   BottleneckStatus,
-  PerformanceBottleneck,
-  PerformanceMetric,
-} from "../types";
+} from "../contracts";
+import { performanceMetricsRepository } from "../repositories/performance-metrics-repository";
+import type { PerformanceBottleneck, PerformanceMetric } from "../types";
 import { analyzeMetrics } from "./analyzer";
 import { baselineManager } from "./baseline-manager";
 
@@ -102,10 +102,14 @@ export class BottleneckTracker {
 
     await performanceMetricsRepository.saveOptimizationRecord({
       bottleneckId,
-      action: optimization.title,
-      impact: optimization.description || "",
-      appliedAt: new Date(),
-      result: `Improved from ${optimization.beforeValue} to ${optimization.afterValue}`,
+      title: optimization.title,
+      description: optimization.description || "",
+      beforeValue: optimization.beforeValue,
+      afterValue: optimization.afterValue,
+      improvementPercentage,
+      implementation: optimization.implementation,
+      createdAt: new Date(),
+      verifiedAt: null,
     });
 
     console.log(
@@ -117,7 +121,7 @@ export class BottleneckTracker {
    * Get active bottlenecks (not resolved)
    */
   async getActiveBottlenecks(): Promise<PerformanceBottleneck[]> {
-    return this.getBottlenecks({ status: "IDENTIFIED" });
+    return this.getBottlenecks({ status: BottleneckStatus.IDENTIFIED });
   }
 
   /**
@@ -145,7 +149,7 @@ export class BottleneckTracker {
     timeRange: { start: Date; end: Date },
     options?: {
       route?: string;
-      environment?: string;
+      environment?: PerformanceMetric["environment"];
     }
   ): Promise<PerformanceBottleneck[]> {
     // Fetch recent metrics
@@ -158,15 +162,18 @@ export class BottleneckTracker {
     const newBottlenecks = await this.identifyBottlenecks(metrics);
 
     // Save new bottlenecks
+    const savedBottlenecks: PerformanceBottleneck[] = [];
     for (const bottleneck of newBottlenecks) {
-      await performanceMetricsRepository.saveBottleneck(bottleneck);
+      const saved =
+        await performanceMetricsRepository.saveBottleneck(bottleneck);
+      savedBottlenecks.push(saved);
     }
 
     console.log(
       `[BottleneckTracker] Scanned ${metrics.length} metrics and identified ${newBottlenecks.length} bottlenecks`
     );
 
-    return newBottlenecks;
+    return savedBottlenecks;
   }
 
   /**
@@ -194,13 +201,13 @@ export class BottleneckTracker {
     };
 
     const byCategory: Record<BottleneckCategory, number> = {
-      Database: 0,
-      Network: 0,
-      Rendering: 0,
-      Bundle: 0,
-      Memory: 0,
-      CPU: 0,
-      Other: 0,
+      [BottleneckCategory.DATABASE_QUERY]: 0,
+      [BottleneckCategory.LARGE_BUNDLE]: 0,
+      [BottleneckCategory.SLOW_API]: 0,
+      [BottleneckCategory.MEMORY_LEAK]: 0,
+      [BottleneckCategory.EXCESSIVE_RENDERS]: 0,
+      [BottleneckCategory.NETWORK_REQUESTS]: 0,
+      [BottleneckCategory.SLOW_LCP]: 0,
     };
 
     for (const bottleneck of allBottlenecks) {
