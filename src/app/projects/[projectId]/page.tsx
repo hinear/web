@@ -1,3 +1,4 @@
+import type { SidebarItemVariant } from "@/components/molecules/SidebarItem";
 import { createIssueAction } from "@/features/issues/actions/create-issue-action";
 import { inviteProjectMemberAction } from "@/features/projects/actions/invite-project-member-action";
 import { manageProjectInvitationAction } from "@/features/projects/actions/manage-project-invitation-action";
@@ -16,7 +17,38 @@ interface ProjectPageProps {
     inviteError?: string;
     inviteNotice?: string;
     inviteSent?: string;
+    statuses?: string;
   }>;
+}
+
+function getActiveProjectNavigation(
+  statuses?: string
+): Extract<SidebarItemVariant, "issues" | "triage" | "active" | "backlog"> {
+  const normalizedStatuses = statuses
+    ?.split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  if (!normalizedStatuses?.length) {
+    return "issues";
+  }
+
+  if (normalizedStatuses.length === 1 && normalizedStatuses[0] === "Triage") {
+    return "triage";
+  }
+
+  if (
+    normalizedStatuses.length === 1 &&
+    normalizedStatuses[0] === "In Progress"
+  ) {
+    return "active";
+  }
+
+  if (normalizedStatuses.length === 1 && normalizedStatuses[0] === "Backlog") {
+    return "backlog";
+  }
+
+  return "issues";
 }
 
 export default async function ProjectPage({
@@ -37,6 +69,7 @@ export default async function ProjectPage({
   return (
     <ProjectWorkspaceScreen
       action={createIssueAction.bind(null, projectId)}
+      activeNavigation={getActiveProjectNavigation(query.statuses)}
       createdByLabel={createdByLabel}
       inviteAction={inviteProjectMemberAction.bind(null, projectId)}
       invitationAction={manageProjectInvitationAction.bind(null, projectId)}

@@ -2,7 +2,7 @@ import { Circle, Inbox, Layers, Map as MapIcon, Settings } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
-import { cn } from "@/lib/utils";
+import { cn, hasExplicitAction } from "@/lib/utils";
 
 type SidebarItemKind = "nav" | "project";
 export type SidebarItemVariant =
@@ -71,8 +71,9 @@ export const SidebarItem = React.forwardRef<
 >(
   (
     {
-      active = false,
+      active,
       className,
+      disabled = false,
       href,
       icon,
       kind = "nav",
@@ -83,8 +84,15 @@ export const SidebarItem = React.forwardRef<
     },
     ref
   ) => {
+    const hasAction = hasExplicitAction({
+      disabled,
+      href,
+      onClick: props.onClick,
+      type,
+    });
+    const resolvedDisabled = disabled || !hasAction;
     const preset = variant ? sidebarItemVariantMap[variant] : undefined;
-    const resolvedActive = preset?.active ?? active;
+    const resolvedActive = active ?? preset?.active ?? false;
     const resolvedIcon = preset?.icon ?? icon;
     const resolvedKind = preset?.kind ?? kind;
     const resolvedLabel = preset?.label ?? label;
@@ -134,7 +142,15 @@ export const SidebarItem = React.forwardRef<
     }
 
     return (
-      <button className={classNames} ref={ref} type={type} {...props}>
+      <button
+        aria-disabled={resolvedDisabled || undefined}
+        className={classNames}
+        disabled={resolvedDisabled}
+        ref={ref}
+        title={!hasAction ? "This action is not available yet." : props.title}
+        type={type}
+        {...props}
+      >
         {content}
       </button>
     );

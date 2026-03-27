@@ -8,7 +8,7 @@ import {
 import Link from "next/link";
 import * as React from "react";
 
-import { cn } from "@/lib/utils";
+import { cn, hasExplicitAction } from "@/lib/utils";
 
 const iconMap = {
   board: LayoutDashboard,
@@ -60,6 +60,7 @@ export const HeaderAction = React.forwardRef<
   (
     {
       className,
+      disabled = false,
       href,
       icon,
       label,
@@ -69,6 +70,13 @@ export const HeaderAction = React.forwardRef<
     },
     ref
   ) => {
+    const hasAction = hasExplicitAction({
+      disabled,
+      href,
+      onClick: props.onClick,
+      type,
+    });
+    const resolvedDisabled = disabled || !hasAction;
     const Icon = (icon ? iconMap[icon] : null) as LucideIcon | null;
     const classNames = cn(
       "flex w-fit items-center gap-2 rounded-[10px] border px-3 py-[9px] text-left",
@@ -105,7 +113,15 @@ export const HeaderAction = React.forwardRef<
     }
 
     return (
-      <button className={classNames} ref={ref} type={type} {...props}>
+      <button
+        aria-disabled={resolvedDisabled || undefined}
+        className={classNames}
+        disabled={resolvedDisabled}
+        ref={ref}
+        title={!hasAction ? "This action is not available yet." : props.title}
+        type={type}
+        {...props}
+      >
         {content}
       </button>
     );

@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 
 export interface SidebarDesktopProps
   extends React.HTMLAttributes<HTMLDivElement> {
+  activeNavigation?: SidebarItemVariant;
   appName?: string;
   dashboardLabel?: string;
   dashboardHref?: string;
@@ -42,6 +43,7 @@ export const SidebarDesktop = React.forwardRef<
 >(
   (
     {
+      activeNavigation,
       appName = "Hinear",
       className,
       dashboardLabel = "Open dashboard",
@@ -88,6 +90,7 @@ export const SidebarDesktop = React.forwardRef<
           <div className="flex w-full flex-col gap-1">
             {primaryNavigation.map((item) => (
               <SidebarItem
+                active={activeNavigation === item}
                 className="w-full"
                 href={navigationHrefs?.[item]}
                 key={item}

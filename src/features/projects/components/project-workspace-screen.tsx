@@ -1,7 +1,9 @@
+import type { SidebarItemVariant } from "@/components/molecules/SidebarItem";
 import { SidebarDesktop } from "@/components/organisms/SidebarDesktop";
 import { KanbanBoardView } from "@/features/issues/components/KanbanBoardView";
 import { PerformanceProfilerMount } from "@/features/performance/components/PerformanceProfilerMount";
 import {
+  getProjectFilteredPath,
   getProjectOverviewPath,
   getProjectPath,
   getProjectSettingsPath,
@@ -14,6 +16,7 @@ import type {
 
 interface ProjectWorkspaceScreenProps {
   action: (formData: FormData) => void | Promise<void>;
+  activeNavigation?: SidebarItemVariant;
   createdByLabel?: string;
   inviteAction?: (formData: FormData) => void | Promise<void>;
   invitationAction?: (formData: FormData) => void | Promise<void>;
@@ -37,6 +40,7 @@ interface ProjectWorkspaceScreenProps {
 
 export function ProjectWorkspaceScreen({
   action,
+  activeNavigation = "issues",
   members,
   project,
   projects,
@@ -57,6 +61,7 @@ export function ProjectWorkspaceScreen({
       <PerformanceProfilerMount />
       <div className="hidden md:flex md:self-stretch">
         <SidebarDesktop
+          activeNavigation={activeNavigation}
           defaultProjects={(projects ?? []).map((entry) => ({
             active: entry.id === project.id,
             href: getProjectPath(entry.id),
@@ -65,7 +70,16 @@ export function ProjectWorkspaceScreen({
           dashboardHref={getProjectOverviewPath(project.id)}
           dashboardLabel="Overview"
           navigationHrefs={{
+            active: getProjectFilteredPath(project.id, {
+              statuses: ["In Progress"],
+            }),
+            backlog: getProjectFilteredPath(project.id, {
+              statuses: ["Backlog"],
+            }),
             issues: getProjectPath(project.id),
+            triage: getProjectFilteredPath(project.id, {
+              statuses: ["Triage"],
+            }),
           }}
           projectSubtitle={projectSubtitle}
           projectTitle={project.name}
