@@ -90,6 +90,7 @@ describe("useIssues", () => {
     expect(
       JSON.parse((fetchMock.mock.calls[0] ?? [])[1]?.body as string)
     ).toEqual({
+      limit: 50,
       projectId: "project-1",
       query: "bug",
     });
@@ -131,9 +132,34 @@ describe("useIssues", () => {
     ).toEqual({
       assigneeIds: ["user-1"],
       labelIds: ["label-1"],
+      limit: 50,
       priorities: ["High"],
       projectId: "project-1",
       statuses: ["Todo"],
+    });
+  });
+
+  it("forwards a custom search limit", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({
+        success: true,
+        issues: [],
+      }),
+    });
+
+    const { result } = renderHook(() =>
+      useIssues("project-1", { searchQuery: "bug", limit: 25 })
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(
+      JSON.parse((fetchMock.mock.calls[0] ?? [])[1]?.body as string)
+    ).toEqual({
+      limit: 25,
+      projectId: "project-1",
+      query: "bug",
     });
   });
 

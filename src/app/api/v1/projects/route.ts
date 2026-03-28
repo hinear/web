@@ -76,36 +76,18 @@ export async function GET(request: Request) {
 
     buildProjectQuery(filters);
     const orderBy = buildOrderBy({ field: sort, order });
-    const projects = await repository.listUserProjects(actorId);
-    const sorted = [...projects].sort((left, right) => {
-      const leftValue =
-        orderBy.column === "name"
-          ? left.name
-          : orderBy.column === "updated_at"
-            ? left.updatedAt
-            : left.createdAt;
-      const rightValue =
-        orderBy.column === "name"
-          ? right.name
-          : orderBy.column === "updated_at"
-            ? right.updatedAt
-            : right.createdAt;
-
-      if (leftValue < rightValue) {
-        return orderBy.ascending ? -1 : 1;
-      }
-
-      if (leftValue > rightValue) {
-        return orderBy.ascending ? 1 : -1;
-      }
-
-      return 0;
+    const { projects, totalCount } = await repository.listUserProjectsPage({
+      ascending: orderBy.ascending,
+      limit,
+      offset,
+      sortBy: orderBy.column as "created_at" | "updated_at" | "name",
+      userId: actorId,
     });
-    const items = sorted.slice(offset, offset + limit).map(toProjectResource);
+    const items = projects.map(toProjectResource);
 
     return apiV1Success({
       items,
-      pagination: buildOffsetPaginationMeta(page, limit, sorted.length),
+      pagination: buildOffsetPaginationMeta(page, limit, totalCount),
     });
   } catch (error) {
     return apiV1Error(error);

@@ -4,6 +4,7 @@ import { getServerIssuesRepository } from "@/features/issues/repositories/server
 import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
 
 export interface SearchIssuesInput {
+  limit?: number;
   projectId: string;
   query: string;
 }
@@ -22,6 +23,7 @@ export async function searchIssuesAction(input: SearchIssuesInput) {
   try {
     const repository = await getServerIssuesRepository();
     const issues = await repository.searchIssues({
+      limit: input.limit,
       projectId: input.projectId,
       query: input.query,
     });

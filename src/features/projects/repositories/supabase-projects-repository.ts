@@ -180,7 +180,13 @@ function formatRelativeProjectDate(iso: string): string {
 }
 
 function getProfileDisplayName(
-  profile: TableRow<"profiles"> | undefined
+  profile:
+    | {
+        id: string;
+        display_name: string | null;
+        avatar_url: string | null;
+      }
+    | undefined
 ): string | null {
   const value = profile?.display_name?.trim();
   return value && value.length > 0 ? value : null;
@@ -189,7 +195,16 @@ function getProfileDisplayName(
 async function listProfilesByIds(
   client: AppSupabaseServerClient,
   ids: string[]
-): Promise<Map<string, TableRow<"profiles">>> {
+): Promise<
+  Map<
+    string,
+    {
+      id: string;
+      display_name: string | null;
+      avatar_url: string | null;
+    }
+  >
+> {
   const uniqueIds = [...new Set(ids.filter(Boolean))];
 
   if (uniqueIds.length === 0) {
@@ -198,7 +213,7 @@ async function listProfilesByIds(
 
   const { data, error } = await client
     .from("profiles")
-    .select("*")
+    .select("id, display_name, avatar_url")
     .in("id", uniqueIds);
 
   assertQuerySucceeded("Failed to load profiles", error);
@@ -208,6 +223,61 @@ async function listProfilesByIds(
 
 export class SupabaseProjectsRepository implements ProjectsRepository {
   constructor(private readonly client: AppSupabaseServerClient) {}
+
+  async listUserProjectsPage(input: {
+    userId: string;
+    limit: number;
+    offset: number;
+    sortBy: "created_at" | "updated_at" | "name";
+    ascending: boolean;
+  }): Promise<{ projects: Project[]; totalCount: number }> {
+    const query = this.client
+      .from("project_members")
+      .select(
+        `
+        project_id,
+        projects (
+          id,
+          key,
+          name,
+          type,
+          issue_seq,
+          created_by,
+          created_at,
+          updated_at,
+          github_repo_owner,
+          github_repo_name,
+          github_integration_enabled
+        )
+      `,
+        { count: "exact" }
+      )
+      .eq("user_id", input.userId)
+      .range(input.offset, input.offset + input.limit - 1);
+
+    const orderedQuery = (query as any).order(input.sortBy, {
+      ascending: input.ascending,
+      referencedTable: "projects",
+    });
+
+    const { data, error, count } = await orderedQuery;
+
+    assertQuerySucceeded("Failed to list paginated user projects", error);
+
+    const projects: Project[] = [];
+
+    for (const row of data ?? []) {
+      const project = row.projects as unknown;
+      if (isProjectRow(project)) {
+        projects.push(mapProject(project));
+      }
+    }
+
+    return {
+      projects,
+      totalCount: count ?? 0,
+    };
+  }
 
   async createProject(input: CreateProjectInput): Promise<Project> {
     const { data, error } = await this.client.rpc("create_project_with_owner", {
@@ -540,33 +610,13 @@ export class SupabaseProjectsRepository implements ProjectsRepository {
   }
 
   async listUserProjects(userId: string): Promise<Project[]> {
-    const { data, error } = await this.client
-      .from("project_members")
-      .select(`
-        project_id,
-        projects (
-          id,
-          key,
-          name,
-          type,
-          issue_seq,
-          created_by,
-          created_at,
-          updated_at
-        )
-      `)
-      .eq("user_id", userId);
-
-    assertQuerySucceeded("Failed to list user projects", error);
-
-    const projects: Project[] = [];
-
-    for (const row of data ?? []) {
-      const project = row.projects as unknown;
-      if (isProjectRow(project)) {
-        projects.push(mapProject(project));
-      }
-    }
+    const { projects } = await this.listUserProjectsPage({
+      ascending: false,
+      limit: 1000,
+      offset: 0,
+      sortBy: "created_at",
+      userId,
+    });
 
     return projects;
   }

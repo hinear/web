@@ -19,20 +19,6 @@ import { toRestIssueResources } from "@/features/issues/presenters/issues-api-pr
 import { getServerIssuesRepository } from "@/features/issues/repositories/server-issues-repository";
 import { ISSUE_PRIORITIES, ISSUE_STATUSES } from "@/features/issues/types";
 
-function sortIssuesForCursor<T extends { createdAt: string; id: string }>(
-  items: T[]
-) {
-  return [...items].sort((left, right) => {
-    if (left.createdAt < right.createdAt) {
-      return -1;
-    }
-    if (left.createdAt > right.createdAt) {
-      return 1;
-    }
-    return left.id.localeCompare(right.id);
-  });
-}
-
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ projectId: string }> }
@@ -56,34 +42,18 @@ export async function GET(
     );
     const cursor = searchParams.get("cursor");
     const repository = await getServerIssuesRepository();
-
-    const issues =
-      status || priority
-        ? await repository.filterIssues({
-            limit: limit + 1,
-            priorities: priority ? [priority] : undefined,
-            projectId,
-            statuses: status ? [status] : undefined,
-          })
-        : await repository.listIssuesByProject(projectId);
-
-    const sorted = sortIssuesForCursor(issues);
-    const filtered = cursor
-      ? (() => {
-          const parsed = decodeCursor(cursor);
-          return sorted.filter(
-            (issue) =>
-              issue.createdAt > parsed.createdAt ||
-              (issue.createdAt === parsed.createdAt && issue.id > parsed.id)
-          );
-        })()
-      : sorted;
-    const items = filtered.slice(0, limit);
-    const hasMore = filtered.length > limit;
+    const parsedCursor = cursor ? decodeCursor(cursor) : undefined;
+    const { issues, hasMore } = await repository.listIssuesCursorPage({
+      after: parsedCursor,
+      limit,
+      priority: priority ?? undefined,
+      projectId,
+      status: status ?? undefined,
+    });
 
     return apiV1Success({
-      items: toRestIssueResources(items),
-      pagination: buildCursorPaginationMeta(items, limit, hasMore),
+      items: toRestIssueResources(issues),
+      pagination: buildCursorPaginationMeta(issues, limit, hasMore),
     });
   } catch (error) {
     return apiV1Error(error);

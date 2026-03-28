@@ -116,6 +116,7 @@ export interface ListIssuesByLabelInput extends ListIssuesByProjectInput {
 }
 
 export interface SearchIssuesInput extends ListIssuesByProjectInput {
+  limit?: number;
   query: string;
 }
 

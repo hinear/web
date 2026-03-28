@@ -45,7 +45,11 @@ export async function loadIssueDetail(
     projectsRepository.listProjectMembers(projectId),
     issuesRepository.listCommentsByIssueId(issueId),
     issuesRepository.listActivityLogByIssueId(issueId),
-    supabase.from("labels").select().eq("project_id", projectId).order("name"),
+    supabase
+      .from("labels")
+      .select("id, project_id, name, name_key, color, created_by, created_at")
+      .eq("project_id", projectId)
+      .order("name"),
   ]);
 
   if (!project || !issue) {

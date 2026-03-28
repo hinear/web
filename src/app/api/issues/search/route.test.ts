@@ -148,6 +148,7 @@ describe("POST /api/issues/search", () => {
     );
 
     expect(searchIssuesMock).toHaveBeenCalledWith({
+      limit: 50,
       projectId: "project-1",
       query: "bug",
     });
@@ -198,6 +199,7 @@ describe("POST /api/issues/search", () => {
     );
 
     expect(filterIssuesMock).toHaveBeenCalledWith({
+      limit: 50,
       projectId: "project-1",
       searchQuery: "bug",
       statuses: ["Todo"],
@@ -212,5 +214,29 @@ describe("POST /api/issues/search", () => {
       issues: [],
       total: 0,
     });
+  });
+
+  it("clamps limit before forwarding to repositories", async () => {
+    getAuthenticatedActorIdOrNullMock.mockResolvedValue("user-1");
+    checkProjectAccessMock.mockResolvedValue(true);
+    searchIssuesMock.mockResolvedValue([]);
+
+    const response = await POST(
+      new Request("https://hinear.test/api/issues/search", {
+        method: "POST",
+        body: JSON.stringify({
+          projectId: "project-1",
+          query: "bug",
+          limit: 999,
+        }),
+      }) as never
+    );
+
+    expect(searchIssuesMock).toHaveBeenCalledWith({
+      limit: 100,
+      projectId: "project-1",
+      query: "bug",
+    });
+    expect(response.status).toBe(200);
   });
 });

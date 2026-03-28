@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   createProject: vi.fn(),
   getServerProjectsRepository: vi.fn(),
+  listUserProjectsPage: vi.fn(),
   requireApiActorId: vi.fn(),
 }));
 
@@ -23,7 +24,10 @@ describe("GET /api/v1/projects", () => {
     mocks.requireApiActorId.mockResolvedValue("user-1");
     mocks.getServerProjectsRepository.mockResolvedValue({
       createProject: mocks.createProject,
-      listUserProjects: vi.fn().mockResolvedValue([
+      listUserProjectsPage: mocks.listUserProjectsPage,
+    });
+    mocks.listUserProjectsPage.mockResolvedValue({
+      projects: [
         {
           createdAt: "2026-03-27T10:00:00Z",
           id: "project-1",
@@ -32,7 +36,8 @@ describe("GET /api/v1/projects", () => {
           type: "team",
           updatedAt: "2026-03-27T10:00:00Z",
         },
-      ]),
+      ],
+      totalCount: 1,
     });
   });
 
@@ -58,6 +63,13 @@ describe("GET /api/v1/projects", () => {
           total: 1,
         },
       },
+    });
+    expect(mocks.listUserProjectsPage).toHaveBeenCalledWith({
+      ascending: false,
+      limit: 20,
+      offset: 0,
+      sortBy: "created_at",
+      userId: "user-1",
     });
   });
 

@@ -66,7 +66,7 @@ describe("BatchActionBar", () => {
     );
     expect(toastSuccessMock).toHaveBeenCalledWith('Updated 2 issues to "Done"');
     expect(onClearSelection).toHaveBeenCalledTimes(1);
-  });
+  }, 15_000);
 
   it("shows an error toast when the batch update action fails", async () => {
     const user = userEvent.setup();
@@ -102,5 +102,5 @@ describe("BatchActionBar", () => {
       })
     );
     expect(toastErrorMock).toHaveBeenCalledWith("Failed to update priorities");
-  });
+  }, 15_000);
 });

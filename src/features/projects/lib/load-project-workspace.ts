@@ -4,8 +4,37 @@ import { notFound } from "next/navigation";
 
 import { getServerIssuesRepository } from "@/features/issues/repositories/server-issues-repository";
 import { getServerProjectsRepository } from "@/features/projects/repositories/server-projects-repository";
+import type { Project } from "@/features/projects/types";
 import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
 import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
+
+function mapProjectRow(row: {
+  id: string;
+  key: string;
+  name: string;
+  type: Project["type"];
+  issue_seq: number;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  github_repo_owner?: string | null;
+  github_repo_name?: string | null;
+  github_integration_enabled?: boolean | null;
+}): Project {
+  return {
+    id: row.id,
+    key: row.key,
+    name: row.name,
+    type: row.type,
+    issueSeq: row.issue_seq,
+    createdBy: row.created_by,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    githubRepoOwner: row.github_repo_owner ?? null,
+    githubRepoName: row.github_repo_name ?? null,
+    githubIntegrationEnabled: row.github_integration_enabled ?? false,
+  };
+}
 
 export async function loadProjectWorkspace(
   projectId: string,
@@ -60,15 +89,23 @@ export async function loadProjectWorkspace(
       (accessibleProjectIdsResult.data ?? []).map((row) => row.project_id)
     ),
   ].filter(Boolean);
-  const accessibleProjects = (
-    await Promise.all(
-      accessibleProjectIds.map((accessibleProjectId) =>
-        repository.getProjectById(accessibleProjectId)
-      )
-    )
-  ).filter((candidate): candidate is NonNullable<typeof candidate> =>
-    Boolean(candidate)
-  );
+  const { data: accessibleProjectRows, error: accessibleProjectsError } =
+    accessibleProjectIds.length > 0
+      ? await requestSupabase
+          .from("projects")
+          .select(
+            "id, key, name, type, issue_seq, created_by, created_at, updated_at, github_repo_owner, github_repo_name, github_integration_enabled"
+          )
+          .in("id", accessibleProjectIds)
+      : { data: [], error: null };
+
+  if (accessibleProjectsError) {
+    throw new Error(
+      `Failed to load accessible projects: ${accessibleProjectsError.message}`
+    );
+  }
+
+  const accessibleProjects = (accessibleProjectRows ?? []).map(mapProjectRow);
 
   return {
     accessibleProjects,

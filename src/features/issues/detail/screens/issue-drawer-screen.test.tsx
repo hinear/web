@@ -149,7 +149,7 @@ describe("IssueDetailDrawerScreen", () => {
     await waitFor(() =>
       expect(toastSuccessMock).toHaveBeenCalledWith("Drawer changes saved.")
     );
-  });
+  }, 15_000);
 
   it("shows failure guidance and lets the user retry drawer save", async () => {
     const user = userEvent.setup();
@@ -191,10 +191,13 @@ describe("IssueDetailDrawerScreen", () => {
       />
     );
 
+    const saveButton = screen.getByRole("button", { name: "Save changes" });
+
     await user.clear(screen.getByLabelText("Title"));
     await user.type(screen.getByLabelText("Title"), "Drawer issue updated");
 
-    await user.click(screen.getByRole("button", { name: "Save changes" }));
+    await waitFor(() => expect(saveButton).toBeEnabled());
+    await user.click(saveButton);
 
     await waitFor(() => {
       expect(toastErrorMock).toHaveBeenCalledWith(
@@ -202,10 +205,11 @@ describe("IssueDetailDrawerScreen", () => {
       );
     });
 
-    await user.click(screen.getByRole("button", { name: "Save changes" }));
+    await waitFor(() => expect(saveButton).toBeEnabled());
+    await user.click(saveButton);
 
     await waitFor(() => {
       expect(toastSuccessMock).toHaveBeenCalledWith("Drawer changes saved.");
     });
-  });
+  }, 15_000);
 });

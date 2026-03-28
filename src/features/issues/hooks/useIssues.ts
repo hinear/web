@@ -22,6 +22,7 @@ type IssueUpdateInput = Partial<
 interface UseIssuesOptions {
   assigneeIds?: string[];
   labelIds?: string[];
+  limit?: number;
   priorities?: IssuePriority[];
   searchQuery?: string;
   statuses?: IssueStatus[];
@@ -64,6 +65,7 @@ export function useIssues(projectId: string, options: UseIssuesOptions = {}) {
   const priorities = normalizeValues(options.priorities);
   const assigneeIds = normalizeValues(options.assigneeIds);
   const labelIds = normalizeValues(options.labelIds);
+  const limit = options.limit ?? 50;
   const shouldUseSearchApi =
     Boolean(searchQuery) ||
     statuses.length > 0 ||
@@ -75,12 +77,13 @@ export function useIssues(projectId: string, options: UseIssuesOptions = {}) {
       JSON.stringify({
         projectId,
         query: searchQuery || undefined,
+        limit,
         ...(assigneeIds.length > 0 ? { assigneeIds } : {}),
         ...(labelIds.length > 0 ? { labelIds } : {}),
         ...(priorities.length > 0 ? { priorities } : {}),
         ...(statuses.length > 0 ? { statuses } : {}),
       }),
-    [assigneeIds, labelIds, priorities, projectId, searchQuery, statuses]
+    [assigneeIds, labelIds, limit, priorities, projectId, searchQuery, statuses]
   );
 
   useEffect(() => {

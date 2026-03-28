@@ -20,6 +20,7 @@ import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client"
 interface SearchIssuesPayload {
   assigneeIds?: string[];
   labelIds?: string[];
+  limit?: number;
   priorities?: string[];
   projectId?: string;
   query?: string;
@@ -36,6 +37,24 @@ function isIssueStatus(value: string): value is IssueStatus {
 
 function isIssuePriority(value: string): value is IssuePriority {
   return ISSUE_PRIORITIES.includes(value as IssuePriority);
+}
+
+function parseLimit(value: unknown): number {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return 50;
+  }
+
+  const normalized = Math.trunc(value);
+
+  if (normalized < 1) {
+    return 1;
+  }
+
+  if (normalized > 100) {
+    return 100;
+  }
+
+  return normalized;
 }
 
 export async function POST(request: NextRequest) {
@@ -59,6 +78,7 @@ export async function POST(request: NextRequest) {
   const priorities = normalizeValues(payload.priorities).filter(
     isIssuePriority
   );
+  const limit = parseLimit(payload.limit);
   const payloadAssigneeIds = normalizeValues(payload.assigneeIds);
   const labelIds = normalizeValues(payload.labelIds);
   const hasFilters =
@@ -88,6 +108,7 @@ export async function POST(request: NextRequest) {
   const issuesRepository = await getServerIssuesRepository();
   const issues = hasFilters
     ? await issuesRepository.filterIssues({
+        limit,
         projectId,
         searchQuery: query,
         statuses,
@@ -97,6 +118,7 @@ export async function POST(request: NextRequest) {
       })
     : query
       ? await issuesRepository.searchIssues({
+          limit,
           projectId,
           query,
         })

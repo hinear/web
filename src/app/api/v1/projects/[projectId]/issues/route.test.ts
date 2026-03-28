@@ -2,8 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   createIssue: vi.fn(),
-  filterIssues: vi.fn(),
-  listIssuesByProject: vi.fn(),
+  listIssuesCursorPage: vi.fn(),
   repositoryFactory: vi.fn(),
   requireApiActorId: vi.fn(),
   requireProjectAccess: vi.fn(),
@@ -28,26 +27,28 @@ describe("/api/v1/projects/[projectId]/issues", () => {
     mocks.requireProjectAccess.mockResolvedValue(undefined);
     mocks.repositoryFactory.mockResolvedValue({
       createIssue: mocks.createIssue,
-      filterIssues: mocks.filterIssues,
-      listIssuesByProject: mocks.listIssuesByProject,
+      listIssuesCursorPage: mocks.listIssuesCursorPage,
     });
   });
 
   it("GET returns cursor pagination payload", async () => {
-    mocks.listIssuesByProject.mockResolvedValue([
-      {
-        createdAt: "2026-03-27T10:00:00Z",
-        description: "Desc",
-        id: "issue-1",
-        identifier: "AAA-1",
-        priority: "Medium",
-        projectId: "project-1",
-        status: "Triage",
-        title: "Issue 1",
-        updatedAt: "2026-03-27T10:00:00Z",
-        version: 1,
-      },
-    ]);
+    mocks.listIssuesCursorPage.mockResolvedValue({
+      hasMore: false,
+      issues: [
+        {
+          createdAt: "2026-03-27T10:00:00Z",
+          description: "Desc",
+          id: "issue-1",
+          identifier: "AAA-1",
+          priority: "Medium",
+          projectId: "project-1",
+          status: "Triage",
+          title: "Issue 1",
+          updatedAt: "2026-03-27T10:00:00Z",
+          version: 1,
+        },
+      ],
+    });
 
     const response = await GET(
       new Request(
@@ -67,19 +68,44 @@ describe("/api/v1/projects/[projectId]/issues", () => {
         },
       },
     });
+    expect(mocks.listIssuesCursorPage).toHaveBeenCalledWith({
+      after: undefined,
+      limit: 20,
+      priority: undefined,
+      projectId: "project-1",
+      status: undefined,
+    });
   });
 
-  it("GET uses filterIssues when filters are present", async () => {
-    mocks.filterIssues.mockResolvedValue([]);
+  it("GET forwards filters and decoded cursor to repository", async () => {
+    mocks.listIssuesCursorPage.mockResolvedValue({
+      hasMore: false,
+      issues: [],
+    });
+    const cursor = Buffer.from(
+      JSON.stringify({
+        createdAt: "2026-03-27T10:00:00Z",
+        id: "issue-9",
+      })
+    ).toString("base64url");
 
     await GET(
       new Request(
-        "https://hinear.test/api/v1/projects/project-1/issues?status=Triage&limit=20"
+        `https://hinear.test/api/v1/projects/project-1/issues?status=Triage&limit=20&cursor=${cursor}`
       ),
       createRouteContext({ projectId: "project-1" })
     );
 
-    expect(mocks.filterIssues).toHaveBeenCalled();
+    expect(mocks.listIssuesCursorPage).toHaveBeenCalledWith({
+      after: {
+        createdAt: "2026-03-27T10:00:00Z",
+        id: "issue-9",
+      },
+      limit: 20,
+      priority: undefined,
+      projectId: "project-1",
+      status: "Triage",
+    });
   });
 
   it("POST creates issue", async () => {

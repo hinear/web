@@ -103,6 +103,32 @@ function createFakeIssuesClient(options?: {
       })
     );
 
+  const matchesIlike = (value: unknown, pattern: string) => {
+    if (typeof value !== "string") {
+      return false;
+    }
+
+    const normalizedPattern = pattern.replaceAll("%", "").toLowerCase();
+    return value.toLowerCase().includes(normalizedPattern);
+  };
+
+  const matchesTextSearch = (
+    row: Record<string, unknown>,
+    query: string
+  ): boolean => {
+    const haystack =
+      `${String(row.title ?? "")} ${String(row.description ?? "")}`
+        .toLowerCase()
+        .trim();
+    const terms = query
+      .toLowerCase()
+      .split(/\s+/)
+      .map((term) => term.trim())
+      .filter(Boolean);
+
+    return terms.every((term) => haystack.includes(term));
+  };
+
   function createSelectBuilder<T extends Record<string, unknown>>(config: {
     rows: T[];
     table: string;
@@ -113,6 +139,10 @@ function createFakeIssuesClient(options?: {
       value: unknown;
       type: "eq" | "in";
     }> = [];
+    const orConditions: string[] = [];
+    let limitCount: number | null = null;
+    let rangeSelection: { from: number; to: number } | null = null;
+    let textSearchQuery: string | null = null;
     let orderBy = config.orderBy ?? null;
 
     const resolve = () => {
@@ -121,7 +151,31 @@ function createFakeIssuesClient(options?: {
         return { data: null, error };
       }
 
-      const rows = filterRows(config.rows, filters);
+      const rows = filterRows(config.rows, filters)
+        .filter((row) => {
+          if (orConditions.length === 0) {
+            return true;
+          }
+
+          return orConditions.some((condition) => {
+            const titleMatch = condition.match(/^title\.ilike\.(.+)$/);
+            if (titleMatch) {
+              return matchesIlike(row.title, titleMatch[1] ?? "");
+            }
+
+            const descriptionMatch = condition.match(
+              /^description\.ilike\.(.+)$/
+            );
+            if (descriptionMatch) {
+              return matchesIlike(row.description, descriptionMatch[1] ?? "");
+            }
+
+            return true;
+          });
+        })
+        .filter((row) =>
+          textSearchQuery ? matchesTextSearch(row, textSearchQuery) : true
+        );
       let sortedRows = rows;
 
       if (orderBy) {
@@ -143,6 +197,15 @@ function createFakeIssuesClient(options?: {
         });
       }
 
+      if (rangeSelection) {
+        sortedRows = sortedRows.slice(
+          rangeSelection.from,
+          rangeSelection.to + 1
+        );
+      } else if (limitCount !== null) {
+        sortedRows = sortedRows.slice(0, limitCount);
+      }
+
       return { data: sortedRows, error: null };
     };
 
@@ -155,8 +218,24 @@ function createFakeIssuesClient(options?: {
         filters.push({ column, value, type: "in" });
         return builder;
       },
+      limit(value: number) {
+        limitCount = value;
+        return builder;
+      },
       order(column: string, options?: { ascending?: boolean }) {
         orderBy = { column, ascending: options?.ascending ?? true };
+        return builder;
+      },
+      textSearch(_column: string, query: string) {
+        textSearchQuery = query;
+        return builder;
+      },
+      or(value: string) {
+        orConditions.push(...value.split(","));
+        return builder;
+      },
+      range(from: number, to: number) {
+        rangeSelection = { from, to };
         return builder;
       },
       async maybeSingle() {
@@ -573,6 +652,51 @@ describe("SupabaseIssuesRepository", () => {
     expect(issues).toHaveLength(2);
     expect(issues[0]?.labels).toEqual([]);
     expect(issues[1]?.labels.map((label) => label.name)).toEqual(["Auth"]);
+  });
+
+  it("limits search results to the default page size", async () => {
+    const fake = createFakeIssuesClient({
+      issueRows: Array.from({ length: 60 }, (_, index) =>
+        createSeedIssue({
+          id: `issue-${index + 1}`,
+          issue_number: index + 1,
+          identifier: `WEB-${index + 1}`,
+          title: `Bug ${index + 1}`,
+        })
+      ),
+    });
+    const repository = new SupabaseIssuesRepository(fake.client);
+
+    const issues = await repository.searchIssues({
+      projectId: "project-1",
+      query: "Bug",
+    });
+
+    expect(issues).toHaveLength(50);
+    expect(issues[0]?.identifier).toBe("WEB-1");
+    expect(issues[49]?.identifier).toBe("WEB-50");
+  });
+
+  it("caps filter results when no explicit limit is provided", async () => {
+    const fake = createFakeIssuesClient({
+      issueRows: Array.from({ length: 140 }, (_, index) =>
+        createSeedIssue({
+          created_at: `2026-03-20T00:${String(index).padStart(2, "0")}:00.000Z`,
+          id: `issue-${index + 1}`,
+          issue_number: index + 1,
+          identifier: `WEB-${index + 1}`,
+          title: `Issue ${index + 1}`,
+          updated_at: `2026-03-20T00:${String(index).padStart(2, "0")}:00.000Z`,
+        })
+      ),
+    });
+    const repository = new SupabaseIssuesRepository(fake.client);
+
+    const issues = await repository.filterIssues({
+      projectId: "project-1",
+    });
+
+    expect(issues).toHaveLength(100);
   });
 
   it("increments version when the optimistic lock matches", async () => {

@@ -275,6 +275,7 @@ export function IssueDetailScreen({
   comments = EMPTY_COMMENTS,
   activityLog = EMPTY_ACTIVITY_LOG,
 }: IssueDetailScreenProps) {
+  const router = useRouter();
   const [issueState, setIssueState] = useState(issue);
   const [commentsState, setCommentsState] = useState(comments);
   const [activityState, setActivityState] = useState(activityLog);

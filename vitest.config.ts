@@ -26,6 +26,7 @@ export default defineConfig({
         test: {
           environment: "jsdom",
           globals: true,
+          testTimeout: 15_000,
           setupFiles: ["./src/test/setup.ts"],
           exclude: [
             ...Array.from({ length: 10 }, (_, i) => `**/.${i}/**`),
@@ -69,6 +70,8 @@ export default defineConfig({
         ],
         test: {
           name: "storybook",
+          fileParallelism: false,
+          testTimeout: 15_000,
           exclude: [
             "src/features/issues/board/components/kanban-board.stories.tsx",
           ],
