@@ -1,11 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+type PermissionUiState =
+  | "default"
+  | "granted"
+  | "denied"
+  | "unsupported-service-worker"
+  | "unsupported-notification";
 
 export function NotificationPermissionButton() {
   const [permission, setPermission] =
     useState<NotificationPermission>("default");
   const [isLoading, setIsLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if ("Notification" in window) {
@@ -13,14 +22,60 @@ export function NotificationPermissionButton() {
     }
   }, []);
 
-  const requestPermission = async () => {
+  function getUiState(): PermissionUiState {
     if (!("Notification" in window)) {
-      alert("This browser does not support notifications.");
-      return;
+      return "unsupported-notification";
     }
 
     if (!("serviceWorker" in navigator)) {
-      alert("This browser does not support Service Workers.");
+      return "unsupported-service-worker";
+    }
+
+    return permission;
+  }
+
+  const uiState = getUiState();
+
+  function updateStatus(message: string, tone: "info" | "success" | "error") {
+    setStatusMessage(message);
+    if (tone === "success") {
+      toast.success(message);
+      return;
+    }
+    if (tone === "error") {
+      toast.error(message);
+      return;
+    }
+    toast(message);
+  }
+
+  const requestPermission = async () => {
+    if (uiState === "unsupported-notification") {
+      updateStatus(
+        "This device does not support browser notifications.",
+        "info"
+      );
+      return;
+    }
+
+    if (uiState === "unsupported-service-worker") {
+      updateStatus(
+        "This device does not support Service Workers for notifications.",
+        "info"
+      );
+      return;
+    }
+
+    if (uiState === "denied") {
+      updateStatus(
+        "Enable notifications again from your browser or device settings.",
+        "info"
+      );
+      return;
+    }
+
+    if (uiState === "granted") {
+      updateStatus("Notifications are enabled on this device.", "success");
       return;
     }
 
@@ -30,60 +85,102 @@ export function NotificationPermissionButton() {
       setPermission(result);
 
       if (result === "granted") {
-        // Service Worker 등록 대기 후 푸시 구독
         try {
           const registration = await navigator.serviceWorker.ready;
           console.log("[Notification] Service Worker ready:", registration);
           await subscribeToPush(registration);
+          updateStatus("Notifications are enabled on this device.", "success");
         } catch (swError) {
           console.error("[Notification] Service Worker not ready:", swError);
-          alert("Failed to initialize the Service Worker.");
+          updateStatus(
+            "We couldn't finish the notification setup. Try again in a moment.",
+            "error"
+          );
         }
+      } else if (result === "denied") {
+        updateStatus(
+          "Enable notifications again from your browser or device settings.",
+          "info"
+        );
+      } else {
+        updateStatus(
+          "Notification permission was dismissed. You can try again at any time.",
+          "info"
+        );
       }
     } catch (error) {
       console.error("Failed to request notification permission:", error);
-      alert("Failed to request notification permission.");
+      updateStatus("Failed to request notification permission.", "error");
     } finally {
       setIsLoading(false);
     }
   };
 
-  return (
-    <div className="flex items-center gap-2 rounded-lg border border-[var(--app-color-border-soft)] bg-[var(--app-color-surface-100)] p-3">
-      <div className="flex-1">
-        <p className="text-sm font-semibold text-[var(--app-color-ink-900)]">
-          Notification Settings
-        </p>
-        <p className="text-xs text-[var(--app-color-gray-500)]">
-          Get real-time updates about changes to your issues
-        </p>
-      </div>
-      <button
-        type="button"
-        onClick={requestPermission}
-        disabled={isLoading || permission === "granted"}
-        className={`
-          rounded-lg px-4 py-2 text-sm font-semibold
-          ${
-            permission === "granted"
-              ? "bg-[var(--app-color-gray-100)] text-[var(--app-color-gray-400)] cursor-not-allowed"
-              : "bg-[var(--app-color-brand-500)] text-[var(--app-color-white)] hover:bg-[var(--app-color-brand-600)]"
-          } transition-colors duration-200
-        `}
-      >
-        {permission === "granted"
-          ? "Notifications Enabled"
+  const buttonLabel =
+    uiState === "unsupported-notification" ||
+    uiState === "unsupported-service-worker"
+      ? "Notifications unavailable"
+      : uiState === "denied"
+        ? "Notifications blocked"
+        : uiState === "granted"
+          ? "Notifications enabled"
           : isLoading
             ? "Requesting..."
-            : "Enable Notifications"}
-      </button>
+            : "Enable notifications";
+
+  const helperMessage =
+    statusMessage ??
+    (uiState === "denied"
+      ? "Enable notifications again from your browser or device settings."
+      : uiState === "granted"
+        ? "Notifications are enabled on this device."
+        : null);
+
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border border-[var(--app-color-border-soft)] bg-[var(--app-color-surface-100)] p-3">
+      <div className="flex items-center gap-2">
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-[var(--app-color-ink-900)]">
+            Push Notifications
+          </p>
+          <p className="text-xs text-[var(--app-color-gray-500)]">
+            Get real-time updates about changes to your issues
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={requestPermission}
+          disabled={isLoading}
+          className={`
+            app-mobile-touch-target rounded-lg px-4 py-2 text-sm font-semibold
+            ${
+              uiState === "granted"
+                ? "bg-[var(--app-color-gray-100)] text-[var(--app-color-gray-700)]"
+                : uiState === "denied" ||
+                    uiState === "unsupported-notification" ||
+                    uiState === "unsupported-service-worker"
+                  ? "bg-[var(--app-color-gray-100)] text-[var(--app-color-gray-700)]"
+                  : "bg-[var(--app-color-brand-500)] text-[var(--app-color-white)] hover:bg-[var(--app-color-brand-600)]"
+            } transition-colors duration-200
+          `}
+        >
+          {buttonLabel}
+        </button>
+      </div>
+      {helperMessage ? (
+        <p
+          aria-live="polite"
+          className="text-xs text-[var(--app-color-gray-600)]"
+        >
+          {helperMessage}
+        </p>
+      ) : null}
     </div>
   );
 }
 
 async function subscribeToPush(registration: ServiceWorkerRegistration) {
   try {
-    // VAPID public key를 환경 변수에서 가져오기
     const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
     if (!vapidPublicKey) {
       throw new Error("VAPID public key is not configured");
@@ -95,7 +192,6 @@ async function subscribeToPush(registration: ServiceWorkerRegistration) {
       applicationServerKey: convertedVapidKey,
     });
 
-    // 구독 정보를 서버에 전송
     await fetch("/api/notifications/subscribe", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

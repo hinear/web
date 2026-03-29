@@ -57,7 +57,10 @@ function getStatCards(summary: ProjectOverviewScreenProps["summary"]) {
 
 function ProjectOverviewMobileHeader({ project }: { project: Project }) {
   return (
-    <div className="flex items-center justify-between gap-3">
+    <div
+      className="app-mobile-top-surface flex items-center justify-between gap-3"
+      data-testid="project-overview-mobile-header"
+    >
       <div className="min-w-0">
         <h1 className="truncate text-[18px] leading-[18px] font-[var(--app-font-weight-600)] text-[#111318]">
           {project.name}
@@ -79,7 +82,7 @@ function ProjectOverviewMobileHeader({ project }: { project: Project }) {
           className={getButtonClassName(
             "secondary",
             "sm",
-            "h-[34px] w-[34px] rounded-[10px] px-0 py-0"
+            "app-mobile-touch-target h-[34px] w-[34px] rounded-[10px] px-0 py-0"
           )}
           href={getProfileSettingsPath()}
         >
@@ -257,7 +260,7 @@ export function ProjectOverviewScreen({
       </aside>
 
       <div className="min-w-0 flex-1 bg-[#FCFCFD]">
-        <div className="flex w-full flex-col gap-4 px-4 py-4 md:hidden">
+        <div className="app-mobile-page-shell flex w-full flex-col gap-4 px-4 py-4 md:hidden">
           <ProjectOverviewMobileHeader project={project} />
           <ProjectOverviewMobileSwitcher
             project={project}

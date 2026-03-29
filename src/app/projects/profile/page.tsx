@@ -53,11 +53,13 @@ export default async function ProfileSettingsPage() {
     .maybeSingle();
 
   return (
-    <ProfileSettingsScreen
-      accountId={user.id}
-      displayName={resolveDisplayName(profile, user)}
-      email={user.email?.trim() || "No email available"}
-      logoutAction={signOutAction}
-    />
+    <div className="app-shell min-h-[100dvh]">
+      <ProfileSettingsScreen
+        accountId={user.id}
+        displayName={resolveDisplayName(profile, user)}
+        email={user.email?.trim() || "No email available"}
+        logoutAction={signOutAction}
+      />
+    </div>
   );
 }

@@ -18,8 +18,11 @@ export function ProfileSettingsScreen({
 }: ProfileSettingsScreenProps) {
   return (
     <main className="min-h-screen bg-[#FCFCFD]">
-      <div className="mx-auto flex min-h-screen w-full max-w-[960px] flex-col gap-6 px-4 py-8 md:px-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <div
+        className="app-mobile-page-shell mx-auto flex min-h-screen w-full max-w-[960px] flex-col gap-6 px-4 py-8 md:px-6"
+        data-testid="profile-settings-shell"
+      >
+        <div className="app-mobile-top-surface flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-col gap-1">
             <p className="text-[12px] leading-[12px] font-[var(--app-font-weight-600)] text-[#5E6AD2]">
               Profile Settings

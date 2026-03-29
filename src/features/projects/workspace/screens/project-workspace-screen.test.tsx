@@ -200,4 +200,29 @@ describe("ProjectWorkspaceScreen", () => {
       "backlog"
     );
   });
+
+  it("marks the mobile workspace shell as safe-area aware", () => {
+    render(
+      <ProjectWorkspaceScreen
+        action={vi.fn()}
+        project={{
+          id: "project-1",
+          key: "WEB",
+          name: "Web Platform",
+          type: "team",
+          issueSeq: 1,
+          createdBy: "user-1",
+          createdAt: "2026-03-20T00:00:00.000Z",
+          updatedAt: "2026-03-20T00:00:00.000Z",
+        }}
+      />
+    );
+
+    expect(kanbanBoardViewMock.mock.calls.at(-1)?.[0].projectName).toBe(
+      "Web Platform"
+    );
+    expect(screen.getByTestId("workspace-mobile-shell")).toHaveClass(
+      "app-mobile-page-shell"
+    );
+  });
 });

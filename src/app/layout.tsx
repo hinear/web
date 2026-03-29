@@ -86,7 +86,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body>
+      <body className="app-shell">
         <AppShellExtras />
         {children}
       </body>

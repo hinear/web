@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { loadIssueDetailMock } = vi.hoisted(() => ({
-  loadIssueDetailMock: vi.fn(),
+const { loadIssueDrawerDetailMock } = vi.hoisted(() => ({
+  loadIssueDrawerDetailMock: vi.fn(),
 }));
 
-vi.mock("@/features/issues/lib/issue-detail-loader", () => ({
-  loadIssueDetail: loadIssueDetailMock,
+vi.mock("@/features/issues/lib/issue-drawer-loader", () => ({
+  loadIssueDrawerDetail: loadIssueDrawerDetailMock,
 }));
 
 import { GET } from "@/app/api/issues/[issueId]/route";
@@ -29,7 +29,7 @@ describe("GET /api/issues/[issueId]", () => {
   });
 
   it("returns success-wrapped issue detail payload", async () => {
-    loadIssueDetailMock.mockResolvedValue({
+    loadIssueDrawerDetailMock.mockResolvedValue({
       issue: { id: "issue-1", title: "Detail", projectId: "project-1" },
       activityLog: [],
       availableLabels: [],
@@ -44,10 +44,9 @@ describe("GET /api/issues/[issueId]", () => {
       { params: Promise.resolve({ issueId: "issue-1" }) }
     );
 
-    expect(loadIssueDetailMock).toHaveBeenCalledWith(
+    expect(loadIssueDrawerDetailMock).toHaveBeenCalledWith(
       "project-1",
-      "issue-1",
-      "/projects/project-1?issueId=issue-1"
+      "issue-1"
     );
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({

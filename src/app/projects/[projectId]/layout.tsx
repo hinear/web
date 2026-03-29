@@ -30,7 +30,7 @@ export default async function ProjectLayout({
 
   return (
     <QueryClientProvider>
-      {children}
+      <div className="app-shell min-h-[100dvh]">{children}</div>
       <ProjectModalProvider projectId={projectId} />
     </QueryClientProvider>
   );

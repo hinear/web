@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { apiError, apiSuccess } from "@/app/api/_lib/response";
-import { loadIssueDetail } from "@/features/issues/lib/issue-detail-loader";
+import { loadIssueDrawerDetail } from "@/features/issues/lib/issue-drawer-loader";
 
 export async function GET(
   request: NextRequest,
@@ -16,11 +16,7 @@ export async function GET(
       return apiError("projectId is required", 400);
     }
 
-    const data = await loadIssueDetail(
-      projectId,
-      issueId,
-      `/projects/${projectId}?issueId=${issueId}`
-    );
+    const data = await loadIssueDrawerDetail(projectId, issueId);
 
     return apiSuccess(data);
   } catch (error) {

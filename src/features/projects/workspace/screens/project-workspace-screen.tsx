@@ -88,7 +88,10 @@ export function ProjectWorkspaceScreen({
       </div>
 
       <div className="min-w-0 flex flex-1 flex-col self-stretch">
-        <div className="flex min-h-screen w-full flex-1 flex-col gap-5 bg-[#FCFCFD] p-6">
+        <div
+          className="app-mobile-page-shell flex min-h-screen w-full flex-1 flex-col gap-5 bg-[#FCFCFD] p-6"
+          data-testid="workspace-mobile-shell"
+        >
           {workspaceNoticeMessage ? (
             <div
               className="rounded-[12px] border border-[#BFDBFE] bg-[#EFF6FF] px-[14px] py-3 text-[12px] leading-5 font-[var(--app-font-weight-600)] text-[#1D4ED8]"

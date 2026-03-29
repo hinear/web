@@ -394,6 +394,7 @@ export function KanbanBoardView({
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const prefetchedIssueIdsRef = React.useRef(new Set<string>());
   const initialFilterState = React.useMemo(
     () => getBoardFilterState(searchParams),
     [searchParams]
@@ -469,6 +470,7 @@ export function KanbanBoardView({
   const openIssueDrawer = React.useCallback(
     (issue: Issue) => {
       prefetchIssueDetail(projectId, issue.id);
+      void import("@/features/issues/detail/screens/issue-drawer-with-router");
       updateIssueDrawerUrl(pathname, searchParams, issue.id, "push");
     },
     [pathname, projectId, searchParams]
@@ -476,7 +478,13 @@ export function KanbanBoardView({
 
   const prefetchIssueDrawer = React.useCallback(
     (issue: Issue) => {
+      if (prefetchedIssueIdsRef.current.has(issue.id)) {
+        return;
+      }
+
+      prefetchedIssueIdsRef.current.add(issue.id);
       prefetchIssueDetail(projectId, issue.id);
+      void import("@/features/issues/detail/screens/issue-drawer-with-router");
     },
     [projectId]
   );

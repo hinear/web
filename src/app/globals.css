@@ -260,6 +260,39 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+:root {
+  --app-safe-area-top: env(safe-area-inset-top, 0px);
+  --app-safe-area-top-compact: calc(var(--app-safe-area-top) + 12px);
+  --app-safe-area-top-content: calc(var(--app-safe-area-top) + 16px);
+}
+
+.app-shell {
+  min-height: 100dvh;
+}
+
+.app-mobile-page-shell {
+  padding-top: var(--app-safe-area-top-content);
+}
+
+.app-mobile-top-surface {
+  position: relative;
+  z-index: 10;
+  padding-top: var(--app-safe-area-top-compact);
+}
+
+.app-mobile-touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+}
+
+@media (min-width: 768px) {
+  .app-mobile-page-shell,
+  .app-mobile-top-surface {
+    padding-top: 0;
+  }
+}
+
 /* Markdown Content Styles (for rendered HTML) */
 .prose h1 {
   font-size: 1.5rem;

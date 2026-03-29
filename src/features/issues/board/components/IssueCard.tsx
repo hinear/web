@@ -2,6 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useEffect, useRef } from "react";
 import { BoardIssueCard } from "@/components/organisms/BoardIssueCard";
 import { getIssuePath } from "@/features/projects/lib/project-routes";
 import { cn } from "@/lib/utils";
@@ -45,6 +46,8 @@ export function IssueCard({
       issue,
     },
   });
+  const observedElementRef = useRef<HTMLDivElement | null>(null);
+  const hasViewportPrefetchedRef = useRef(false);
 
   const detailHref = projectId ? getIssuePath(projectId, issue.id) : undefined;
 
@@ -58,8 +61,45 @@ export function IssueCard({
     onToggleSelect?.(issue.id);
   };
 
+  useEffect(() => {
+    if (preview || !onPrefetch || typeof IntersectionObserver === "undefined") {
+      return;
+    }
+
+    const node = observedElementRef.current;
+    if (!node) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+
+        if (!entry?.isIntersecting || hasViewportPrefetchedRef.current) {
+          return;
+        }
+
+        hasViewportPrefetchedRef.current = true;
+        onPrefetch(issue);
+        observer.disconnect();
+      },
+      {
+        threshold: 0.25,
+      }
+    );
+
+    observer.observe(node);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [issue, onPrefetch, preview]);
+
   return (
-    <div className={isDragging ? "pointer-events-none" : ""}>
+    <div
+      className={isDragging ? "pointer-events-none" : ""}
+      ref={observedElementRef}
+    >
       <div
         className={cn(
           "relative transition-[transform,opacity,box-shadow] duration-200 ease-out",
@@ -87,7 +127,6 @@ export function IssueCard({
           issueTitle={issue.title}
           labels={issue.labels}
           onFocus={preview ? undefined : () => onPrefetch?.(issue)}
-          onMouseEnter={preview ? undefined : () => onPrefetch?.(issue)}
           onClick={
             preview
               ? undefined

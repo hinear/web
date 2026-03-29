@@ -35,4 +35,12 @@ describe("HeaderAction", () => {
 
     expect(onClick).toHaveBeenCalledTimes(1);
   });
+
+  it("applies the shared mobile touch target affordance", () => {
+    render(<HeaderAction label="New issue" onClick={vi.fn()} />);
+
+    expect(screen.getByRole("button", { name: "New issue" })).toHaveClass(
+      "app-mobile-touch-target"
+    );
+  });
 });

@@ -31,4 +31,19 @@ describe("ProfileSettingsScreen", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Log out" })).toBeInTheDocument();
   });
+
+  it("keeps the profile screen in the mobile safe-area shell", () => {
+    render(
+      <ProfileSettingsScreen
+        accountId="user-1"
+        displayName="Owner Name"
+        email="owner@example.com"
+        logoutAction={vi.fn()}
+      />
+    );
+
+    expect(screen.getByTestId("profile-settings-shell")).toHaveClass(
+      "app-mobile-page-shell"
+    );
+  });
 });

@@ -61,7 +61,10 @@ export function LinearDashboardHeader({
 
   return (
     <section
-      className={cn("flex w-full flex-col gap-[14px]", className)}
+      className={cn(
+        "relative z-[1] flex w-full flex-col gap-[14px]",
+        className
+      )}
       {...props}
     >
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">

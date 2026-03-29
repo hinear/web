@@ -29,7 +29,7 @@ function IconActionButton({
   return (
     <button
       className={cn(
-        "inline-flex h-[34px] w-[34px] items-center justify-center rounded-[10px] border px-[10px] py-2",
+        "app-mobile-touch-target inline-flex h-[34px] w-[34px] items-center justify-center rounded-[10px] border px-[10px] py-2",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-color-brand-300)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
         className
       )}
@@ -64,7 +64,11 @@ export const MobileIssueListAppBar = React.forwardRef<
   ) => {
     return (
       <div
-        className={cn("flex items-center justify-between gap-3", className)}
+        className={cn(
+          "app-mobile-top-surface flex items-center justify-between gap-3",
+          className
+        )}
+        data-testid="mobile-issue-list-app-bar"
         ref={ref}
         {...props}
       >

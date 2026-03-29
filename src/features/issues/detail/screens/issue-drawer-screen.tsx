@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -10,7 +11,6 @@ import { Select } from "@/components/atoms/Select";
 import { ConflictDialog } from "@/components/molecules/ConflictDialog";
 import { DueDateField } from "@/components/molecules/DueDateField";
 import { LabelSelector } from "@/components/molecules/LabelSelector";
-import { MarkdownEditor } from "@/components/molecules/MarkdownEditor";
 import { createLabelAction } from "@/features/issues/actions/create-label-action";
 import { updateIssueLabelsAction } from "@/features/issues/actions/update-issue-labels-action";
 import { IssueActivityItem } from "@/features/issues/detail/components/IssueActivityItem";
@@ -57,6 +57,19 @@ interface IssueUpdateResponse {
 
 const EMPTY_ACTIVITY_LOG: ActivityLogEntry[] = [];
 const EMPTY_LABELS: Label[] = [];
+
+const MarkdownEditor = dynamic(
+  () =>
+    import("@/components/molecules/MarkdownEditor").then((module) => ({
+      default: module.MarkdownEditor,
+    })),
+  {
+    loading: () => (
+      <div className="min-h-[160px] animate-pulse rounded-[12px] border border-[#E6E8EC] bg-[#F8FAFC]" />
+    ),
+    ssr: false,
+  }
+);
 
 function isIssueUpdateResponse(value: unknown): value is IssueUpdateResponse {
   return Boolean(

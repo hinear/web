@@ -36,11 +36,12 @@ function NotificationToggle({
         </span>
       </div>
       <button
+        aria-label={label}
         type="button"
         onClick={() => onChange(!enabled)}
-        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[var(--app-color-primary-500)] focus:ring-offset-2 ${
+        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[var(--app-color-brand-300)] focus:ring-offset-2 ${
           enabled
-            ? "bg-[var(--app-color-primary-500)]"
+            ? "bg-[var(--app-color-brand-500)]"
             : "bg-[var(--app-color-gray-200)]"
         }`}
         role="switch"
@@ -102,7 +103,17 @@ export function NotificationSettingsCard() {
           throw new Error(data.error ?? "Failed to update preference");
         }
 
-        setPreferences(data.preferences);
+        setPreferences((currentPreferences) => {
+          if (!currentPreferences) {
+            return data.preferences;
+          }
+
+          return {
+            ...currentPreferences,
+            ...data.preferences,
+            [key]: value,
+          };
+        });
       } catch (error) {
         console.error("Failed to update preference:", error);
         // 실패 시 롤백
@@ -156,6 +167,9 @@ export function NotificationSettingsCard() {
           Stay updated in real time with issue changes, comments, and project
           invitations.
           {saving && " Saving..."}
+        </p>
+        <p className="text-[12px] text-[var(--app-color-gray-500)]">
+          Permission prompts only appear after you tap the notification control.
         </p>
       </div>
 

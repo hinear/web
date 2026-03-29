@@ -90,4 +90,46 @@ describe("ProjectOverviewScreen", () => {
     ).toBe(true);
     expect(screen.getAllByText("Profile settings").length).toBeGreaterThan(0);
   });
+
+  it("marks the mobile overview header as a safe-area surface", () => {
+    render(
+      <ProjectOverviewScreen
+        project={{
+          id: "project-1",
+          key: "WEB",
+          name: "Web Platform",
+          type: "team",
+          issueSeq: 12,
+          createdBy: "user-1",
+          createdAt: "2026-03-20T00:00:00.000Z",
+          updatedAt: "2026-03-21T03:00:00.000Z",
+        }}
+        projects={[
+          {
+            id: "project-1",
+            key: "WEB",
+            name: "Web Platform",
+            type: "team",
+            issueSeq: 12,
+            createdBy: "user-1",
+            createdAt: "2026-03-20T00:00:00.000Z",
+            updatedAt: "2026-03-21T03:00:00.000Z",
+          },
+        ]}
+        summary={{
+          activeIssueCount: 4,
+          backlogIssueCount: 3,
+          doneIssueCount: 8,
+          inProgressIssueCount: 4,
+          memberCount: 3,
+          pendingInvitationCount: 1,
+          totalIssueCount: 12,
+        }}
+      />
+    );
+
+    expect(screen.getByTestId("project-overview-mobile-header")).toHaveClass(
+      "app-mobile-top-surface"
+    );
+  });
 });

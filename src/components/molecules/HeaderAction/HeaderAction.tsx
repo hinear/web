@@ -79,7 +79,7 @@ export const HeaderAction = React.forwardRef<
     const resolvedDisabled = disabled || !hasAction;
     const Icon = (icon ? iconMap[icon] : null) as LucideIcon | null;
     const classNames = cn(
-      "flex w-fit items-center gap-2 rounded-[10px] border px-3 py-[9px] text-left",
+      "app-mobile-touch-target flex w-fit items-center gap-2 rounded-[10px] border px-3 py-[9px] text-left",
       "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-color-brand-300)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
       variantClassNames[variant],
       className
@@ -146,7 +146,7 @@ export const HeaderSearchField = React.forwardRef<
     return (
       <label
         className={cn(
-          "flex w-[220px] items-center gap-2 rounded-[10px] border border-[var(--app-color-border-soft)] bg-[var(--app-color-white)] px-3 py-[9px] text-left",
+          "app-mobile-touch-target flex w-[220px] items-center gap-2 rounded-[10px] border border-[var(--app-color-border-soft)] bg-[var(--app-color-white)] px-3 py-[9px] text-left",
           "focus-within:ring-2 focus-within:ring-[var(--app-color-brand-300)] focus-within:ring-offset-2",
           className
         )}
