@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { deleteLabel } from "../adapters/labels.js";
-import { toTextContent } from "../lib/content.js";
-import { deleteLabelInputSchema } from "../schemas/label.js";
+import { deleteLabel } from "../adapters/labels";
+import { toTextContent } from "../lib/content";
+import { deleteLabelInputSchema } from "../schemas/label";
 
 export function registerDeleteLabelTool(server: McpServer) {
   server.registerTool(

@@ -146,6 +146,32 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["labels"]["Insert"]>;
         Relationships: [];
       };
+      mcp_access_tokens: {
+        Row: {
+          created_at: string;
+          expires_at: string | null;
+          id: string;
+          last_used_at: string | null;
+          name: string;
+          revoked_at: string | null;
+          token_hash: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          expires_at?: string | null;
+          id?: string;
+          last_used_at?: string | null;
+          name: string;
+          revoked_at?: string | null;
+          token_hash: string;
+          user_id: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["mcp_access_tokens"]["Insert"]
+        >;
+        Relationships: [];
+      };
       project_invitations: {
         Row: {
           accepted_by: string | null;
@@ -258,6 +284,25 @@ export interface Database {
           project_type: Database["public"]["Enums"]["project_type"];
         };
         Returns: Database["public"]["Tables"]["projects"]["Row"];
+      };
+      get_project_board_issues: {
+        Args: {
+          p_project_id: string;
+        };
+        Returns: {
+          assignee: Json | null;
+          created_at: string;
+          due_date: string | null;
+          id: string;
+          identifier: string;
+          issue_number: number;
+          labels: Json;
+          priority: string;
+          project_id: string;
+          status: string;
+          title: string;
+          updated_at: string;
+        }[];
       };
       is_project_member: {
         Args: {

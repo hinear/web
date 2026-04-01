@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { removeMember } from "../adapters/members.js";
-import { toTextContent } from "../lib/content.js";
-import { removeMemberInputSchema } from "../schemas/member.js";
+import { removeMember } from "../adapters/members";
+import { toTextContent } from "../lib/content";
+import { removeMemberInputSchema } from "../schemas/member";
 
 export function registerRemoveMemberTool(server: McpServer) {
   server.registerTool(

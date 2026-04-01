@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { listProjects } from "../adapters/projects.js";
-import { toTextContent } from "../lib/content.js";
-import { listProjectsInputSchema } from "../schemas/project.js";
+import { listProjects } from "../adapters/projects";
+import { toTextContent } from "../lib/content";
+import { listProjectsInputSchema } from "../schemas/project";
 
 export function registerListProjectsTool(server: McpServer) {
   server.registerTool(

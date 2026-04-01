@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { addComment } from "../adapters/comments.js";
-import { toTextContent } from "../lib/content.js";
-import { addCommentInputSchema } from "../schemas/comment.js";
+import { addComment } from "../adapters/comments";
+import { toTextContent } from "../lib/content";
+import { addCommentInputSchema } from "../schemas/comment";
 
 export function registerAddCommentTool(server: McpServer) {
   server.registerTool(

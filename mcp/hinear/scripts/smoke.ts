@@ -1,7 +1,8 @@
+import { spawn } from "node:child_process";
 import process from "node:process";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { MCP_ENV_FILE, readEnvFile } from "./shared.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { MCP_ENV_FILE, REPO_ROOT, readEnvFile } from "./shared.js";
 
 const EXPECTED_TOOL_NAMES = [
   "list_projects",
@@ -82,27 +83,62 @@ function parseJsonText<T>(text: string, label: string): T {
   }
 }
 
+function readHost(env: NodeJS.ProcessEnv) {
+  return env.HINEAR_MCP_HOST?.trim() || "127.0.0.1";
+}
+
+function readPort(env: NodeJS.ProcessEnv) {
+  const value = Number.parseInt(env.HINEAR_MCP_PORT ?? "", 10);
+  return Number.isFinite(value) ? value : 3334;
+}
+
+function readPath(env: NodeJS.ProcessEnv) {
+  const value = env.HINEAR_MCP_PATH?.trim();
+  return value?.startsWith("/") ? value : "/mcp";
+}
+
+async function waitForServer(healthUrl: string, attempts = 40) {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      const response = await fetch(healthUrl);
+
+      if (response.ok) {
+        return;
+      }
+    } catch {}
+
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+
+  throw new Error(`Timed out waiting for MCP server health at ${healthUrl}.`);
+}
+
 async function main() {
   const envEntries = readEnvFile(MCP_ENV_FILE);
   const env = {
     ...process.env,
     ...toEnvRecord(envEntries),
   };
+  const host = readHost(env);
+  const port = readPort(env);
+  const endpointPath = readPath(env);
+  const serverUrl = `http://${host}:${port}${endpointPath}`;
+  const healthUrl = `http://${host}:${port}/health`;
   const client = new Client({
     name: "hinear-smoke-test",
     version: "0.1.0",
   });
-  const transport = new StdioClientTransport({
-    command: "pnpm",
-    args: ["--dir", "/home/choiho/zerone/hinear", "mcp:hinear"],
-    cwd: "/home/choiho/zerone/hinear",
+  const serverProcess = spawn("pnpm", ["--filter", "@hinear/mcp", "dev"], {
+    cwd: REPO_ROOT,
     env,
-    stderr: "inherit",
+    stdio: "inherit",
   });
+  const transport = new StreamableHTTPClientTransport(new URL(serverUrl));
   const writeMode = hasFlag("write");
   const requestedProjectId = readOption("project-id");
 
   try {
+    await waitForServer(healthUrl);
     await client.connect(transport);
 
     const toolsResult = await client.listTools();
@@ -298,7 +334,8 @@ async function main() {
     }
     console.log(`- env file: ${MCP_ENV_FILE}`);
   } finally {
-    await transport.close().catch(() => undefined);
+    await client.close().catch(() => undefined);
+    serverProcess.kill("SIGTERM");
   }
 }
 

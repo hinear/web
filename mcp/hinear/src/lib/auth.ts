@@ -1,9 +1,17 @@
-import { createMcpServiceRoleSupabaseClient } from "./supabase.js";
-import { hashToken } from "./token-utils.js";
+import { AsyncLocalStorage } from "node:async_hooks";
+import { createMcpServiceRoleSupabaseClient } from "./supabase";
+import { hashToken } from "./token-utils";
 
 export type McpSession = {
   accessToken: string | null;
   userId: string | null;
+};
+
+const sessionStorage = new AsyncLocalStorage<McpSession>();
+
+let defaultSession: McpSession = {
+  accessToken: null,
+  userId: null,
 };
 
 export async function resolveAccessToken(
@@ -63,7 +71,33 @@ export async function resolveAccessToken(
   }
 }
 
-export function resolveSession(): McpSession {
+export async function resolveSessionFromInput(
+  session: McpSession
+): Promise<McpSession> {
+  if (session.userId) {
+    return session;
+  }
+
+  if (!session.accessToken) {
+    return session;
+  }
+
+  const resolved = await resolveAccessToken(session.accessToken);
+
+  if (session.accessToken.startsWith("hinear_mcp_")) {
+    return {
+      accessToken: null,
+      userId: resolved.userId,
+    };
+  }
+
+  return {
+    accessToken: session.accessToken,
+    userId: resolved.userId,
+  };
+}
+
+export function resolveSessionFromEnv(): McpSession {
   return {
     accessToken:
       process.env.HINEAR_MCP_ACCESS_TOKEN?.trim() ||
@@ -71,4 +105,21 @@ export function resolveSession(): McpSession {
       null,
     userId: process.env.HINEAR_MCP_USER_ID?.trim() || null,
   };
+}
+
+export async function initializeDefaultSession() {
+  defaultSession = await resolveSessionFromInput(resolveSessionFromEnv());
+  return defaultSession;
+}
+
+export async function runWithMcpSession<T>(
+  session: McpSession,
+  callback: () => Promise<T>
+) {
+  const resolvedSession = await resolveSessionFromInput(session);
+  return sessionStorage.run(resolvedSession, callback);
+}
+
+export function resolveSession(): McpSession {
+  return sessionStorage.getStore() ?? defaultSession;
 }

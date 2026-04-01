@@ -1,21 +1,21 @@
-import { resolveSession } from "../lib/auth.js";
+import { resolveSession } from "../lib/auth";
 import {
   mapHinearPriorityToMcpPriority,
   mapHinearStatusToMcpStatus,
   mapMcpPriorityToHinearPriority,
   mapMcpStatusToHinearStatus,
-} from "../lib/hinear-mappers.js";
+} from "../lib/hinear-mappers";
 import {
   createMcpActorSupabaseClient,
   createMcpServiceRoleSupabaseClient,
   type McpSupabaseClient,
-} from "../lib/supabase.js";
+} from "../lib/supabase";
 import type {
   CreateIssueInput,
   GetIssueDetailInput,
   SearchIssuesInput,
   UpdateIssueStatusInput,
-} from "../schemas/issue.js";
+} from "../schemas/issue";
 
 type IssueRow = {
   id: string;

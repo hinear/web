@@ -1,12 +1,12 @@
-import { resolveSession } from "../lib/auth.js";
-import { createMcpActorSupabaseClient } from "../lib/supabase.js";
+import { resolveSession } from "../lib/auth";
+import { createMcpActorSupabaseClient } from "../lib/supabase";
 import type {
   CreateLabelInput,
   DeleteLabelInput,
   Label,
   ListLabelsInput,
   UpdateLabelInput,
-} from "../schemas/label.js";
+} from "../schemas/label";
 
 /**
  * List all labels for a project

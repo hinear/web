@@ -1,6 +1,6 @@
-import { resolveSession } from "../lib/auth.js";
-import { GitHubClient, getGitHubClient } from "../lib/github-client.js";
-import { createMcpActorSupabaseClient } from "../lib/supabase.js";
+import { resolveSession } from "../lib/auth";
+import { GitHubClient, getGitHubClient } from "../lib/github-client";
+import { createMcpActorSupabaseClient } from "../lib/supabase";
 import type {
   CreateGitHubBranchInput,
   GitHubBranch,
@@ -8,7 +8,7 @@ import type {
   GitHubPRLink,
   LinkGitHubIssueInput,
   LinkGitHubPRInput,
-} from "../schemas/github.js";
+} from "../schemas/github";
 
 /**
  * Create a GitHub branch for an issue

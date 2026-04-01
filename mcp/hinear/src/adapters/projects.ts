@@ -1,6 +1,6 @@
-import { resolveSession } from "../lib/auth.js";
-import { createMcpActorSupabaseClient } from "../lib/supabase.js";
-import type { ListProjectsInput } from "../schemas/project.js";
+import { resolveSession } from "../lib/auth";
+import { createMcpActorSupabaseClient } from "../lib/supabase";
+import type { ListProjectsInput } from "../schemas/project";
 
 type ProjectMembershipRow = {
   project_id: string;

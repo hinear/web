@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { paginationLimitSchema } from "./common.js";
+import { paginationLimitSchema } from "./common";
 
 export const listProjectsInputSchema = {
   include_archived: z.boolean().optional(),

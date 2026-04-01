@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { getIssueDetail } from "../adapters/issues.js";
-import { toTextContent } from "../lib/content.js";
-import { getIssueDetailInputSchema } from "../schemas/issue.js";
+import { getIssueDetail } from "../adapters/issues";
+import { toTextContent } from "../lib/content";
+import { getIssueDetailInputSchema } from "../schemas/issue";
 
 export function registerGetIssueDetailTool(server: McpServer) {
   server.registerTool(

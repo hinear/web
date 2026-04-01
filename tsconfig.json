@@ -35,7 +35,6 @@
   ],
   "exclude": [
     "node_modules",
-    "mcp",
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/*.test.ts.mts"

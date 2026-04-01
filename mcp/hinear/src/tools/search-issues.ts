@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { searchIssues } from "../adapters/issues.js";
-import { toTextContent } from "../lib/content.js";
-import { searchIssuesInputSchema } from "../schemas/issue.js";
+import { searchIssues } from "../adapters/issues";
+import { toTextContent } from "../lib/content";
+import { searchIssuesInputSchema } from "../schemas/issue";
 
 export function registerSearchIssuesTool(server: McpServer) {
   server.registerTool(

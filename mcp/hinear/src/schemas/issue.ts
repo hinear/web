@@ -3,7 +3,7 @@ import {
   issuePrioritySchema,
   issueStatusSchema,
   paginationLimitSchema,
-} from "./common.js";
+} from "./common";
 
 export const searchIssuesInputSchema = {
   project_id: z.string().min(1),

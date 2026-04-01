@@ -1,6 +1,6 @@
 # Hinear MCP
 
-`@hinear/mcp` is the local `stdio` MCP server for Hinear.
+`@hinear/mcp` is the local `Streamable HTTP` MCP server for Hinear.
 
 ## Purpose
 
@@ -76,21 +76,21 @@ After that, `pnpm mcp:hinear` automatically loads that file before starting the 
 
 ## Local MCP config
 
-The repository-level [.mcp.json](/home/choiho/zerone/hinear/.mcp.json) includes a ready-to-use local server entry:
+The repository-level `.mcp.json` includes a ready-to-use local server entry:
 
 ```json
 {
   "mcpServers": {
     "hinear": {
-      "type": "stdio",
-      "command": "pnpm",
-      "args": ["--dir", "/home/choiho/zerone/hinear", "mcp:hinear"]
+      "type": "http",
+      "url": "http://127.0.0.1:3334/mcp"
     }
   }
 }
 ```
 
-The local launcher script loads `mcp/hinear/.env.local`, so the MCP client does not need to forward those env vars directly.
+Start the local server with `pnpm mcp:hinear`, then point your MCP client at `http://127.0.0.1:3334/mcp`.
+The launcher script still loads `mcp/hinear/.env.local`, so the MCP client does not need to forward those env vars directly.
 
 ## Implemented tools
 
@@ -125,9 +125,9 @@ The local launcher script loads `mcp/hinear/.env.local`, so the MCP client does 
 
 ## Current status
 
-The Hinear MCP server is complete with Phase 2/3 features. All 18 tools are connected to real Hinear data paths with proper authentication and access control.
+The Hinear MCP server is complete with Phase 2/3 features. All 18 tools are connected to real Hinear data paths with proper authentication and access control over Streamable HTTP.
 
-You can also run a local smoke test that starts the stdio server through an MCP client, verifies the registered tools, and calls `hinear_mcp_status`:
+You can also run a local smoke test that starts the HTTP server, verifies the registered tools, and calls `hinear_mcp_status`:
 
 ```bash
 pnpm mcp:hinear:smoke

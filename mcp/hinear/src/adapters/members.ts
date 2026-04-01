@@ -1,5 +1,5 @@
-import { resolveSession } from "../lib/auth.js";
-import { createMcpActorSupabaseClient } from "../lib/supabase.js";
+import { resolveSession } from "../lib/auth";
+import { createMcpActorSupabaseClient } from "../lib/supabase";
 import type {
   Invitation,
   InviteMemberInput,
@@ -7,7 +7,7 @@ import type {
   Member,
   RemoveMemberInput,
   UpdateMemberRoleInput,
-} from "../schemas/member.js";
+} from "../schemas/member";
 
 /**
  * List all members for a project

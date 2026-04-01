@@ -1,27 +1,26 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { resolveSession } from "./lib/auth.js";
-import { readEnv } from "./lib/env.js";
-import { registerAddCommentTool } from "./tools/add-comment.js";
-import { registerBatchUpdateIssuesTool } from "./tools/batch-update-issues.js";
-import { registerCreateGitHubBranchTool } from "./tools/create-github-branch.js";
-import { registerCreateIssueTool } from "./tools/create-issue.js";
-import { registerCreateLabelTool } from "./tools/create-label.js";
-import { registerDeleteLabelTool } from "./tools/delete-label.js";
-import { registerGetIssueDetailTool } from "./tools/get-issue-detail.js";
-import { registerInviteMemberTool } from "./tools/invite-member.js";
-import { registerLinkGitHubIssueTool } from "./tools/link-github-issue.js";
-import { registerLinkGitHubPRTool } from "./tools/link-github-pr.js";
-import { registerListLabelsTool } from "./tools/list-labels.js";
-import { registerListMembersTool } from "./tools/list-members.js";
-import { registerListProjectsTool } from "./tools/list-projects.js";
-import { registerRemoveMemberTool } from "./tools/remove-member.js";
-import { registerSearchIssuesTool } from "./tools/search-issues.js";
-import { registerUpdateIssueStatusTool } from "./tools/update-issue-status.js";
-import { registerUpdateLabelTool } from "./tools/update-label.js";
-import { registerUpdateMemberRoleTool } from "./tools/update-member-role.js";
+import { resolveSession } from "./lib/auth";
+import { readEnv } from "./lib/env";
+import { registerAddCommentTool } from "./tools/add-comment";
+import { registerBatchUpdateIssuesTool } from "./tools/batch-update-issues";
+import { registerCreateGitHubBranchTool } from "./tools/create-github-branch";
+import { registerCreateIssueTool } from "./tools/create-issue";
+import { registerCreateLabelTool } from "./tools/create-label";
+import { registerDeleteLabelTool } from "./tools/delete-label";
+import { registerGetIssueDetailTool } from "./tools/get-issue-detail";
+import { registerInviteMemberTool } from "./tools/invite-member";
+import { registerLinkGitHubIssueTool } from "./tools/link-github-issue";
+import { registerLinkGitHubPRTool } from "./tools/link-github-pr";
+import { registerListLabelsTool } from "./tools/list-labels";
+import { registerListMembersTool } from "./tools/list-members";
+import { registerListProjectsTool } from "./tools/list-projects";
+import { registerRemoveMemberTool } from "./tools/remove-member";
+import { registerSearchIssuesTool } from "./tools/search-issues";
+import { registerUpdateIssueStatusTool } from "./tools/update-issue-status";
+import { registerUpdateLabelTool } from "./tools/update-label";
+import { registerUpdateMemberRoleTool } from "./tools/update-member-role";
 
-export function createServer() {
+export function createServer(transport = "streamable-http") {
   const env = readEnv();
   const session = resolveSession();
 
@@ -60,7 +59,7 @@ export function createServer() {
           text: JSON.stringify(
             {
               ok: true,
-              transport: "stdio",
+              transport,
               accessTokenConfigured: Boolean(session.accessToken),
               appOrigin: env.appOrigin,
               supabaseUrlConfigured: Boolean(env.supabaseUrl),
@@ -98,10 +97,4 @@ export function createServer() {
   );
 
   return server;
-}
-
-export async function startServer() {
-  const server = createServer();
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
 }

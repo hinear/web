@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { batchUpdateIssues } from "../adapters/batch.js";
-import { toTextContent } from "../lib/content.js";
-import { batchUpdateIssuesInputSchema } from "../schemas/batch.js";
+import { batchUpdateIssues } from "../adapters/batch";
+import { toTextContent } from "../lib/content";
+import { batchUpdateIssuesInputSchema } from "../schemas/batch";
 
 export function registerBatchUpdateIssuesTool(server: McpServer) {
   server.registerTool(

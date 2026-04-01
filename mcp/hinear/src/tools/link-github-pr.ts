@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { linkGitHubPR } from "../adapters/github.js";
-import { toTextContent } from "../lib/content.js";
-import { linkGitHubPRInputSchema } from "../schemas/github.js";
+import { linkGitHubPR } from "../adapters/github";
+import { toTextContent } from "../lib/content";
+import { linkGitHubPRInputSchema } from "../schemas/github";
 
 export function registerLinkGitHubPRTool(server: McpServer) {
   server.registerTool(

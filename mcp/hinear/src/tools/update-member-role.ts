@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { updateMemberRole } from "../adapters/members.js";
-import { toTextContent } from "../lib/content.js";
-import { updateMemberRoleInputSchema } from "../schemas/member.js";
+import { updateMemberRole } from "../adapters/members";
+import { toTextContent } from "../lib/content";
+import { updateMemberRoleInputSchema } from "../schemas/member";
 
 export function registerUpdateMemberRoleTool(server: McpServer) {
   server.registerTool(

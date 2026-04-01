@@ -1,10 +1,10 @@
-import { resolveSession } from "../lib/auth.js";
-import { createMcpActorSupabaseClient } from "../lib/supabase.js";
+import { resolveSession } from "../lib/auth";
+import { createMcpActorSupabaseClient } from "../lib/supabase";
 import type {
   BatchOperationResult,
   BatchUpdateIssuesInput,
   BatchUpdateOutput,
-} from "../schemas/batch.js";
+} from "../schemas/batch";
 
 /**
  * Batch update multiple issues with parallel execution

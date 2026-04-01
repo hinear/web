@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { updateIssueStatus } from "../adapters/issues.js";
-import { toTextContent } from "../lib/content.js";
-import { updateIssueStatusInputSchema } from "../schemas/issue.js";
+import { updateIssueStatus } from "../adapters/issues";
+import { toTextContent } from "../lib/content";
+import { updateIssueStatusInputSchema } from "../schemas/issue";
 
 export function registerUpdateIssueStatusTool(server: McpServer) {
   server.registerTool(

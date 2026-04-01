@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { inviteMember } from "../adapters/members.js";
-import { toTextContent } from "../lib/content.js";
-import { inviteMemberInputSchema } from "../schemas/member.js";
+import { inviteMember } from "../adapters/members";
+import { toTextContent } from "../lib/content";
+import { inviteMemberInputSchema } from "../schemas/member";
 
 export function registerInviteMemberTool(server: McpServer) {
   server.registerTool(

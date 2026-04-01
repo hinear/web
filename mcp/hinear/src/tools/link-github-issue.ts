@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { linkGitHubIssue } from "../adapters/github.js";
-import { toTextContent } from "../lib/content.js";
-import { linkGitHubIssueInputSchema } from "../schemas/github.js";
+import { linkGitHubIssue } from "../adapters/github";
+import { toTextContent } from "../lib/content";
+import { linkGitHubIssueInputSchema } from "../schemas/github";
 
 export function registerLinkGitHubIssueTool(server: McpServer) {
   server.registerTool(

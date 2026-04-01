@@ -1,5 +1,5 @@
 import { Octokit } from "@octokit/rest";
-import { readEnv } from "./env.js";
+import { readEnv } from "./env";
 
 /**
  * GitHub client wrapper with rate limit handling

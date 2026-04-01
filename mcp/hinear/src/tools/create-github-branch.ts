@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { createGitHubBranch } from "../adapters/github.js";
-import { toTextContent } from "../lib/content.js";
-import { createGitHubBranchInputSchema } from "../schemas/github.js";
+import { createGitHubBranch } from "../adapters/github";
+import { toTextContent } from "../lib/content";
+import { createGitHubBranchInputSchema } from "../schemas/github";
 
 export function registerCreateGitHubBranchTool(server: McpServer) {
   server.registerTool(

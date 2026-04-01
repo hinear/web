@@ -1,6 +1,6 @@
-import { resolveSession } from "../lib/auth.js";
-import { createMcpActorSupabaseClient } from "../lib/supabase.js";
-import type { AddCommentInput } from "../schemas/comment.js";
+import { resolveSession } from "../lib/auth";
+import { createMcpActorSupabaseClient } from "../lib/supabase";
+import type { AddCommentInput } from "../schemas/comment";
 
 function sanitizeCommentBody(body: string) {
   let sanitized = body.replace(/<[^>]*>/g, "");

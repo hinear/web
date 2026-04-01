@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { McpSession } from "./auth.js";
-import { readEnv } from "./env.js";
+import type { McpSession } from "./auth";
+import { readEnv } from "./env";
 
 export type McpSupabaseClient = SupabaseClient;
 

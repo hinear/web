@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { createLabel } from "../adapters/labels.js";
-import { toTextContent } from "../lib/content.js";
-import { createLabelInputSchema } from "../schemas/label.js";
+import { createLabel } from "../adapters/labels";
+import { toTextContent } from "../lib/content";
+import { createLabelInputSchema } from "../schemas/label";
 
 export function registerCreateLabelTool(server: McpServer) {
   server.registerTool(

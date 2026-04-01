@@ -1,15 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-export const MCP_ENV_FILE = path.resolve(
-  "/home/choiho/zerone/hinear",
-  "mcp/hinear/.env.local"
-);
+const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 
-export const ROOT_ENV_FILE = path.resolve(
-  "/home/choiho/zerone/hinear",
-  ".env.local"
-);
+export const REPO_ROOT = path.resolve(scriptDirectory, "../../..");
+
+export const MCP_ENV_FILE = path.resolve(REPO_ROOT, "mcp/hinear/.env.local");
+
+export const ROOT_ENV_FILE = path.resolve(REPO_ROOT, ".env.local");
 
 export function readEnvFile(filePath: string) {
   if (!fs.existsSync(filePath)) {

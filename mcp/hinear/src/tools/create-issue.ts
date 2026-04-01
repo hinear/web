@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { createIssue } from "../adapters/issues.js";
-import { toTextContent } from "../lib/content.js";
-import { createIssueInputSchema } from "../schemas/issue.js";
+import { createIssue } from "../adapters/issues";
+import { toTextContent } from "../lib/content";
+import { createIssueInputSchema } from "../schemas/issue";
 
 export function registerCreateIssueTool(server: McpServer) {
   server.registerTool(
