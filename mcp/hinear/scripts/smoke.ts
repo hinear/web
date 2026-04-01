@@ -67,8 +67,26 @@ function getTextContent(
     return null;
   }
 
-  const textPart = result.content.find((item) => item.type === "text");
-  return textPart?.type === "text" ? textPart.text : null;
+  if (!Array.isArray(result.content)) {
+    return null;
+  }
+
+  const textPart = result.content.find(
+    (
+      item
+    ): item is {
+      type: "text";
+      text: string;
+    } =>
+      typeof item === "object" &&
+      item !== null &&
+      "type" in item &&
+      item.type === "text" &&
+      "text" in item &&
+      typeof item.text === "string"
+  );
+
+  return textPart?.text ?? null;
 }
 
 function parseJsonText<T>(text: string, label: string): T {
