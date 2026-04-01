@@ -12,6 +12,16 @@ interface AuthorizationCodePayload {
   userId: string;
 }
 
+interface RegisteredClientPayload {
+  clientName?: string;
+  expiresAt?: number;
+  grantTypes: string[];
+  redirectUris: string[];
+  responseTypes: string[];
+  scope?: string;
+  tokenEndpointAuthMethod: string;
+}
+
 function toBase64Url(value: Buffer | string) {
   return Buffer.from(value).toString("base64url");
 }
@@ -63,6 +73,48 @@ function decodePayload(code: string): AuthorizationCodePayload | null {
   }
 }
 
+function encodeRegisteredClientPayload(payload: RegisteredClientPayload) {
+  const body = toBase64Url(JSON.stringify(payload));
+  const signature = createSignature(body);
+  return `${body}.${signature}`;
+}
+
+function decodeRegisteredClientPayload(
+  clientId: string
+): RegisteredClientPayload | null {
+  const value = clientId.startsWith("hinear-oauth-client.")
+    ? clientId.slice("hinear-oauth-client.".length)
+    : clientId;
+  const [body, signature] = value.split(".", 2);
+
+  if (!body || !signature) {
+    return null;
+  }
+
+  const expectedSignature = createSignature(body);
+
+  if (
+    signature.length !== expectedSignature.length ||
+    !timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))
+  ) {
+    return null;
+  }
+
+  try {
+    const payload = JSON.parse(
+      fromBase64Url(body).toString("utf8")
+    ) as RegisteredClientPayload;
+
+    if (payload.expiresAt && payload.expiresAt < Date.now()) {
+      return null;
+    }
+
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
 export function buildMcpAuthorizationCode(
   payload: Omit<AuthorizationCodePayload, "expiresAt">
 ) {
@@ -89,6 +141,21 @@ export async function verifyPkceChallenge(
   return actualChallenge === expectedChallenge;
 }
 
+export function buildMcpRegisteredClient(
+  payload: Omit<RegisteredClientPayload, "expiresAt">
+) {
+  const token = encodeRegisteredClientPayload({
+    ...payload,
+    expiresAt: Date.now() + 365 * 24 * 60 * 60 * 1000,
+  });
+
+  return `hinear-oauth-client.${token}`;
+}
+
+export function readMcpRegisteredClient(clientId: string) {
+  return decodeRegisteredClientPayload(clientId);
+}
+
 export function getMcpAuthorizationServerOrigin(appOrigin: string) {
   return appOrigin;
 }
@@ -99,6 +166,10 @@ export function getMcpTokenEndpoint(appOrigin: string) {
 
 export function getMcpAuthorizationEndpoint(appOrigin: string) {
   return new URL("/api/mcp/oauth/authorize", appOrigin).toString();
+}
+
+export function getMcpRegistrationEndpoint(appOrigin: string) {
+  return new URL("/api/mcp/oauth/register", appOrigin).toString();
 }
 
 export function getMcpProtectedResourceMetadataUrl(appOrigin: string) {
@@ -120,6 +191,7 @@ export function buildMcpAuthorizationServerMetadata(appOrigin: string) {
     code_challenge_methods_supported: ["S256"],
     grant_types_supported: ["authorization_code"],
     issuer,
+    registration_endpoint: getMcpRegistrationEndpoint(appOrigin),
     response_types_supported: ["code"],
     scopes_supported: ["mcp:tools"],
     token_endpoint: getMcpTokenEndpoint(appOrigin),
@@ -157,4 +229,29 @@ export function isAllowedRedirectUri(value: string) {
   } catch {
     return false;
   }
+}
+
+export function isValidRegisteredClient(
+  clientId: string,
+  redirectUri?: string | null
+) {
+  const payload = readMcpRegisteredClient(clientId);
+
+  if (!payload) {
+    return false;
+  }
+
+  if (
+    payload.tokenEndpointAuthMethod !== "none" ||
+    !payload.grantTypes.includes("authorization_code") ||
+    !payload.responseTypes.includes("code")
+  ) {
+    return false;
+  }
+
+  if (redirectUri && !payload.redirectUris.includes(redirectUri)) {
+    return false;
+  }
+
+  return true;
 }

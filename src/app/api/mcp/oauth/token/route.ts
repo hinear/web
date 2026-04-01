@@ -1,4 +1,5 @@
 import {
+  isValidRegisteredClient,
   readMcpAuthorizationCode,
   verifyPkceChallenge,
 } from "@/features/mcp/lib/oauth";
@@ -34,6 +35,14 @@ export async function POST(request: Request) {
       "unsupported_grant_type",
       "Only authorization_code is supported."
     );
+  }
+
+  if (
+    !clientId ||
+    !redirectUri ||
+    !isValidRegisteredClient(clientId, redirectUri)
+  ) {
+    return oauthError("invalid_client", "Unknown or invalid client.");
   }
 
   const payload = readMcpAuthorizationCode(code);

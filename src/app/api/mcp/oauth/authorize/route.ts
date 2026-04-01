@@ -4,6 +4,7 @@ import { buildAuthPath } from "@/features/auth/lib/next-path";
 import {
   buildMcpAuthorizationCode,
   isAllowedRedirectUri,
+  isValidRegisteredClient,
 } from "@/features/mcp/lib/oauth";
 import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
 
@@ -40,7 +41,8 @@ export async function GET(request: Request) {
     !redirectUri ||
     !codeChallenge ||
     codeChallengeMethod !== "S256" ||
-    !isAllowedRedirectUri(redirectUri)
+    !isAllowedRedirectUri(redirectUri) ||
+    !isValidRegisteredClient(clientId, redirectUri)
   ) {
     if (redirectUri && isAllowedRedirectUri(redirectUri)) {
       return errorRedirect(redirectUri, "invalid_request", state);
