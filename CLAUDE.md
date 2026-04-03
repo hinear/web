@@ -20,8 +20,15 @@ pnpm build            # Build for production
 
 ## Critical Architecture Notes
 
-### Current Security Warning
-The repository implementations (`SupabaseProjectsRepository`, `SupabaseIssuesRepository`) currently default to `service-role` client for rapid development. This **bypasses RLS** and must be replaced with session-aware server clients before production use. Server actions temporarily use `HINEAR_ACTOR_ID` env var as actor fallback.
+### Security Status
+사용자 요청 경로에서 service-role 클라이언트 사용이 제거되었습니다.
+service-role은 다음 시스템 경로에서만 사용됩니다:
+- 알림 전송 (cross-user 구독 조회)
+- MCP OAuth 토큰 교환 (machine-to-machine)
+- 초대 페이지 (비인증 경로, 토큰 기반 접근 제어)
+- 개발용 테스트 로그인
+- 내부 GitHub API
+- 성능 모니터링 리포지토리 (시스템 전체 가시성 필요)
 
 ### Feature Structure
 Each domain feature follows this pattern:
