@@ -1,12 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getRequestOrigin } from "@/lib/request-origin";
-import { createServerSupabaseClient } from "@/lib/supabase/server-client";
+import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
 
 /**
  * Logout API - Signs out user and redirects to home
  */
 export async function GET(_request: NextRequest) {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createRequestSupabaseServerClient();
 
   await supabase.auth.signOut();
 

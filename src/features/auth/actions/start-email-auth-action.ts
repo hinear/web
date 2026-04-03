@@ -8,10 +8,7 @@ import {
   normalizeNextPath,
 } from "@/features/auth/lib/next-path";
 import { getRequestOrigin } from "@/lib/request-origin";
-import {
-  createRequestSupabaseServerClient,
-  createServerSupabaseClient,
-} from "@/lib/supabase/server-client";
+import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
 
 function readEmail(formData: FormData): string {
   return String(formData.get("email") ?? "").trim();
@@ -75,7 +72,7 @@ export async function startEmailAuthAction(formData: FormData) {
   const redirectTo = new URL("/auth/confirm", await getRequestOrigin());
   redirectTo.searchParams.set("next", next);
 
-  const supabase = createServerSupabaseClient();
+  const supabase = await createRequestSupabaseServerClient();
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {

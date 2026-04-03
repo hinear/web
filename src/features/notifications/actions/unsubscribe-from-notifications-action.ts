@@ -1,9 +1,9 @@
 "use server";
 
-import { createClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import { SupabasePushSubscriptionsRepository } from "@/features/notifications/repositories/supabase-push-subscriptions-repository";
 import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
+import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
 
 export async function unsubscribeFromNotificationsAction(endpoint: string) {
   const userId = await getAuthenticatedActorIdOrNull();
@@ -12,10 +12,7 @@ export async function unsubscribeFromNotificationsAction(endpoint: string) {
     redirect("/auth/signin");
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
-  );
+  const supabase = await createRequestSupabaseServerClient();
 
   const subscriptionsRepo = new SupabasePushSubscriptionsRepository(supabase);
 

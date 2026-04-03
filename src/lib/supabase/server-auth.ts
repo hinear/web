@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { User } from "@supabase/supabase-js";
+import type { AuthUser as User } from "@supabase/supabase-js";
 import { cache } from "react";
 import type { AppSupabaseServerClient } from "@/lib/supabase/server-client";
 import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";

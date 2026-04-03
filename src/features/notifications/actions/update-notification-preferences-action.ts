@@ -1,9 +1,9 @@
 "use server";
 
-import { createClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import { SupabaseNotificationPreferencesRepository } from "@/features/notifications/repositories/supabase-notification-preferences-repository";
 import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
+import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
 
 export async function updateNotificationPreferencesAction(preferences: {
   issue_assigned?: boolean;
@@ -17,10 +17,7 @@ export async function updateNotificationPreferencesAction(preferences: {
     redirect("/auth/signin");
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
-  );
+  const supabase = await createRequestSupabaseServerClient();
 
   const preferencesRepo = new SupabaseNotificationPreferencesRepository(
     supabase

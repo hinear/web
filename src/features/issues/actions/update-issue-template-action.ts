@@ -1,10 +1,10 @@
 "use server";
 
-import { createClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import { SupabaseIssueTemplatesRepository } from "@/features/issues/repositories/supabase-issue-templates-repository";
 import type { UpdateIssueTemplateInput } from "@/features/issues/types/templates";
 import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
+import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
 
 export async function updateIssueTemplateAction(
   templateId: string,
@@ -16,10 +16,7 @@ export async function updateIssueTemplateAction(
     redirect("/auth/signin");
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
-  );
+  const supabase = await createRequestSupabaseServerClient();
 
   const repository = new SupabaseIssueTemplatesRepository(supabase);
 

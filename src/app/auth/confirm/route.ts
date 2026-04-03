@@ -1,5 +1,4 @@
 import { createServerClient } from "@supabase/ssr";
-import type { EmailOtpType } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { normalizeNextPath } from "@/features/auth/lib/next-path";
@@ -22,7 +21,14 @@ export async function GET(request: NextRequest) {
   const { anonKey, url } = getSupabasePublicEnv();
   const next = normalizeNextPath(request.nextUrl.searchParams.get("next"), "/");
   const tokenHash = request.nextUrl.searchParams.get("token_hash");
-  const type = request.nextUrl.searchParams.get("type") as EmailOtpType | null;
+  const type = request.nextUrl.searchParams.get("type") as
+    | "signup"
+    | "invite"
+    | "magiclink"
+    | "recovery"
+    | "email_change"
+    | "email"
+    | null;
 
   const response = NextResponse.redirect(buildRedirectUrl(request, next));
 

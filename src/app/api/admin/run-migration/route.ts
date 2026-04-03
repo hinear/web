@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { requireAuthenticatedActorId } from "@/lib/supabase/server-auth";
-import { createServerSupabaseClient } from "@/lib/supabase/server-client";
+import { createServiceRoleSupabaseClient } from "@/lib/supabase/server-client";
 
 export async function POST(_request: NextRequest) {
   try {
@@ -32,7 +32,7 @@ COMMENT ON COLUMN public.issues.github_synced_at IS 'Last successful sync timest
 COMMENT ON COLUMN public.issues.github_sync_status IS 'Current sync status: pending, synced, or error';
 `;
 
-    const supabase = createServerSupabaseClient();
+    const supabase = createServiceRoleSupabaseClient();
 
     // Execute each statement separately
     const statements = migration
