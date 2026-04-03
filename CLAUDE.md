@@ -53,7 +53,6 @@ Copy `.env.example` to `.env.local` and configure:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `HINEAR_ACTOR_ID` (temporary, to be removed)
 
 ## Key Documentation
 
@@ -67,10 +66,8 @@ Copy `.env.example` to `.env.local` and configure:
 
 ## Next Priority Tasks
 
-1. Replace service-role-first repository usage with session-aware server wiring
-2. Remove `HINEAR_ACTOR_ID` temporary actor fallback
-3. Implement optimistic locking for concurrent edits (MVP 2)
-4. Complete issue detail editing controls
+1. Implement optimistic locking for concurrent edits (MVP 2)
+2. Complete issue detail editing controls
 
 ## Design System
 
