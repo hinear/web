@@ -30,6 +30,7 @@ const COLUMN_LABELS: Record<IssueStatus, string> = {
   Backlog: "Backlog",
   Todo: "Todo",
   "In Progress": "In Progress",
+  "In Review": "In Review",
   Done: "Done",
   Canceled: "Canceled",
 };

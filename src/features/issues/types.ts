@@ -3,6 +3,7 @@ export const ISSUE_STATUSES = [
   "Backlog",
   "Todo",
   "In Progress",
+  "In Review",
   "Done",
   "Closed",
   "Canceled",

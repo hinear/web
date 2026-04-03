@@ -1015,6 +1015,7 @@ export class SupabaseIssuesRepository implements IssuesRepository {
       Backlog: 0,
       Todo: 0,
       "In Progress": 0,
+      "In Review": 0,
       Done: 0,
       Canceled: 0,
       Closed: 0,
