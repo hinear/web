@@ -49,7 +49,10 @@ export interface Database {
           created_at: string;
           id: string;
           issue_id: string;
+          parent_comment_id: string | null;
           project_id: string;
+          thread_id: string | null;
+          updated_at: string | null;
         };
         Insert: {
           author_id: string;
@@ -57,9 +60,118 @@ export interface Database {
           created_at?: string;
           id?: string;
           issue_id: string;
+          parent_comment_id?: string | null;
           project_id: string;
+          thread_id?: string | null;
+          updated_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["comments"]["Insert"]>;
+        Relationships: [];
+      };
+      github_integrations: {
+        Row: {
+          auto_merge: boolean | null;
+          branch_name: string | null;
+          created_at: string | null;
+          github_issue_id: number | null;
+          github_pr_number: number | null;
+          github_repo_full_name: string | null;
+          id: string;
+          issue_id: string;
+          project_id: string;
+          synced_at: string | null;
+        };
+        Insert: {
+          auto_merge?: boolean | null;
+          branch_name?: string | null;
+          created_at?: string | null;
+          github_issue_id?: number | null;
+          github_pr_number?: number | null;
+          github_repo_full_name?: string | null;
+          id?: string;
+          issue_id: string;
+          project_id: string;
+          synced_at?: string | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["github_integrations"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      invitations: {
+        Row: {
+          created_at: string | null;
+          email: string;
+          expires_at: string;
+          id: string;
+          project_id: string;
+          role: string;
+          status: string;
+          token: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          email: string;
+          expires_at?: string;
+          id?: string;
+          project_id: string;
+          role?: string;
+          status?: string;
+          token: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["invitations"]["Insert"]>;
+        Relationships: [];
+      };
+      issue_labels: {
+        Row: {
+          created_at: string;
+          issue_id: string;
+          label_id: string;
+          project_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          issue_id: string;
+          label_id: string;
+          project_id: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["issue_labels"]["Insert"]>;
+        Relationships: [];
+      };
+      issue_templates: {
+        Row: {
+          created_at: string | null;
+          created_by: string | null;
+          default_description: string | null;
+          default_labels: string[] | null;
+          default_priority: string | null;
+          default_status: string;
+          description: string | null;
+          id: string;
+          is_active: boolean | null;
+          name: string;
+          project_id: string;
+          title_template: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          created_by?: string | null;
+          default_description?: string | null;
+          default_labels?: string[] | null;
+          default_priority?: string | null;
+          default_status?: string;
+          description?: string | null;
+          id?: string;
+          is_active?: boolean | null;
+          name: string;
+          project_id: string;
+          title_template?: string;
+          updated_at?: string | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["issue_templates"]["Insert"]
+        >;
         Relationships: [];
       };
       issues: {
@@ -78,6 +190,7 @@ export interface Database {
           issue_number: number;
           priority: string;
           project_id: string;
+          search_vector: string | null;
           status: string;
           title: string;
           updated_at: string;
@@ -106,22 +219,6 @@ export interface Database {
           version?: number;
         };
         Update: Partial<Database["public"]["Tables"]["issues"]["Insert"]>;
-        Relationships: [];
-      };
-      issue_labels: {
-        Row: {
-          created_at: string;
-          issue_id: string;
-          label_id: string;
-          project_id: string;
-        };
-        Insert: {
-          created_at?: string;
-          issue_id: string;
-          label_id: string;
-          project_id: string;
-        };
-        Update: Partial<Database["public"]["Tables"]["issue_labels"]["Insert"]>;
         Relationships: [];
       };
       labels: {
@@ -170,6 +267,224 @@ export interface Database {
         Update: Partial<
           Database["public"]["Tables"]["mcp_access_tokens"]["Insert"]
         >;
+        Relationships: [];
+      };
+      mcp_oauth_auth_codes: {
+        Row: {
+          client_id: string;
+          code_challenge: string | null;
+          code_challenge_method: string | null;
+          code_hash: string;
+          created_at: string;
+          expires_at: string;
+          redirect_uri: string;
+          scope: string;
+          user_id: string;
+        };
+        Insert: {
+          client_id: string;
+          code_challenge?: string | null;
+          code_challenge_method?: string | null;
+          code_hash: string;
+          created_at?: string;
+          expires_at?: string;
+          redirect_uri: string;
+          scope?: string;
+          user_id: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["mcp_oauth_auth_codes"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      mcp_oauth_clients: {
+        Row: {
+          client_id: string;
+          client_name: string | null;
+          client_secret_hash: string;
+          created_at: string;
+          id: string;
+          redirect_uris: Json;
+        };
+        Insert: {
+          client_id: string;
+          client_name?: string | null;
+          client_secret_hash: string;
+          created_at?: string;
+          id?: string;
+          redirect_uris?: Json;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["mcp_oauth_clients"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      notification_preferences: {
+        Row: {
+          comment_added: boolean;
+          created_at: string;
+          issue_assigned: boolean;
+          issue_status_changed: boolean;
+          project_invited: boolean;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          comment_added?: boolean;
+          created_at?: string;
+          issue_assigned?: boolean;
+          issue_status_changed?: boolean;
+          project_invited?: boolean;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["notification_preferences"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      optimization_records: {
+        Row: {
+          after_value: number;
+          before_value: number;
+          bottleneck_id: string;
+          created_at: string;
+          description: string;
+          id: string;
+          implementation: string;
+          improvement_percentage: number;
+          title: string;
+          verified_at: string | null;
+        };
+        Insert: {
+          after_value: number;
+          before_value: number;
+          bottleneck_id: string;
+          created_at?: string;
+          description: string;
+          id?: string;
+          implementation: string;
+          improvement_percentage: number;
+          title: string;
+          verified_at?: string | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["optimization_records"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      performance_baselines: {
+        Row: {
+          created_at: string;
+          critical_threshold: number;
+          id: string;
+          metric_name: string;
+          route: string | null;
+          target_value: number;
+          unit: string;
+          updated_at: string;
+          warning_threshold: number;
+        };
+        Insert: {
+          created_at?: string;
+          critical_threshold: number;
+          id?: string;
+          metric_name: string;
+          route?: string | null;
+          target_value: number;
+          unit: string;
+          updated_at?: string;
+          warning_threshold: number;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["performance_baselines"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      performance_bottlenecks: {
+        Row: {
+          category: string;
+          current_value: number;
+          description: string;
+          id: string;
+          identified_at: string;
+          impact: string;
+          location: string;
+          resolved_at: string | null;
+          severity: string;
+          status: string;
+          suggestion: string;
+          target_value: number;
+          title: string;
+          unit: string;
+        };
+        Insert: {
+          category: string;
+          current_value: number;
+          description: string;
+          id?: string;
+          identified_at?: string;
+          impact: string;
+          location: string;
+          resolved_at?: string | null;
+          severity: string;
+          status: string;
+          suggestion: string;
+          target_value: number;
+          title: string;
+          unit: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["performance_bottlenecks"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      performance_metrics: {
+        Row: {
+          environment: string;
+          id: string;
+          metadata: Json | null;
+          name: string;
+          route: string | null;
+          timestamp: string;
+          unit: string;
+          value: number;
+        };
+        Insert: {
+          environment: string;
+          id?: string;
+          metadata?: Json | null;
+          name: string;
+          route?: string | null;
+          timestamp?: string;
+          unit: string;
+          value: number;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["performance_metrics"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      profiles: {
+        Row: {
+          avatar_url: string | null;
+          created_at: string;
+          display_name: string | null;
+          email: string;
+          email_normalized: string;
+          id: string;
+          updated_at: string;
+        };
+        Insert: {
+          avatar_url?: string | null;
+          created_at?: string;
+          display_name?: string | null;
+          email: string;
+          email_normalized: string;
+          id: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
         Relationships: [];
       };
       project_invitations: {
@@ -222,28 +537,6 @@ export interface Database {
         >;
         Relationships: [];
       };
-      profiles: {
-        Row: {
-          avatar_url: string | null;
-          created_at: string;
-          display_name: string | null;
-          email: string;
-          email_normalized: string;
-          id: string;
-          updated_at: string;
-        };
-        Insert: {
-          avatar_url?: string | null;
-          created_at?: string;
-          display_name?: string | null;
-          email: string;
-          email_normalized: string;
-          id: string;
-          updated_at?: string;
-        };
-        Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
-        Relationships: [];
-      };
       projects: {
         Row: {
           created_at: string;
@@ -272,6 +565,32 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["projects"]["Insert"]>;
+        Relationships: [];
+      };
+      push_subscriptions: {
+        Row: {
+          auth_key: string;
+          created_at: string;
+          endpoint: string;
+          id: string;
+          is_active: boolean;
+          p256dh_key: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          auth_key: string;
+          created_at?: string;
+          endpoint: string;
+          id?: string;
+          is_active?: boolean;
+          p256dh_key: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["push_subscriptions"]["Insert"]
+        >;
         Relationships: [];
       };
     };
