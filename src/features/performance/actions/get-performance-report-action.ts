@@ -5,7 +5,7 @@
 
 import type { PerformanceReport } from "../contracts";
 import { BottleneckStatus } from "../contracts";
-import { performanceMetricsRepository } from "../repositories/performance-metrics-repository";
+import { getServerPerformanceMetricsRepository } from "../repositories/server-performance-metrics-repository";
 import type { PerformanceReportQuery } from "../types";
 
 /**
@@ -26,7 +26,9 @@ export async function getPerformanceReport(
 
   // Fetch metrics
   const metrics =
-    await performanceMetricsRepository.getMetricsByTimeRange(timeRange);
+    await getServerPerformanceMetricsRepository().getMetricsByTimeRange(
+      timeRange
+    );
 
   // Calculate summary statistics
   const summary = {
@@ -46,9 +48,10 @@ export async function getPerformanceReport(
   };
 
   // Fetch bottlenecks
-  const bottlenecks = await performanceMetricsRepository.listBottlenecks({
-    status: BottleneckStatus.IDENTIFIED,
-  });
+  const bottlenecks =
+    await getServerPerformanceMetricsRepository().listBottlenecks({
+      status: BottleneckStatus.IDENTIFIED,
+    });
 
   const bottleneckSummaries = groupBottlenecks(bottlenecks);
 

@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { SupabaseIssuesRepository } from "@/features/issues/repositories/supabase-issues-repository";
 import { SupabaseProjectsRepository } from "@/features/projects/repositories/supabase-projects-repository";
 import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
-import { createServiceRoleSupabaseClient } from "@/lib/supabase/server-client";
+import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
 
 export async function loadIssueDrawerDetail(
   projectId: string,
@@ -17,7 +17,7 @@ export async function loadIssueDrawerDetail(
     throw new Error("Authentication required");
   }
 
-  const supabase = createServiceRoleSupabaseClient();
+  const supabase = await createRequestSupabaseServerClient();
   const issuesRepository = new SupabaseIssuesRepository(supabase);
   const projectsRepository = new SupabaseProjectsRepository(supabase);
 

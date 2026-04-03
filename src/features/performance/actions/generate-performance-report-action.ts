@@ -5,7 +5,7 @@
 
 import type { PerformanceReport } from "../contracts";
 import { generatePerformanceReport as generateReport } from "../lib/analyzer";
-import { performanceMetricsRepository } from "../repositories/performance-metrics-repository";
+import { getServerPerformanceMetricsRepository } from "../repositories/server-performance-metrics-repository";
 import type { PerformanceReportQuery } from "../types";
 
 /**
@@ -24,12 +24,14 @@ export async function generatePerformanceReport(
 ): Promise<PerformanceReport> {
   try {
     // Fetch metrics for the time range
-    const metrics = await performanceMetricsRepository.getMetricsByTimeRange(
-      query.timeRange
-    );
+    const metrics =
+      await getServerPerformanceMetricsRepository().getMetricsByTimeRange(
+        query.timeRange
+      );
 
     // Fetch baselines
-    const baselines = await performanceMetricsRepository.getBaselines();
+    const baselines =
+      await getServerPerformanceMetricsRepository().getBaselines();
     const baselineMap = new Map(
       baselines.map((b) => [
         b.metricName,
@@ -181,13 +183,14 @@ export async function getPerformanceTrends(options: {
       end: new Date(),
     };
 
-    const metrics = await performanceMetricsRepository.getMetricsByTimeRange(
-      timeRange,
-      {
-        name: options.metricName,
-        route: options.route,
-      }
-    );
+    const metrics =
+      await getServerPerformanceMetricsRepository().getMetricsByTimeRange(
+        timeRange,
+        {
+          name: options.metricName,
+          route: options.route,
+        }
+      );
 
     // Sort by timestamp
     const sortedMetrics = metrics.sort(

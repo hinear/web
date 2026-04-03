@@ -1,4 +1,4 @@
-import { createServiceRoleSupabaseClient } from "@/lib/supabase/server-client";
+import type { AppSupabaseServerClient } from "@/lib/supabase/server-client";
 import type {
   BottleneckCategory,
   BottleneckSeverity,
@@ -67,7 +67,7 @@ interface OptimizationRecordRow {
 
 // Repository class
 export class PerformanceMetricsRepository {
-  private supabase = createServiceRoleSupabaseClient();
+  constructor(private supabase: AppSupabaseServerClient) {}
 
   async recordBottleneck(
     bottleneck: Omit<Bottleneck, "id">
@@ -134,7 +134,7 @@ export class PerformanceMetricsRepository {
       route?: string;
     }
   ): Promise<PerformanceMetric[]> {
-    let query = (this.supabase as any)
+    let query = this.supabase
       .from("performance_metrics")
       .select("*")
       .gte("timestamp", timeRange.start.toISOString())
@@ -178,7 +178,7 @@ export class PerformanceMetricsRepository {
     severity?: string;
     status?: string;
   }): Promise<Bottleneck[]> {
-    let query = (this.supabase as any)
+    let query = this.supabase
       .from("performance_bottlenecks")
       .select("*")
       .order("identified_at", { ascending: false });
@@ -222,7 +222,7 @@ export class PerformanceMetricsRepository {
   }
 
   async getBaselines(): Promise<PerformanceBaseline[]> {
-    const { data, error } = await (this.supabase as any)
+    const { data, error } = await this.supabase
       .from("performance_baselines")
       .select("*")
       .order("metric_name");
@@ -327,7 +327,7 @@ export class PerformanceMetricsRepository {
   async getOptimizationRecords(
     bottleneckId: string
   ): Promise<OptimizationRecord[]> {
-    const { data, error } = await (this.supabase as any)
+    const { data, error } = await this.supabase
       .from("optimization_records")
       .select("*")
       .eq("bottleneck_id", bottleneckId)
@@ -355,6 +355,3 @@ export class PerformanceMetricsRepository {
     }));
   }
 }
-
-// Singleton instance
-export const performanceMetricsRepository = new PerformanceMetricsRepository();

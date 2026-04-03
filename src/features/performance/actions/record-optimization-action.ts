@@ -3,7 +3,7 @@
 
 "use server";
 
-import { performanceMetricsRepository } from "../repositories/performance-metrics-repository";
+import { getServerPerformanceMetricsRepository } from "../repositories/server-performance-metrics-repository";
 import type { RecordOptimizationInput } from "../types";
 
 /**
@@ -28,7 +28,7 @@ export async function recordOptimization(
     const improvementPercentage =
       ((input.beforeValue - input.afterValue) / input.beforeValue) * 100;
 
-    await performanceMetricsRepository.saveOptimizationRecord({
+    await getServerPerformanceMetricsRepository().saveOptimizationRecord({
       bottleneckId: input.bottleneckId,
       title: input.title,
       description: input.description,
@@ -42,7 +42,7 @@ export async function recordOptimization(
 
     // Update bottleneck status to RESOLVED
     // TODO: Implement bottleneck status update
-    // await performanceMetricsRepository.updateBottleneckStatus(
+    // await getServerPerformanceMetricsRepository().updateBottleneckStatus(
     //   input.bottleneckId,
     //   "RESOLVED"
     // );
@@ -113,7 +113,9 @@ export async function getOptimizationSummary(bottleneckId: string): Promise<{
 }> {
   try {
     const records =
-      await performanceMetricsRepository.getOptimizationRecords(bottleneckId);
+      await getServerPerformanceMetricsRepository().getOptimizationRecords(
+        bottleneckId
+      );
 
     const totalImprovement = 0; // TODO: Calculate from optimization records
 
@@ -157,9 +159,10 @@ export async function generateOptimizationReport(_options: {
   }>;
 }> {
   try {
-    const bottlenecks = await performanceMetricsRepository.listBottlenecks({
-      status: "RESOLVED",
-    });
+    const bottlenecks =
+      await getServerPerformanceMetricsRepository().listBottlenecks({
+        status: "RESOLVED",
+      });
 
     const totalImprovement = 0;
     const optimizationsByCategory: Record<string, number> = {};
@@ -170,9 +173,10 @@ export async function generateOptimizationReport(_options: {
     }> = [];
 
     for (const bottleneck of bottlenecks) {
-      const records = await performanceMetricsRepository.getOptimizationRecords(
-        bottleneck.id
-      );
+      const records =
+        await getServerPerformanceMetricsRepository().getOptimizationRecords(
+          bottleneck.id
+        );
 
       if (records.length > 0) {
         const averageImprovement =

@@ -8,7 +8,7 @@
  * Baselines include target values, warning thresholds, and critical thresholds.
  */
 
-import { performanceMetricsRepository } from "../repositories/performance-metrics-repository";
+import { getServerPerformanceMetricsRepository } from "../repositories/server-performance-metrics-repository";
 import type { PerformanceBaseline } from "../types";
 
 /**
@@ -130,7 +130,7 @@ export class BaselineManager {
     }
 
     // Save to database
-    const saved = await performanceMetricsRepository.saveBaseline({
+    const saved = await getServerPerformanceMetricsRepository().saveBaseline({
       metricName: baseline.metricName,
       route: baseline.route,
       targetValue: baseline.targetValue,
@@ -269,7 +269,8 @@ export class BaselineManager {
     }
 
     // Fetch from database
-    const baselines = await performanceMetricsRepository.getBaselines();
+    const baselines =
+      await getServerPerformanceMetricsRepository().getBaselines();
 
     // Rebuild cache
     this.baselineCache.clear();

@@ -12,7 +12,7 @@ import {
   type BottleneckSeverity,
   BottleneckStatus,
 } from "../contracts";
-import { performanceMetricsRepository } from "../repositories/performance-metrics-repository";
+import { getServerPerformanceMetricsRepository } from "../repositories/server-performance-metrics-repository";
 import type { PerformanceBottleneck, PerformanceMetric } from "../types";
 import { analyzeMetrics } from "./analyzer";
 import { baselineManager } from "./baseline-manager";
@@ -48,7 +48,7 @@ export class BottleneckTracker {
     status: BottleneckStatus
   ): Promise<void> {
     // TODO: Implement updateBottleneckStatus in repository
-    // await performanceMetricsRepository.updateBottleneckStatus(
+    // await getServerPerformanceMetricsRepository().updateBottleneckStatus(
     //   bottleneckId,
     //   status
     // );
@@ -67,7 +67,7 @@ export class BottleneckTracker {
     status?: BottleneckStatus;
   }): Promise<PerformanceBottleneck[]> {
     const bottlenecks =
-      await performanceMetricsRepository.listBottlenecks(filters);
+      await getServerPerformanceMetricsRepository().listBottlenecks(filters);
     return bottlenecks as any;
   }
 
@@ -78,7 +78,8 @@ export class BottleneckTracker {
     bottleneckId: string
   ): Promise<PerformanceBottleneck | null> {
     // TODO: Implement getBottleneckById in repository
-    const bottlenecks = await performanceMetricsRepository.listBottlenecks();
+    const bottlenecks =
+      await getServerPerformanceMetricsRepository().listBottlenecks();
     return (bottlenecks.find((b: any) => b.id === bottleneckId) || null) as any;
   }
 
@@ -100,7 +101,7 @@ export class BottleneckTracker {
         optimization.beforeValue) *
       100;
 
-    await performanceMetricsRepository.saveOptimizationRecord({
+    await getServerPerformanceMetricsRepository().saveOptimizationRecord({
       bottleneckId,
       title: optimization.title,
       description: optimization.description || "",
@@ -153,10 +154,11 @@ export class BottleneckTracker {
     }
   ): Promise<PerformanceBottleneck[]> {
     // Fetch recent metrics
-    const metrics = await performanceMetricsRepository.getMetricsByTimeRange(
-      timeRange,
-      options
-    );
+    const metrics =
+      await getServerPerformanceMetricsRepository().getMetricsByTimeRange(
+        timeRange,
+        options
+      );
 
     // Identify bottlenecks
     const newBottlenecks = await this.identifyBottlenecks(metrics);
@@ -165,7 +167,9 @@ export class BottleneckTracker {
     const savedBottlenecks: PerformanceBottleneck[] = [];
     for (const bottleneck of newBottlenecks) {
       const saved =
-        await performanceMetricsRepository.saveBottleneck(bottleneck);
+        await getServerPerformanceMetricsRepository().saveBottleneck(
+          bottleneck
+        );
       savedBottlenecks.push(saved);
     }
 

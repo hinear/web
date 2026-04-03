@@ -41,6 +41,8 @@ export default async function InvitePage({
     tokenPrefix,
   });
 
+  // Service-role required: invite page is accessed by unauthenticated users.
+  // The invite token itself serves as the access control mechanism.
   const serviceSupabase = createServiceRoleSupabaseClient();
   const [{ data: project }, { data: inviterProfile }] = await Promise.all([
     serviceSupabase

@@ -1,107 +1,54 @@
-import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
-
-import { buildMcpWwwAuthenticateHeader } from "@/features/mcp/lib/oauth";
-import { getRequestOrigin } from "@/lib/request-origin";
-import {
-  type McpSession,
-  resolveSessionFromInput,
-  runWithMcpSession,
-} from "../../../../mcp/hinear/src/lib/auth";
-import { createServer } from "../../../../mcp/hinear/src/server";
-
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-function getBearerToken(request: Request) {
-  const authorization = request.headers.get("authorization")?.trim();
+const MCP_EXTERNAL_URL_REQUIRED =
+  "HINEAR_MCP_EXTERNAL_URL is required. Set it to the URL of the standalone hinear-mcp service (e.g. http://127.0.0.1:3334/mcp).";
 
-  if (!authorization) {
-    return null;
+function getMcpProxyUrl(): string {
+  const url = process.env.HINEAR_MCP_EXTERNAL_URL?.trim();
+
+  if (!url) {
+    throw new Error(MCP_EXTERNAL_URL_REQUIRED);
   }
 
-  const [scheme, token] = authorization.split(/\s+/, 2);
+  return url;
+}
 
-  if (!scheme || !token || scheme.toLowerCase() !== "bearer") {
-    return null;
+function createUpstreamRequest(request: Request, proxyBase: string): Request {
+  const targetUrl = new URL(proxyBase);
+
+  const originalUrl = new URL(request.url);
+  for (const [key, value] of originalUrl.searchParams.entries()) {
+    targetUrl.searchParams.set(key, value);
   }
 
-  return token.trim();
-}
+  const headers = new Headers(request.headers);
+  headers.set("Host", targetUrl.host);
+  headers.delete("accept-encoding");
 
-function createRequestSession(request: Request): McpSession {
-  const accessToken = getBearerToken(request);
-  const userId = request.headers.get("x-hinear-mcp-user-id")?.trim() || null;
-
-  return {
-    accessToken,
-    userId,
-  };
-}
-
-function methodNotAllowed() {
-  return Response.json(
-    {
-      jsonrpc: "2.0",
-      error: {
-        code: -32000,
-        message: "Method not allowed.",
-      },
-      id: null,
-    },
-    {
-      headers: {
-        Allow: "POST",
-      },
-      status: 405,
-    }
-  );
-}
-
-async function handleMcpRequest(request: Request) {
-  const transport = new WebStandardStreamableHTTPServerTransport({
-    enableJsonResponse: true,
-    sessionIdGenerator: undefined,
+  return new Request(targetUrl, {
+    method: request.method,
+    headers,
+    body: request.body,
+    // @ts-expect-error - duplex is supported in Node.js
+    duplex: "half",
   });
-  const server = createServer("streamable-http");
+}
 
-  await server.connect(transport);
-
-  try {
-    return await transport.handleRequest(request);
-  } finally {
-    await transport.close().catch(() => undefined);
-    await server.close().catch(() => undefined);
-  }
+async function proxyRequest(request: Request) {
+  const proxyUrl = getMcpProxyUrl();
+  const upstreamRequest = createUpstreamRequest(request, proxyUrl);
+  return fetch(upstreamRequest);
 }
 
 export async function POST(request: Request) {
-  const resolvedSession = await resolveSessionFromInput(
-    createRequestSession(request)
-  );
-
-  if (!resolvedSession.userId) {
-    return Response.json(
-      {
-        error: "unauthorized",
-      },
-      {
-        headers: {
-          "WWW-Authenticate": buildMcpWwwAuthenticateHeader(
-            await getRequestOrigin()
-          ),
-        },
-        status: 401,
-      }
-    );
-  }
-
-  return runWithMcpSession(resolvedSession, () => handleMcpRequest(request));
+  return proxyRequest(request);
 }
 
-export async function GET() {
-  return methodNotAllowed();
+export async function GET(request: Request) {
+  return proxyRequest(request);
 }
 
-export async function DELETE() {
-  return methodNotAllowed();
+export async function DELETE(request: Request) {
+  return proxyRequest(request);
 }

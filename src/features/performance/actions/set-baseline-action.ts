@@ -3,7 +3,7 @@
 
 "use server";
 
-import { performanceMetricsRepository } from "../repositories/performance-metrics-repository";
+import { getServerPerformanceMetricsRepository } from "../repositories/server-performance-metrics-repository";
 import type { CreateBaselineInput } from "../types";
 
 /**
@@ -23,7 +23,7 @@ import type { CreateBaselineInput } from "../types";
  */
 export async function setBaseline(input: CreateBaselineInput): Promise<void> {
   try {
-    await performanceMetricsRepository.saveBaseline({
+    await getServerPerformanceMetricsRepository().saveBaseline({
       metricName: input.metricName,
       route: input.route || null,
       targetValue: input.targetValue,
@@ -164,7 +164,7 @@ export async function deleteBaseline(
  */
 export async function getAllBaselines() {
   try {
-    return await performanceMetricsRepository.getBaselines();
+    return await getServerPerformanceMetricsRepository().getBaselines();
   } catch (error) {
     console.error("[getAllBaselines] Failed to get baselines:", error);
     throw error;

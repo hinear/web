@@ -7,7 +7,7 @@
  * Detects performance regressions by comparing current metrics to historical baselines.
  */
 
-import { performanceMetricsRepository } from "../repositories/performance-metrics-repository";
+import { getServerPerformanceMetricsRepository } from "../repositories/server-performance-metrics-repository";
 import type { PerformanceMetric } from "../types";
 import { baselineManager } from "./baseline-manager";
 
@@ -58,7 +58,7 @@ export class RegressionDetector {
 
     // Get current metrics
     const currentMetrics =
-      await performanceMetricsRepository.getMetricsByTimeRange(
+      await getServerPerformanceMetricsRepository().getMetricsByTimeRange(
         timeRange,
         options
       );
@@ -164,13 +164,14 @@ export class RegressionDetector {
     timeRange: { start: Date; end: Date }
   ): Promise<TrendAnalysis> {
     // Get metrics for the time range
-    const metrics = await performanceMetricsRepository.getMetricsByTimeRange(
-      timeRange,
-      {
-        name: metricName,
-        route: route || undefined,
-      }
-    );
+    const metrics =
+      await getServerPerformanceMetricsRepository().getMetricsByTimeRange(
+        timeRange,
+        {
+          name: metricName,
+          route: route || undefined,
+        }
+      );
 
     if (metrics.length < 2) {
       return {
