@@ -41,6 +41,13 @@ function buildClaudeCommandSnippet(endpoint: string, token: string) {
   return `claude mcp add --transport http hinear ${endpoint} --header "Authorization: Bearer ${token}"`;
 }
 
+function buildOAuthClaudeCommand(appOrigin: string | null) {
+  const endpoint = appOrigin
+    ? `${appOrigin}/api/mcp`
+    : "https://hinear.dev/api/mcp";
+  return `claude mcp add hinear ${endpoint}`;
+}
+
 function buildCurlSnippet(endpoint: string, token: string) {
   return [
     `curl -X POST "${endpoint}" \\`,
@@ -187,12 +194,42 @@ export function McpTokenSettingsCard({
               </div>
             </div>
 
+            <div className="rounded-[16px] border border-[#E6E8EC] bg-[#F0F0FF] p-4">
+              <div className="flex flex-col gap-2">
+                <h3 className="text-[15px] font-semibold text-[#5E6AD2]">
+                  Quick connect (OAuth)
+                </h3>
+                <p className="text-[13px] leading-6 text-[#4B5563]">
+                  No token needed. Copy this command and paste into your
+                  terminal — Claude Code will open a browser for sign-in.
+                </p>
+                <div className="flex items-start justify-between gap-3 rounded-[12px] border border-[#D1D5DB] bg-white p-3">
+                  <code className="min-w-0 break-all text-[12px] leading-5 text-[#111318]">
+                    {buildOAuthClaudeCommand(appOrigin)}
+                  </code>
+                  <Button
+                    onClick={() =>
+                      copyText(
+                        buildOAuthClaudeCommand(appOrigin),
+                        "Command copied."
+                      )
+                    }
+                    variant="secondary"
+                    size="sm"
+                  >
+                    Copy
+                  </Button>
+                </div>
+              </div>
+            </div>
+
             <div className="flex flex-col gap-1">
               <h2 className="text-[18px] font-bold text-[#111318]">
                 Create token
               </h2>
               <p className="text-[13px] leading-6 text-[#6B7280]">
-                Give the token a recognizable name and pick an expiration.
+                For clients that don&apos;t support OAuth. Give the token a
+                recognizable name and pick an expiration.
               </p>
             </div>
 
