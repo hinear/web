@@ -6,19 +6,11 @@ import type {
   NotificationData,
   UserPushSubscription,
 } from "@/features/notifications/types";
+import {
+  ensureWebPushConfigured,
+  getWebPushConfig,
+} from "@/lib/notifications/web-push";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/server-client";
-
-const VAPID_PUBLIC_KEY =
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ??
-  process.env.NOTIFICATION_PUBLIC_KEY ??
-  "";
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY ?? "";
-
-webpush.setVapidDetails(
-  "mailto:notifications@hinear.local",
-  VAPID_PUBLIC_KEY,
-  VAPID_PRIVATE_KEY
-);
 
 /**
  * 알림 데이터로부터 대상 사용자 ID 목록을 추출합니다
@@ -153,8 +145,13 @@ function createNotificationPayload(data: NotificationData) {
  */
 async function sendNotification(data: NotificationData): Promise<void> {
   try {
+    if (!ensureWebPushConfigured()) {
+      return;
+    }
+
     const payload = createNotificationPayload(data);
     const targetUserIds = extractTargetUserIds(data);
+    const { privateKey, publicKey, subject } = getWebPushConfig();
 
     if (targetUserIds.length === 0) {
       return;
@@ -180,9 +177,9 @@ async function sendNotification(data: NotificationData): Promise<void> {
       try {
         await webpush.sendNotification(subscription, JSON.stringify(payload), {
           vapidDetails: {
-            subject: "mailto:notifications@hinear.local",
-            publicKey: VAPID_PUBLIC_KEY,
-            privateKey: VAPID_PRIVATE_KEY,
+            subject,
+            publicKey,
+            privateKey,
           },
           TTL: 3600,
         });

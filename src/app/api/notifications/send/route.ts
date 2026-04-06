@@ -7,23 +7,25 @@ import type {
   NotificationData,
   UserPushSubscription,
 } from "@/features/notifications/types";
+import {
+  ensureWebPushConfigured,
+  getWebPushConfig,
+} from "@/lib/notifications/web-push";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/server-client";
-
-const VAPID_PUBLIC_KEY =
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ??
-  process.env.NOTIFICATION_PUBLIC_KEY ??
-  "";
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY ?? "";
-
-webpush.setVapidDetails(
-  "mailto:notifications@hinear.local",
-  VAPID_PUBLIC_KEY,
-  VAPID_PRIVATE_KEY
-);
 
 export async function POST(request: Request) {
   try {
+    if (!ensureWebPushConfigured()) {
+      return apiSuccess({
+        success: true,
+        sent: 0,
+        failed: 0,
+        message: "Web push notifications are not configured.",
+      });
+    }
+
     const notificationData: NotificationData = await request.json();
+    const { privateKey, publicKey, subject } = getWebPushConfig();
 
     // 알림 페이로드 생성
     const payload = createNotificationPayload(notificationData);
@@ -67,9 +69,9 @@ export async function POST(request: Request) {
       try {
         await webpush.sendNotification(subscription, JSON.stringify(payload), {
           vapidDetails: {
-            subject: "mailto:notifications@hinear.local",
-            publicKey: VAPID_PUBLIC_KEY,
-            privateKey: VAPID_PRIVATE_KEY,
+            subject,
+            publicKey,
+            privateKey,
           },
           TTL: 3600,
         });
