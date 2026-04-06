@@ -1,15 +1,40 @@
-// PWA 자동 업데이트 설정
-self.addEventListener("install", (_event) => {
-  // 새 서비스 워커가 설치되면 즉시 활성화
-  self.skipWaiting();
+/// <reference lib="webworker" />
+
+import { defaultCache } from "@serwist/next/worker";
+import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
+import { CacheFirst, ExpirationPlugin, Serwist } from "serwist";
+
+declare global {
+  interface ServiceWorkerGlobalScope extends SerwistGlobalConfig {
+    __SW_MANIFEST: (PrecacheEntry | string)[] | undefined;
+  }
+}
+
+const serwist = new Serwist({
+  precacheEntries: self.__SW_MANIFEST,
+  skipWaiting: true,
+  clientsClaim: true,
+  runtimeCaching: [
+    ...defaultCache,
+    {
+      matcher: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
+      handler: new CacheFirst({
+        cacheName: "static-images",
+        plugins: [
+          new ExpirationPlugin({
+            maxEntries: 64,
+            maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+          }),
+        ],
+      }),
+    },
+  ],
 });
 
-self.addEventListener("activate", (event) => {
-  // 활성화되면 즉시 모든 클라이언트를 제어
-  event.waitUntil(self.clients.claim());
-});
+serwist.addEventListeners();
 
-self.addEventListener("push", (event) => {
+// Push notification handling
+self.addEventListener("push", (event: PushEvent) => {
   let notificationData = {
     title: "Hinear 알림",
     body: "새로운 알림이 있습니다.",
@@ -24,10 +49,9 @@ self.addEventListener("push", (event) => {
     console.error("[Service Worker] Error parsing push data:", error);
   }
 
-  const options = {
+  const options: NotificationOptions = {
     body: notificationData.body || "",
     icon: notificationData.icon || "/icon.png",
-    badge: "/icon.png",
     tag: notificationData.tag,
     data: notificationData.data,
     requireInteraction: true,
@@ -38,7 +62,7 @@ self.addEventListener("push", (event) => {
   );
 });
 
-self.addEventListener("notificationclick", (event) => {
+self.addEventListener("notificationclick", (event: NotificationEvent) => {
   event.notification.close();
 
   const data = event.notification.data;

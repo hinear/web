@@ -1,9 +1,8 @@
 import withBundleAnalyzer from "@next/bundle-analyzer";
+import withSerwist from "@serwist/next";
 import type { NextConfig } from "next";
-import withPWA from "next-pwa";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   experimental: {
     optimizePackageImports: ["@tanstack/react-query", "lucide-react"],
   },
@@ -23,11 +22,9 @@ const withBundleAnalyzerConfig = withBundleAnalyzer({
 });
 
 export default withBundleAnalyzerConfig(
-  withPWA({
-    dest: "public",
+  withSerwist({
+    swSrc: "src/worker/sw.ts",
+    swDest: "public/sw.js",
     disable: process.env.NODE_ENV === "development",
-    register: true,
-    skipWaiting: true,
-    sw: "src/worker/index.js",
   })(nextConfig)
 );

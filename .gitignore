@@ -22,9 +22,7 @@
 /build
 /dist
 /public/sw.js
-/public/workbox-*.js
-/public/worker-*.js
-/public/fallback-*.js
+/public/sw.js.map
 
 # misc
 .DS_Store

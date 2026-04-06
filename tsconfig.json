@@ -37,6 +37,7 @@
     "node_modules",
     "**/*.test.ts",
     "**/*.test.tsx",
-    "**/*.test.ts.mts"
+    "**/*.test.ts.mts",
+    "src/worker"
   ]
 }
