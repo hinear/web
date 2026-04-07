@@ -1,29 +1,22 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
-import { Chip } from "@/components/atoms/Chip";
-import { Select } from "@/components/atoms/Select/Select";
 import { MobileIssueListAppBar } from "@/components/molecules/MobileIssueListAppBar";
 import { LinearDashboardHeader } from "@/components/organisms/LinearDashboardHeader";
 import { MobileIssueSections } from "@/components/organisms/MobileIssueSections";
+import { BoardFilters } from "@/features/issues/board/components/board-filters";
+import { BoardProjectSwitcher } from "@/features/issues/board/components/board-project-switcher";
 import { KanbanBoard } from "@/features/issues/board/components/KanbanBoard";
+import { useBoardFilters } from "@/features/issues/board/hooks/use-board-filters";
 import { useIssueSelection } from "@/features/issues/hooks/useIssueSelection";
 import { useIssues } from "@/features/issues/hooks/useIssues";
 import { prefetchIssueDetail } from "@/features/issues/lib/issue-detail-client-cache";
 import { updateIssueDrawerUrl } from "@/features/issues/lib/issue-drawer-url";
 import { getProjectIssueCreatePath } from "@/features/projects/lib/project-routes";
-import {
-  ISSUE_PRIORITIES,
-  ISSUE_STATUSES,
-  type Issue,
-  type IssuePriority,
-  type IssueStatus,
-} from "@/specs/issue-detail.contract";
+import type { Issue, IssueStatus } from "@/specs/issue-detail.contract";
 
 const CreateIssueTabletModal = dynamic(
   () =>
@@ -41,7 +34,7 @@ const CreateIssueTabletModal = dynamic(
   }
 );
 
-interface KanbanBoardViewProps {
+export interface KanbanBoardViewProps {
   assigneeOptions?: Array<{
     label: string;
     value: string;
@@ -49,6 +42,7 @@ interface KanbanBoardViewProps {
   boardHref?: string;
   createIssueAction?: React.ComponentProps<"form">["action"];
   dashboardHref?: string;
+  initialIssues?: Issue[];
   projectId: string;
   projectKey?: string;
   projectName?: string;
@@ -57,328 +51,6 @@ interface KanbanBoardViewProps {
     href?: string;
     label: string;
   }>;
-}
-
-function MobileProjectSwitcher({
-  projectName,
-  projectOptions = [],
-}: {
-  projectName: string;
-  projectOptions?: Array<{
-    active?: boolean;
-    href?: string;
-    label: string;
-  }>;
-}) {
-  return (
-    <details className="group rounded-[12px] border border-[var(--app-color-border-soft)] bg-[var(--app-color-white)]">
-      <summary className="flex list-none items-center justify-between gap-3 px-3 py-[10px] marker:content-none">
-        <div className="min-w-0">
-          <p className="text-[11px] leading-[11px] font-[var(--app-font-weight-500)] text-[var(--app-color-gray-500)]">
-            Project
-          </p>
-          <p className="mt-[2px] truncate text-[13px] leading-[13px] font-[var(--app-font-weight-600)] text-[var(--app-color-ink-900)]">
-            {projectName}
-          </p>
-        </div>
-        <ChevronDown
-          aria-hidden="true"
-          className="h-4 w-4 shrink-0 text-[var(--app-color-gray-500)] transition-transform group-open:rotate-180"
-        />
-      </summary>
-
-      {projectOptions.length > 0 ? (
-        <div className="border-t border-[var(--app-color-border-soft)] px-2 py-2">
-          <div className="flex flex-col gap-1">
-            {projectOptions.map((project) =>
-              project.href ? (
-                <Link
-                  className={`rounded-[10px] px-[10px] py-[9px] text-[13px] leading-[13px] ${
-                    project.active
-                      ? "bg-[var(--app-color-gray-100)] font-[var(--app-font-weight-600)] text-[var(--app-color-ink-900)]"
-                      : "font-[var(--app-font-weight-500)] text-[#4B5563]"
-                  }`}
-                  href={project.href}
-                  key={project.href}
-                >
-                  {project.label}
-                </Link>
-              ) : (
-                <div
-                  className={`rounded-[10px] px-[10px] py-[9px] text-[13px] leading-[13px] ${
-                    project.active
-                      ? "bg-[var(--app-color-gray-100)] font-[var(--app-font-weight-600)] text-[var(--app-color-ink-900)]"
-                      : "font-[var(--app-font-weight-500)] text-[#4B5563]"
-                  }`}
-                  key={project.label}
-                >
-                  {project.label}
-                </div>
-              )
-            )}
-          </div>
-        </div>
-      ) : null}
-    </details>
-  );
-}
-
-function MobileIssueFilterChips() {
-  return null;
-}
-
-interface BoardFilterState {
-  assigneeId: string;
-  labelId: string;
-  priority: string;
-  search: string;
-  status: string;
-}
-
-interface BoardFiltersProps {
-  activeFilterCount: number;
-  assigneeOptions: Array<{
-    label: string;
-    value: string;
-  }>;
-  availableLabels: Array<{
-    color: string;
-    id: string;
-    name: string;
-  }>;
-  filters: BoardFilterState;
-  onAssigneeChange: (value: string) => void;
-  onClear: () => void;
-  onLabelChange: (value: string) => void;
-  onPriorityChange: (value: string) => void;
-  onSearchChange: (value: string) => void;
-  onStatusChange: (value: string) => void;
-  resultCount: number;
-  totalCount: number;
-}
-
-function getBoardFilterState(
-  searchParams: ReturnType<typeof useSearchParams>
-): BoardFilterState {
-  return {
-    assigneeId: getSingleQueryValue(searchParams, "assigneeIds"),
-    labelId: getSingleQueryValue(searchParams, "labelIds"),
-    priority: getSingleQueryValue(searchParams, "priorities"),
-    search: getSingleQueryValue(searchParams, "search"),
-    status: getSingleQueryValue(searchParams, "statuses"),
-  };
-}
-
-function getSingleQueryValue(
-  searchParams: ReturnType<typeof useSearchParams>,
-  key: string
-) {
-  return searchParams.get(key)?.split(",")[0] ?? "";
-}
-
-function setBoardFilterQuery(
-  pathname: string,
-  searchParams: ReturnType<typeof useSearchParams>,
-  filters: BoardFilterState
-) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  const nextParams = new URLSearchParams(searchParams.toString());
-  const entries: Array<[keyof BoardFilterState, string]> = [
-    ["search", filters.search.trim()],
-    ["status", filters.status],
-    ["priority", filters.priority],
-    ["assigneeId", filters.assigneeId],
-    ["labelId", filters.labelId],
-  ];
-
-  const queryKeyMap: Record<keyof BoardFilterState, string> = {
-    assigneeId: "assigneeIds",
-    labelId: "labelIds",
-    priority: "priorities",
-    search: "search",
-    status: "statuses",
-  };
-
-  for (const [key, value] of entries) {
-    if (value) {
-      nextParams.set(queryKeyMap[key], value);
-    } else {
-      nextParams.delete(queryKeyMap[key]);
-    }
-  }
-
-  const nextQuery = nextParams.toString();
-  const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
-
-  if (window.location.pathname + window.location.search === nextUrl) {
-    return;
-  }
-
-  window.history.replaceState(null, "", nextUrl);
-}
-
-function getAvailableLabels(issues: Issue[]) {
-  const labelsById = new Map<
-    string,
-    {
-      color: string;
-      id: string;
-      name: string;
-    }
-  >();
-
-  for (const issue of issues) {
-    for (const label of issue.labels) {
-      if (!labelsById.has(label.id)) {
-        labelsById.set(label.id, label);
-      }
-    }
-  }
-
-  return [...labelsById.values()].sort((left, right) =>
-    left.name.localeCompare(right.name)
-  );
-}
-
-function BoardFilters({
-  activeFilterCount,
-  assigneeOptions,
-  availableLabels,
-  filters,
-  onAssigneeChange,
-  onClear,
-  onLabelChange,
-  onPriorityChange,
-  onSearchChange,
-  onStatusChange,
-  resultCount,
-  totalCount,
-}: BoardFiltersProps) {
-  const selectableAssigneeOptions = assigneeOptions.filter(
-    (option) => option.value
-  );
-
-  return (
-    <div className="rounded-[18px] border border-[var(--app-color-border-soft)] bg-[var(--app-color-white)] p-4 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
-      <div className="flex flex-col gap-4">
-        <div className="grid gap-3 xl:grid-cols-[minmax(0,2fr)_repeat(4,minmax(0,1fr))]">
-          <label className="flex flex-col gap-2">
-            <span className="text-[11px] font-[var(--app-font-weight-600)] tracking-[0.08em] text-[var(--app-color-gray-500)] uppercase">
-              Search
-            </span>
-            <input
-              className="h-11 rounded-[10px] border border-[var(--app-color-border-soft)] bg-[var(--app-color-white)] px-4 text-[14px] text-[var(--app-color-ink-900)] outline-none transition focus:border-[var(--app-color-brand-300)]"
-              onChange={(event) => onSearchChange(event.target.value)}
-              placeholder="Title, identifier, label..."
-              type="search"
-              value={filters.search}
-            />
-          </label>
-
-          <div className="flex flex-col gap-2">
-            <span className="text-[11px] font-[var(--app-font-weight-600)] tracking-[0.08em] text-[var(--app-color-gray-500)] uppercase">
-              Status
-            </span>
-            <Select onValueChange={onStatusChange} value={filters.status}>
-              <option value="">All statuses</option>
-              {ISSUE_STATUSES.map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </Select>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <span className="text-[11px] font-[var(--app-font-weight-600)] tracking-[0.08em] text-[var(--app-color-gray-500)] uppercase">
-              Priority
-            </span>
-            <Select onValueChange={onPriorityChange} value={filters.priority}>
-              <option value="">All priorities</option>
-              {ISSUE_PRIORITIES.map((priority) => (
-                <option key={priority} value={priority}>
-                  {priority}
-                </option>
-              ))}
-            </Select>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <span className="text-[11px] font-[var(--app-font-weight-600)] tracking-[0.08em] text-[var(--app-color-gray-500)] uppercase">
-              Assignee
-            </span>
-            <Select onValueChange={onAssigneeChange} value={filters.assigneeId}>
-              <option value="">All assignees</option>
-              {selectableAssigneeOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </Select>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <span className="text-[11px] font-[var(--app-font-weight-600)] tracking-[0.08em] text-[var(--app-color-gray-500)] uppercase">
-              Label
-            </span>
-            <Select onValueChange={onLabelChange} value={filters.labelId}>
-              <option value="">All labels</option>
-              {availableLabels.map((label) => (
-                <option key={label.id} value={label.id}>
-                  {label.name}
-                </option>
-              ))}
-            </Select>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <Chip size="sm" variant="accent">
-              {resultCount} of {totalCount} issues
-            </Chip>
-            {filters.status ? (
-              <Chip size="sm" variant="neutral">
-                Status: {filters.status}
-              </Chip>
-            ) : null}
-            {filters.priority ? (
-              <Chip size="sm" variant="neutral">
-                Priority: {filters.priority}
-              </Chip>
-            ) : null}
-            {filters.assigneeId ? (
-              <Chip size="sm" variant="neutral">
-                Assignee filtered
-              </Chip>
-            ) : null}
-            {filters.labelId ? (
-              <Chip size="sm" variant="neutral">
-                Label filtered
-              </Chip>
-            ) : null}
-            {filters.search ? (
-              <Chip size="sm" variant="outline">
-                Search: {filters.search}
-              </Chip>
-            ) : null}
-          </div>
-
-          <button
-            className="rounded-[10px] border border-[var(--app-color-border-soft)] px-3 py-2 text-[12px] font-[var(--app-font-weight-600)] text-[var(--app-color-ink-900)] disabled:opacity-50"
-            disabled={activeFilterCount === 0}
-            onClick={onClear}
-            type="button"
-          >
-            Clear filters
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 export function KanbanBoardView({
@@ -395,30 +67,9 @@ export function KanbanBoardView({
   const router = useRouter();
   const searchParams = useSearchParams();
   const prefetchedIssueIdsRef = React.useRef(new Set<string>());
-  const initialFilterState = React.useMemo(
-    () => getBoardFilterState(searchParams),
-    [searchParams]
-  );
   const [createModalStatus, setCreateModalStatus] =
     React.useState<IssueStatus | null>(null);
-  const [isFilterPanelOpen, setIsFilterPanelOpen] = React.useState(false);
   const [selectionMode, setSelectionMode] = React.useState(false);
-  const [searchInput, setSearchInput] = React.useState(
-    initialFilterState.search
-  );
-  const [statusFilter, setStatusFilter] = React.useState(
-    initialFilterState.status
-  );
-  const [priorityFilter, setPriorityFilter] = React.useState(
-    initialFilterState.priority
-  );
-  const [assigneeFilter, setAssigneeFilter] = React.useState(
-    initialFilterState.assigneeId
-  );
-  const [labelFilter, setLabelFilter] = React.useState(
-    initialFilterState.labelId
-  );
-  const deferredSearchInput = React.useDeferredValue(searchInput);
   const {
     clearSelection,
     selectIssue,
@@ -426,37 +77,34 @@ export function KanbanBoardView({
     selectedIssueIds,
     toggleIssue,
   } = useIssueSelection();
+
+  // Board filter hook manages all filter state, URL sync, and derived data.
+  // We keep a ref to the issues from useIssues so the hook can compute
+  // availableLabels from the latest data without creating a circular
+  // dependency (the hook's issueQueryParams feed useIssues, whose output
+  // feeds back into the hook via the ref).
+  const issuesRef = React.useRef<Issue[]>([]);
+
   const {
-    issues,
-    loading,
-    error,
-    isUpdatingIssues,
-    mutationError,
-    updateIssue,
-  } = useIssues(projectId, {
-    assigneeIds: assigneeFilter ? [assigneeFilter] : [],
-    labelIds: labelFilter ? [labelFilter] : [],
-    priorities: priorityFilter ? [priorityFilter as IssuePriority] : [],
-    searchQuery: deferredSearchInput,
-    statuses: statusFilter ? [statusFilter as IssueStatus] : [],
-  });
-  const availableLabels = getAvailableLabels(issues);
-  const filters: BoardFilterState = {
-    assigneeId: assigneeFilter,
-    labelId: labelFilter,
-    priority: priorityFilter,
-    search: deferredSearchInput.trim(),
-    status: statusFilter,
-  };
-  const filteredIssues = issues;
-  const activeFilterCount = [
-    filters.search,
-    filters.status,
-    filters.priority,
-    filters.assigneeId,
-    filters.labelId,
-  ].filter(Boolean).length;
-  const shouldShowFilters = isFilterPanelOpen || activeFilterCount > 0;
+    filters,
+    filteredIssues,
+    activeFilterCount,
+    shouldShowFilters,
+    searchInput,
+    availableLabels,
+    updateFilterQuery,
+    clearFilters,
+    setSearchInput,
+    toggleFilterPanel,
+    issueQueryParams,
+  } = useBoardFilters({ issues: issuesRef.current });
+
+  // Fetch issues using filter params derived by the hook
+  const { issues, error, isUpdatingIssues, mutationError, updateIssue } =
+    useIssues(projectId, issueQueryParams);
+
+  // Keep the ref in sync so the hook sees the latest issues on re-render
+  issuesRef.current = issues;
 
   const openIssueCreateFlow = React.useCallback(() => {
     if (createIssueAction) {
@@ -515,33 +163,6 @@ export function KanbanBoardView({
   }, [mutationError]);
 
   React.useEffect(() => {
-    const nextFilters = getBoardFilterState(searchParams);
-
-    if (nextFilters.search !== searchInput) {
-      setSearchInput(nextFilters.search);
-    }
-    if (nextFilters.status !== statusFilter) {
-      setStatusFilter(nextFilters.status);
-    }
-    if (nextFilters.priority !== priorityFilter) {
-      setPriorityFilter(nextFilters.priority);
-    }
-    if (nextFilters.assigneeId !== assigneeFilter) {
-      setAssigneeFilter(nextFilters.assigneeId);
-    }
-    if (nextFilters.labelId !== labelFilter) {
-      setLabelFilter(nextFilters.labelId);
-    }
-  }, [
-    assigneeFilter,
-    labelFilter,
-    priorityFilter,
-    searchInput,
-    searchParams,
-    statusFilter,
-  ]);
-
-  React.useEffect(() => {
     if (!createModalStatus) {
       return;
     }
@@ -555,72 +176,6 @@ export function KanbanBoardView({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [createModalStatus]);
-
-  React.useEffect(() => {
-    setBoardFilterQuery(pathname, searchParams, {
-      assigneeId: assigneeFilter,
-      labelId: labelFilter,
-      priority: priorityFilter,
-      search: deferredSearchInput,
-      status: statusFilter,
-    });
-  }, [
-    assigneeFilter,
-    deferredSearchInput,
-    labelFilter,
-    pathname,
-    priorityFilter,
-    searchParams,
-    statusFilter,
-  ]);
-
-  function updateFilterQuery(key: string, value: string) {
-    switch (key) {
-      case "statuses":
-        setStatusFilter(value);
-        break;
-      case "priorities":
-        setPriorityFilter(value);
-        break;
-      case "assigneeIds":
-        setAssigneeFilter(value);
-        break;
-      case "labelIds":
-        setLabelFilter(value);
-        break;
-      default:
-        break;
-    }
-  }
-
-  function clearFilters() {
-    setSearchInput("");
-    setStatusFilter("");
-    setPriorityFilter("");
-    setAssigneeFilter("");
-    setLabelFilter("");
-  }
-
-  if (loading) {
-    return (
-      <div className="flex min-h-[420px] items-center justify-center rounded-[24px] border border-[var(--border)] bg-[#F7F8FA] px-6 py-10">
-        <div className="flex w-full max-w-[420px] flex-col items-center gap-4 text-center">
-          <div className="h-12 w-12 animate-spin rounded-full border-2 border-[#D6DAF8] border-t-[var(--app-color-brand-500)]" />
-          <div className="space-y-2">
-            <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#6B7280]">
-              Loading board
-            </p>
-            <p className="text-[16px] font-semibold text-[#111318]">
-              Fetching the latest issues for {projectName}.
-            </p>
-            <p className="text-[13px] font-medium text-[#6B7280]">
-              Cards and counts will appear as soon as the project data is ready.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -644,14 +199,13 @@ export function KanbanBoardView({
         <div className="flex flex-col gap-4">
           <MobileIssueListAppBar
             onCreateClick={openIssueCreateFlow}
-            onSearchClick={() => setIsFilterPanelOpen((open) => !open)}
+            onSearchClick={toggleFilterPanel}
             title={projectName}
           />
-          <MobileProjectSwitcher
+          <BoardProjectSwitcher
             projectName={projectName}
             projectOptions={projectOptions}
           />
-          <MobileIssueFilterChips />
           {selectionMode ? (
             <div className="flex items-center justify-between rounded-[14px] border border-[#C7D2FE] bg-[#EEF2FF] px-4 py-3">
               <div className="flex flex-col gap-1">
@@ -727,7 +281,7 @@ export function KanbanBoardView({
           filterActive={shouldShowFilters}
           issues={filteredIssues}
           onCreateClick={openIssueCreateFlow}
-          onFilterClick={() => setIsFilterPanelOpen((open) => !open)}
+          onFilterClick={toggleFilterPanel}
           onSearchValueChange={(event) => setSearchInput(event.target.value)}
           onSelectionModeToggle={handleSelectionModeToggle}
           searchValue={searchInput}

@@ -1,18 +1,15 @@
 "use client";
 
-import { CalendarDays, X } from "lucide-react";
+import { X } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import * as React from "react";
-import { toast } from "sonner";
 
 import { Field } from "@/components/atoms/Field";
 import { Select } from "@/components/atoms/Select";
 import { LabelSelector } from "@/components/molecules/LabelSelector";
-import { createLabelAction } from "@/features/issues/actions/create-label-action";
-import { getLabelsAction } from "@/features/issues/actions/get-labels-action";
-import { createLabelKey, getLabelColor } from "@/features/issues/lib/labels";
-import type { Label } from "@/features/issues/types";
+import { MobileDueDateField } from "@/features/issues/create/components/mobile-due-date-field";
+import { useMobileIssueCreate } from "@/features/issues/create/hooks/use-mobile-issue-create";
 import { usePerformanceProfiler } from "@/features/performance/hooks/usePerformanceProfiler";
 import { cn } from "@/lib/utils";
 
@@ -73,66 +70,6 @@ const DEFAULT_ASSIGNEE_OPTIONS: SelectOption[] = [
   { label: "Assign to...", value: "" },
 ];
 
-function formatDueDateLabel(value: string) {
-  if (!value) {
-    return "Select date";
-  }
-
-  const date = new Date(`${value}T00:00:00`);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat("en-US", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(date);
-}
-
-function MobileDueDateField({
-  defaultValue,
-  id,
-  name,
-}: {
-  defaultValue: string;
-  id: string;
-  name: string;
-}) {
-  const [value, setValue] = React.useState(defaultValue);
-
-  return (
-    <div className="relative">
-      <div className="flex h-[41px] items-center justify-between rounded-[10px] border border-[var(--app-color-border-soft)] bg-white px-[12px] py-[10px]">
-        <span
-          className={cn(
-            "text-[13px] leading-[13px]",
-            value
-              ? "font-[var(--app-font-weight-500)] text-[#111318]"
-              : "font-normal text-[#8A90A2]"
-          )}
-        >
-          {formatDueDateLabel(value)}
-        </span>
-        <CalendarDays
-          aria-hidden="true"
-          className="h-[14px] w-[14px] text-[#6B7280]"
-        />
-      </div>
-
-      <input
-        className="absolute inset-0 cursor-pointer opacity-0"
-        defaultValue={defaultValue}
-        id={id}
-        name={name}
-        onChange={(event) => setValue(event.target.value)}
-        type="date"
-      />
-    </div>
-  );
-}
-
 export function MobileIssueCreateScreen({
   action,
   assigneeOptions = DEFAULT_ASSIGNEE_OPTIONS,
@@ -154,123 +91,14 @@ export function MobileIssueCreateScreen({
 
   const formId = React.useId();
   const [description, setDescription] = React.useState(defaultDescription);
-  const parsedDefaultLabels = React.useMemo(
-    () =>
-      defaultLabels
-        ? defaultLabels
-            .split(",")
-            .map((label) => label.trim())
-            .filter(Boolean)
-        : [],
-    [defaultLabels]
-  );
-  const [availableLabels, setAvailableLabels] = React.useState<Label[]>([]);
-  const [selectedLabelIds, setSelectedLabelIds] = React.useState<string[]>([]);
 
-  React.useEffect(() => {
-    let isMounted = true;
-
-    const fallbackLabels: Label[] = parsedDefaultLabels.map((labelName) => ({
-      color: getLabelColor(createLabelKey(labelName)),
-      id: `draft:${createLabelKey(labelName)}`,
-      name: labelName,
-    }));
-
-    if (!projectId) {
-      setAvailableLabels(fallbackLabels);
-      setSelectedLabelIds(fallbackLabels.map((label) => label.id));
-      return () => {
-        isMounted = false;
-      };
-    }
-
-    const currentProjectId = projectId;
-
-    async function loadLabels() {
-      const result = await getLabelsAction(currentProjectId);
-
-      if (!isMounted) {
-        return;
-      }
-
-      const existingLabels = result.success ? result.labels : [];
-      const mergedLabels = [
-        ...existingLabels,
-        ...fallbackLabels.filter(
-          (fallbackLabel) =>
-            !existingLabels.some(
-              (existingLabel) =>
-                createLabelKey(existingLabel.name) ===
-                createLabelKey(fallbackLabel.name)
-            )
-        ),
-      ];
-
-      setAvailableLabels(mergedLabels);
-      setSelectedLabelIds(
-        mergedLabels
-          .filter((label) =>
-            parsedDefaultLabels.some(
-              (defaultLabel) =>
-                createLabelKey(defaultLabel) === createLabelKey(label.name)
-            )
-          )
-          .map((label) => label.id)
-      );
-    }
-
-    loadLabels();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [parsedDefaultLabels, projectId]);
-
-  const selectedLabels = availableLabels.filter((label) =>
-    selectedLabelIds.includes(label.id)
-  );
-  const labelsFormValue = selectedLabels.map((label) => label.name).join(", ");
-
-  const handleLabelToggle = (labelId: string) => {
-    setSelectedLabelIds((current) =>
-      current.includes(labelId)
-        ? current.filter((id) => id !== labelId)
-        : [...current, labelId]
-    );
-  };
-
-  const handleCreateLabel = async (name: string) => {
-    const normalizedName = name.trim();
-    if (!normalizedName) {
-      return;
-    }
-
-    if (!projectId) {
-      const createdLabel: Label = {
-        color: getLabelColor(createLabelKey(normalizedName)),
-        id: `draft:${createLabelKey(normalizedName)}`,
-        name: normalizedName,
-      };
-
-      setAvailableLabels((current) => [...current, createdLabel]);
-      setSelectedLabelIds((current) => [...current, createdLabel.id]);
-      return;
-    }
-
-    const result = await createLabelAction({
-      name: normalizedName,
-      projectId,
-    });
-
-    if (result.success && result.label) {
-      toast.success(`Label "${normalizedName}" created`);
-      setAvailableLabels((current) => [...current, result.label]);
-      setSelectedLabelIds((current) => [...current, result.label.id]);
-      return;
-    }
-
-    toast.error(result.error || "Failed to create label");
-  };
+  const {
+    availableLabels,
+    selectedLabelIds,
+    labelsFormValue,
+    handleLabelToggle,
+    handleCreateLabel,
+  } = useMobileIssueCreate({ defaultLabels, projectId });
 
   return (
     <div className={cn("flex flex-col gap-4", className)}>

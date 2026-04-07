@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect } from "react";
 import { toast } from "sonner";
 
 import { Button, getButtonClassName } from "@/components/atoms/Button";
@@ -23,21 +23,15 @@ import { IssuePanel } from "@/features/issues/detail/components/IssuePanel";
 import { IssuePriorityBadge } from "@/features/issues/detail/components/IssuePriorityBadge";
 import { IssueSectionHeader } from "@/features/issues/detail/components/IssueSectionHeader";
 import { IssueStatusBadge } from "@/features/issues/detail/components/IssueStatusBadge";
-import {
-  getMutationErrorCode,
-  getMutationErrorFallbackMessage,
-  getMutationErrorMessage,
-} from "@/features/issues/lib/mutation-error-messages";
+import { useIssueDetailScreen } from "@/features/issues/detail/hooks/use-issue-detail-screen";
 import { IssueEmptyState } from "@/features/issues/shared/components/IssueEmptyState";
 import { IssueLabelChip } from "@/features/issues/shared/components/IssueLabelChip";
-import type {
-  ActivityLogEntry,
-  Comment,
-  ConflictError,
-  Issue,
-} from "@/features/issues/types";
+import type { ActivityLogEntry, Comment, Issue } from "@/features/issues/types";
 import { ISSUE_PRIORITIES, ISSUE_STATUSES } from "@/features/issues/types";
-import { hasMeaningfulRichTextContent } from "@/lib/rich-text";
+
+// ---------------------------------------------------------------------------
+// Props
+// ---------------------------------------------------------------------------
 
 interface IssueDetailScreenProps {
   boardHref?: string;
@@ -53,48 +47,9 @@ interface IssueDetailStateScreenProps {
   onRetry?: () => void;
 }
 
-interface IssueUpdateResponse {
-  activityLog: ActivityLogEntry[];
-  issue: Issue;
-}
-
-interface CommentCreateResponse {
-  activityEntry: ActivityLogEntry;
-  comment: Comment;
-}
-
-const EMPTY_COMMENTS: Comment[] = [];
-const EMPTY_ACTIVITY_LOG: ActivityLogEntry[] = [];
-
-function isIssueUpdateResponse(value: unknown): value is IssueUpdateResponse {
-  return Boolean(
-    value &&
-      typeof value === "object" &&
-      "issue" in value &&
-      "activityLog" in value
-  );
-}
-
-function isCommentCreateResponse(
-  value: unknown
-): value is CommentCreateResponse {
-  return Boolean(
-    value &&
-      typeof value === "object" &&
-      "comment" in value &&
-      "activityEntry" in value
-  );
-}
-
-function isConflictError(value: unknown): value is ConflictError {
-  return Boolean(
-    value &&
-      typeof value === "object" &&
-      "type" in value &&
-      value.type === "CONFLICT" &&
-      "currentIssue" in value
-  );
-}
+// ---------------------------------------------------------------------------
+// Module-level helper components
+// ---------------------------------------------------------------------------
 
 function DetailPanel({
   children,
@@ -133,6 +88,10 @@ function IssueStateCard({
     </IssuePanel>
   );
 }
+
+// ---------------------------------------------------------------------------
+// State screens (exported for loading.tsx, error.tsx, not-found.tsx)
+// ---------------------------------------------------------------------------
 
 export function IssueDetailLoadingScreen() {
   return (
@@ -268,212 +227,48 @@ export function IssueDetailNotFoundScreen({
   );
 }
 
+// ---------------------------------------------------------------------------
+// Main screen
+// ---------------------------------------------------------------------------
+
 export function IssueDetailScreen({
   boardHref,
   createHref,
   issue,
-  comments = EMPTY_COMMENTS,
-  activityLog = EMPTY_ACTIVITY_LOG,
+  comments,
+  activityLog,
 }: IssueDetailScreenProps) {
-  const router = useRouter();
-  const [issueState, setIssueState] = useState(issue);
-  const [commentsState, setCommentsState] = useState(comments);
-  const [activityState, setActivityState] = useState(activityLog);
-  const [titleDraft, setTitleDraft] = useState(issue.title);
-  const [descriptionDraft, setDescriptionDraft] = useState(issue.description);
-  const [statusDraft, setStatusDraft] = useState(issue.status);
-  const [priorityDraft, setPriorityDraft] = useState(issue.priority);
-  const [dueDateDraft, setDueDateDraft] = useState(
-    issue.dueDate ? new Date(issue.dueDate).toISOString().split("T")[0] : ""
-  );
-  const [assigneeDraft, setAssigneeDraft] = useState(issue.assigneeId ?? "");
-  const [commentDraft, setCommentDraft] = useState("");
-  const [isDescriptionEditorOpen, setIsDescriptionEditorOpen] = useState(false);
-  const [isCommentComposerOpen, setIsCommentComposerOpen] = useState(false);
-  const [conflictInfo, setConflictInfo] = useState<{
-    currentVersion: number;
-    requestedVersion: number;
-  } | null>(null);
-  const [isSaving, startSavingTransition] = useTransition();
-  const hasDescriptionContent = hasMeaningfulRichTextContent(descriptionDraft);
-  const hasCommentContent = hasMeaningfulRichTextContent(commentDraft);
-
-  useEffect(() => {
-    setIssueState(issue);
-    setCommentsState(comments);
-    setActivityState(activityLog);
-    setTitleDraft(issue.title);
-    setDescriptionDraft(issue.description);
-    setStatusDraft(issue.status);
-    setPriorityDraft(issue.priority);
-    setAssigneeDraft(issue.assigneeId ?? "");
-  }, [issue, comments, activityLog]);
-
-  const saveIssueUpdates = (
-    updates: Partial<
-      Pick<
-        Issue,
-        | "assigneeId"
-        | "description"
-        | "dueDate"
-        | "priority"
-        | "status"
-        | "title"
-      >
-    >,
-    successMessage: string
-  ) => {
-    setConflictInfo(null);
-
-    startSavingTransition(async () => {
-      try {
-        const response = await fetch(
-          `/internal/issues/${issueState.id}/detail`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              ...updates,
-              version: issueState.version,
-            }),
-          }
-        );
-        const data = (await response.json()) as unknown;
-
-        if (!response.ok) {
-          if (response.status === 409 && isConflictError(data)) {
-            setIssueState(data.currentIssue);
-            setTitleDraft(data.currentIssue.title);
-            setDescriptionDraft(data.currentIssue.description);
-            setStatusDraft(data.currentIssue.status);
-            setPriorityDraft(data.currentIssue.priority);
-            setAssigneeDraft(data.currentIssue.assigneeId ?? "");
-            setConflictInfo({
-              currentVersion: data.currentVersion,
-              requestedVersion: data.requestedVersion,
-            });
-            return;
-          }
-
-          throw new Error(
-            getMutationErrorMessage({
-              actionLabel: "issue",
-              code: getMutationErrorCode(data),
-              fallbackMessage: getMutationErrorFallbackMessage(data),
-              status: response.status,
-            })
-          );
-        }
-
-        if (!isIssueUpdateResponse(data)) {
-          throw new Error("Invalid issue update response.");
-        }
-
-        setIssueState(data.issue);
-        setActivityState(data.activityLog);
-        setTitleDraft(data.issue.title);
-        setDescriptionDraft(data.issue.description);
-        setStatusDraft(data.issue.status);
-        setPriorityDraft(data.issue.priority);
-        setAssigneeDraft(data.issue.assigneeId ?? "");
-        toast.success(successMessage);
-      } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to update issue."
-        );
-      }
-    });
-  };
-
-  const submitComment = () => {
-    setConflictInfo(null);
-
-    startSavingTransition(async () => {
-      try {
-        const response = await fetch(
-          `/internal/issues/${issueState.id}/comments`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              body: commentDraft,
-            }),
-          }
-        );
-        const data = (await response.json()) as unknown;
-
-        if (!response.ok) {
-          throw new Error(
-            getMutationErrorMessage({
-              actionLabel: "comment",
-              code: getMutationErrorCode(data),
-              fallbackMessage: getMutationErrorFallbackMessage(data),
-              status: response.status,
-            })
-          );
-        }
-
-        if (!isCommentCreateResponse(data)) {
-          throw new Error("Invalid comment response.");
-        }
-
-        setCommentsState((current) => [data.comment, ...current]);
-        setActivityState((current) => [data.activityEntry, ...current]);
-        setCommentDraft("");
-        toast.success("Comment posted.");
-      } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to create comment."
-        );
-      }
-    });
-  };
-
-  const handleDeleteIssue = () => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this issue? This action cannot be undone."
-      )
-    ) {
-      return;
-    }
-
-    startSavingTransition(async () => {
-      try {
-        const response = await fetch(`/internal/issues/${issueState.id}`, {
-          method: "DELETE",
-        });
-
-        const data = (await response.json()) as unknown;
-
-        if (!response.ok) {
-          throw new Error(
-            getMutationErrorMessage({
-              actionLabel: "issue",
-              code: getMutationErrorCode(data),
-              fallbackMessage: getMutationErrorFallbackMessage(data),
-              status: response.status,
-            })
-          );
-        }
-
-        toast.success("Issue deleted successfully.");
-
-        if (boardHref) {
-          router.push(boardHref);
-          router.refresh();
-        }
-      } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to delete issue."
-        );
-      }
-    });
-  };
+  const {
+    activityState,
+    assigneeDraft,
+    commentDraft,
+    commentsState,
+    conflictInfo,
+    descriptionDraft,
+    dueDateDraft,
+    hasCommentContent,
+    hasDescriptionContent,
+    isCommentComposerOpen,
+    isDescriptionEditorOpen,
+    isSaving,
+    issueState,
+    priorityDraft,
+    statusDraft,
+    titleDraft,
+    setAssigneeDraft,
+    setCommentDraft,
+    setCommentComposerOpen,
+    setConflictInfo,
+    setDescriptionDraft,
+    setDescriptionEditorOpen,
+    setDueDateDraft,
+    setPriorityDraft,
+    setStatusDraft,
+    setTitleDraft,
+    handleDeleteIssue,
+    saveIssueUpdates,
+    submitComment,
+  } = useIssueDetailScreen({ boardHref, issue, comments, activityLog });
 
   return (
     <main className="app-shell">
@@ -644,7 +439,7 @@ export function IssueDetailScreen({
                 ) : (
                   <button
                     className="flex min-h-[160px] w-full items-center justify-center rounded-[16px] border border-dashed border-[#D7DCE5] bg-[#FCFCFD] px-6 py-8 text-[14px] font-medium text-[#6B7280] transition hover:border-[#C7D2FE] hover:text-[#3730A3]"
-                    onClick={() => setIsDescriptionEditorOpen(true)}
+                    onClick={() => setDescriptionEditorOpen(true)}
                     type="button"
                   >
                     Edit description
@@ -711,7 +506,7 @@ export function IssueDetailScreen({
                 ) : (
                   <button
                     className="mt-2 flex min-h-[88px] w-full items-center justify-center rounded-[12px] border border-dashed border-[#D7DCE5] bg-white px-4 py-6 text-[13px] font-medium text-[#6B7280] transition hover:border-[#C7D2FE] hover:text-[#3730A3]"
-                    onClick={() => setIsCommentComposerOpen(true)}
+                    onClick={() => setCommentComposerOpen(true)}
                     type="button"
                   >
                     Write a comment

@@ -21,6 +21,7 @@ type IssueUpdateInput = Partial<
 
 interface UseIssuesOptions {
   assigneeIds?: string[];
+  initialIssues?: Issue[];
   labelIds?: string[];
   limit?: number;
   priorities?: IssuePriority[];
@@ -54,12 +55,13 @@ function getUpdatedIssuePayload(value: unknown): Issue | null {
 }
 
 export function useIssues(projectId: string, options: UseIssuesOptions = {}) {
-  const [issues, setIssues] = useState<Issue[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [issues, setIssues] = useState<Issue[]>(options.initialIssues ?? []);
+  const [loading, setLoading] = useState(!options.initialIssues?.length);
   const [error, setError] = useState<Error | null>(null);
   const [mutationError, setMutationError] = useState<Error | null>(null);
   const [pendingIssueIds, setPendingIssueIds] = useState<string[]>([]);
   const pendingIssueIdsRef = useRef<string[]>([]);
+  const hasInitialData = useRef(Boolean(options.initialIssues?.length));
   const searchQuery = options.searchQuery?.trim() ?? "";
   const statuses = normalizeValues(options.statuses);
   const priorities = normalizeValues(options.priorities);
@@ -87,6 +89,12 @@ export function useIssues(projectId: string, options: UseIssuesOptions = {}) {
   );
 
   useEffect(() => {
+    // Skip first fetch when initial data was provided
+    if (hasInitialData.current) {
+      hasInitialData.current = false;
+      return;
+    }
+
     async function fetchIssues() {
       try {
         setLoading(true);

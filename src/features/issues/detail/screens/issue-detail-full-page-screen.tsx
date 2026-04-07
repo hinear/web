@@ -9,9 +9,6 @@ import {
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
-import { toast } from "sonner";
 
 import { Button, getButtonClassName } from "@/components/atoms/Button";
 import { Chip } from "@/components/atoms/Chip";
@@ -21,8 +18,6 @@ import { ConflictDialog } from "@/components/molecules/ConflictDialog";
 import { DueDateField } from "@/components/molecules/DueDateField";
 import { LabelSelector } from "@/components/molecules/LabelSelector";
 import { MarkdownEditor } from "@/components/molecules/MarkdownEditor";
-import { createLabelAction } from "@/features/issues/actions/create-label-action";
-import { updateIssueLabelsAction } from "@/features/issues/actions/update-issue-labels-action";
 import { IssueActivityItem } from "@/features/issues/detail/components/IssueActivityItem";
 import { IssueCommentMeta } from "@/features/issues/detail/components/IssueCommentMeta";
 import { IssueDateMeta } from "@/features/issues/detail/components/IssueDateMeta";
@@ -33,26 +28,22 @@ import { IssuePanel } from "@/features/issues/detail/components/IssuePanel";
 import { IssuePriorityBadge } from "@/features/issues/detail/components/IssuePriorityBadge";
 import { IssueSectionHeader } from "@/features/issues/detail/components/IssueSectionHeader";
 import { IssueStatusBadge } from "@/features/issues/detail/components/IssueStatusBadge";
-import {
-  getMutationErrorCode,
-  getMutationErrorFallbackMessage,
-  getMutationErrorMessage,
-} from "@/features/issues/lib/mutation-error-messages";
+import { useIssueDetailEditor } from "@/features/issues/detail/hooks/use-issue-detail-editor";
 import { IssueAssigneePill } from "@/features/issues/shared/components/IssueAssigneePill";
 import { IssueEmptyState } from "@/features/issues/shared/components/IssueEmptyState";
 import { IssueLabelChip } from "@/features/issues/shared/components/IssueLabelChip";
 import type {
   ActivityLogEntry,
   Comment,
-  ConflictError,
   Issue,
   Label,
 } from "@/features/issues/types";
 import { ISSUE_PRIORITIES, ISSUE_STATUSES } from "@/features/issues/types";
 import { usePerformanceProfiler } from "@/features/performance/hooks/usePerformanceProfiler";
 
-import { getIssueBranchNamePreview } from "@/lib/github/branching";
-import { hasMeaningfulRichTextContent } from "@/lib/rich-text";
+// ---------------------------------------------------------------------------
+// Props
+// ---------------------------------------------------------------------------
 
 interface IssueDetailFullPageScreenProps {
   assigneeOptions?: Array<{
@@ -72,68 +63,22 @@ interface IssueDetailFullPageScreenProps {
   memberNamesById?: Record<string, string>;
 }
 
-interface IssueUpdateResponse {
-  activityLog: ActivityLogEntry[];
-  issue: Issue;
-}
-
-interface CommentCreateResponse {
-  activityEntry: ActivityLogEntry;
-  comment: Comment;
-}
-
-interface GitHubBranchResponse {
-  branchName: string;
-  compareUrl: string;
-  created: boolean;
-  defaultBranch: string;
-  error?: string;
-  installUrl?: string | null;
-  repositoryFullName: string;
-  repositoryUrl: string;
-  success?: boolean;
-}
-
-type GitHubBranchIntent = "branch" | "pr";
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
 
 const EMPTY_COMMENTS: Comment[] = [];
 const EMPTY_ACTIVITY_LOG: ActivityLogEntry[] = [];
 const EMPTY_LABELS: Label[] = [];
 
-function isIssueUpdateResponse(value: unknown): value is IssueUpdateResponse {
-  return Boolean(
-    value &&
-      typeof value === "object" &&
-      "issue" in value &&
-      "activityLog" in value
-  );
-}
-
-function isCommentCreateResponse(
-  value: unknown
-): value is CommentCreateResponse {
-  return Boolean(
-    value &&
-      typeof value === "object" &&
-      "comment" in value &&
-      "activityEntry" in value
-  );
-}
-
-function isConflictError(value: unknown): value is ConflictError {
-  return Boolean(
-    value &&
-      typeof value === "object" &&
-      "type" in value &&
-      value.type === "CONFLICT" &&
-      "currentIssue" in value
-  );
-}
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
 export function IssueDetailFullPageScreen({
   activityLog = EMPTY_ACTIVITY_LOG,
-  assigneeOptions = [],
-  availableLabels: availableLabelsProp = EMPTY_LABELS,
+  assigneeOptions: assigneeOptionsProp = [],
+  availableLabels = EMPTY_LABELS,
   boardHref,
   comments = EMPTY_COMMENTS,
   githubRepository = null,
@@ -141,469 +86,83 @@ export function IssueDetailFullPageScreen({
   issue,
   memberNamesById = {},
 }: IssueDetailFullPageScreenProps) {
-  const router = useRouter();
   // Enable performance profiling for issue detail pages (1% sampling in production)
   usePerformanceProfiler(process.env.NODE_ENV === "production");
 
-  const [issueState, setIssueState] = useState(issue);
-  const [commentsState, setCommentsState] = useState(comments);
-  const [activityState, setActivityState] = useState(activityLog);
-  const [titleDraft, setTitleDraft] = useState(issue.title);
-  const [descriptionDraft, setDescriptionDraft] = useState(issue.description);
-  const [statusDraft, setStatusDraft] = useState(issue.status);
-  const [priorityDraft, setPriorityDraft] = useState(issue.priority);
-  const [assigneeDraft, setAssigneeDraft] = useState(issue.assigneeId ?? "");
-  const [dueDateDraft, setDueDateDraft] = useState(issue.dueDate);
-  const [selectedLabelIds, setSelectedLabelIds] = useState<string[]>(() =>
-    issue.labels.map((label) => label.id)
-  );
-  const [availableLabels, setAvailableLabels] =
-    useState<Label[]>(availableLabelsProp);
-  const [commentDraft, setCommentDraft] = useState("");
-  const [now, setNow] = useState(() =>
-    Number.isFinite(initialNow) ? initialNow : Date.now()
-  );
-
-  useEffect(() => {
-    setAvailableLabels(availableLabelsProp);
-    setSelectedLabelIds(issue.labels.map((label) => label.id));
-  }, [issue, availableLabelsProp]);
-  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
-  const [editingCommentBody, setEditingCommentBody] = useState("");
-  const [conflictInfo, setConflictInfo] = useState<{
-    currentVersion: number;
-    requestedVersion: number;
-  } | null>(null);
-  const [isSaving, startSavingTransition] = useTransition();
-  const [isGitHubPending, startGitHubTransition] = useTransition();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [githubBranchName, setGitHubBranchName] = useState<string | null>(null);
-  const [branchModalIntent, setBranchModalIntent] =
-    useState<GitHubBranchIntent | null>(null);
-  const [branchTitleDraft, setBranchTitleDraft] = useState("");
-  const hasCommentContent = hasMeaningfulRichTextContent(commentDraft);
-  const hasEditingCommentContent =
-    hasMeaningfulRichTextContent(editingCommentBody);
-
-  useEffect(() => {
-    setNow(Date.now());
-  }, []);
-
-  // Close mobile menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest(".mobile-menu-container")) {
-        setMobileMenuOpen(false);
-      }
-    };
-
-    if (mobileMenuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () =>
-        document.removeEventListener("mousedown", handleClickOutside);
-    }
-  }, [mobileMenuOpen]);
-
-  useEffect(() => {
-    setIssueState(issue);
-    setCommentsState(comments);
-    setActivityState(activityLog);
-    setTitleDraft(issue.title);
-    setDescriptionDraft(issue.description);
-    setStatusDraft(issue.status);
-    setPriorityDraft(issue.priority);
-    setAssigneeDraft(issue.assigneeId ?? "");
-    setDueDateDraft(issue.dueDate);
-    setSelectedLabelIds(issue.labels.map((label) => label.id));
-  }, [issue, comments, activityLog]);
-
-  useEffect(() => {
-    setBranchTitleDraft(issue.title);
-  }, [issue.title]);
-
-  const hasPendingChanges =
-    titleDraft.trim() !== issueState.title ||
-    descriptionDraft !== issueState.description ||
-    statusDraft !== issueState.status ||
-    priorityDraft !== issueState.priority ||
-    assigneeDraft.trim() !== (issueState.assigneeId ?? "") ||
-    dueDateDraft !== issueState.dueDate ||
-    // 라벨 변경 확인 (Set으로 비교)
-    JSON.stringify([...selectedLabelIds].sort()) !==
-      JSON.stringify([...issueState.labels.map((l) => l.id)].sort());
-  const assigneeLabel =
-    memberNamesById[issueState.assigneeId ?? ""] ??
-    issueState.assigneeId ??
-    "Unassigned";
-  const lastEditedByLabel =
-    memberNamesById[issueState.updatedBy] ?? issueState.updatedBy;
-
-  const handleLabelToggle = (labelId: string) => {
-    setSelectedLabelIds((current) =>
-      current.includes(labelId)
-        ? current.filter((id) => id !== labelId)
-        : [...current, labelId]
-    );
-  };
-
-  const handleCreateLabel = async (name: string) => {
-    const result = await createLabelAction({
-      projectId: issue.projectId,
-      name,
-    });
-
-    if (result.success && result.label) {
-      toast.success(`Label "${name}" created`);
-      // 새 라벨을 목록에 추가하고 자동으로 선택
-      setAvailableLabels((current) => [...current, result.label]);
-      setSelectedLabelIds((current) => [...current, result.label.id]);
-    } else {
-      toast.error(result.error || "Failed to create label");
-    }
-  };
-
-  const saveAllChanges = () => {
-    setConflictInfo(null);
-
-    startSavingTransition(async () => {
-      try {
-        // 라벨 업데이트 (별도 API 호출)
-        const labelResponse = await updateIssueLabelsAction({
-          issueId: issueState.id,
-          projectId: issueState.projectId,
-          labelIds: selectedLabelIds,
-        });
-
-        if (!labelResponse.success) {
-          throw new Error(labelResponse.error || "Failed to update labels");
-        }
-
-        const response = await fetch(
-          `/internal/issues/${issueState.id}/detail`,
-          {
-            body: JSON.stringify({
-              assigneeId: assigneeDraft.trim() || null,
-              description: descriptionDraft,
-              dueDate: dueDateDraft,
-              priority: priorityDraft,
-              status: statusDraft,
-              title: titleDraft.trim(),
-              version: issueState.version,
-            }),
-            headers: {
-              "Content-Type": "application/json",
-            },
-            method: "PATCH",
-          }
-        );
-        const data = (await response.json()) as unknown;
-
-        if (!response.ok) {
-          if (response.status === 409 && isConflictError(data)) {
-            setIssueState(data.currentIssue);
-            setTitleDraft(data.currentIssue.title);
-            setDescriptionDraft(data.currentIssue.description);
-            setStatusDraft(data.currentIssue.status);
-            setPriorityDraft(data.currentIssue.priority);
-            setAssigneeDraft(data.currentIssue.assigneeId ?? "");
-            setDueDateDraft(data.currentIssue.dueDate);
-            setConflictInfo({
-              currentVersion: data.currentVersion,
-              requestedVersion: data.requestedVersion,
-            });
-            return;
-          }
-
-          throw new Error(
-            getMutationErrorMessage({
-              actionLabel: "issue",
-              code: getMutationErrorCode(data),
-              fallbackMessage: getMutationErrorFallbackMessage(data),
-              status: response.status,
-            })
-          );
-        }
-
-        if (!isIssueUpdateResponse(data)) {
-          throw new Error("Invalid issue update response.");
-        }
-
-        setIssueState(data.issue);
-        setActivityState(data.activityLog);
-        setTitleDraft(data.issue.title);
-        setDescriptionDraft(data.issue.description);
-        setStatusDraft(data.issue.status);
-        setPriorityDraft(data.issue.priority);
-        setAssigneeDraft(data.issue.assigneeId ?? "");
-        setDueDateDraft(data.issue.dueDate);
-        // 라벨은 이미 updateIssueLabelsAction에서 업데이트됨
-        setSelectedLabelIds(data.issue.labels.map((label) => label.id));
-        toast.success("Changes saved.");
-      } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to save changes."
-        );
-      }
-    });
-  };
-
-  const submitComment = () => {
-    setConflictInfo(null);
-
-    startSavingTransition(async () => {
-      try {
-        const response = await fetch(
-          `/internal/issues/${issueState.id}/comments`,
-          {
-            body: JSON.stringify({ body: commentDraft }),
-            headers: {
-              "Content-Type": "application/json",
-            },
-            method: "POST",
-          }
-        );
-        const data = (await response.json()) as unknown;
-
-        if (!response.ok) {
-          throw new Error(
-            getMutationErrorMessage({
-              actionLabel: "comment",
-              code: getMutationErrorCode(data),
-              fallbackMessage: getMutationErrorFallbackMessage(data),
-              status: response.status,
-            })
-          );
-        }
-
-        if (!isCommentCreateResponse(data)) {
-          throw new Error("Invalid comment response.");
-        }
-
-        setCommentsState((current) => [data.comment, ...current]);
-        setActivityState((current) => [data.activityEntry, ...current]);
-        setCommentDraft("");
-        toast.success("Comment posted.");
-      } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to create comment."
-        );
-      }
-    });
-  };
-
-  const startEditComment = (commentId: string, body: string) => {
-    setEditingCommentId(commentId);
-    setEditingCommentBody(body);
-  };
-
-  const cancelEditComment = () => {
-    setEditingCommentId(null);
-    setEditingCommentBody("");
-  };
-
-  const saveCommentEdit = async (commentId: string) => {
-    startSavingTransition(async () => {
-      try {
-        const response = await fetch(
-          `/internal/issues/${issueState.id}/comments/${commentId}`,
-          {
-            body: JSON.stringify({ body: editingCommentBody }),
-            headers: {
-              "Content-Type": "application/json",
-            },
-            method: "PATCH",
-          }
-        );
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            getMutationErrorMessage({
-              actionLabel: "comment",
-              code: getMutationErrorCode(data),
-              fallbackMessage: getMutationErrorFallbackMessage(data),
-              status: response.status,
-            })
-          );
-        }
-
-        setCommentsState((current) =>
-          current.map((comment) =>
-            comment.id === commentId
-              ? { ...comment, body: data.comment.body }
-              : comment
-          )
-        );
-        cancelEditComment();
-        toast.success("Comment updated.");
-      } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to update comment."
-        );
-      }
-    });
-  };
-
-  const deleteComment = async (commentId: string) => {
-    if (!confirm("Are you sure you want to delete this comment?")) {
-      return;
-    }
-
-    startSavingTransition(async () => {
-      try {
-        const response = await fetch(
-          `/internal/issues/${issueState.id}/comments/${commentId}`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-            method: "DELETE",
-          }
-        );
-
-        if (!response.ok) {
-          const data = await response.json();
-          throw new Error(
-            getMutationErrorMessage({
-              actionLabel: "comment",
-              code: getMutationErrorCode(data),
-              fallbackMessage: getMutationErrorFallbackMessage(data),
-              status: response.status,
-            })
-          );
-        }
-
-        setCommentsState((current) =>
-          current.filter((comment) => comment.id !== commentId)
-        );
-        toast.success("Comment deleted.");
-      } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to delete comment."
-        );
-      }
-    });
-  };
-
-  const handleDeleteIssue = () => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this issue? This action cannot be undone."
-      )
-    ) {
-      return;
-    }
-
-    startSavingTransition(async () => {
-      try {
-        const response = await fetch(`/internal/issues/${issueState.id}`, {
-          method: "DELETE",
-        });
-
-        const data = (await response.json()) as unknown;
-
-        if (!response.ok) {
-          throw new Error(
-            getMutationErrorMessage({
-              actionLabel: "issue",
-              code: getMutationErrorCode(data),
-              fallbackMessage: getMutationErrorFallbackMessage(data),
-              status: response.status,
-            })
-          );
-        }
-
-        toast.success("Issue deleted successfully.");
-
-        if (boardHref) {
-          router.push(boardHref);
-          router.refresh();
-        }
-      } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to delete issue."
-        );
-      }
-    });
-  };
-
-  const ensureGitHubBranch = (
-    openPullRequest: boolean,
-    branchTitle: string
-  ) => {
-    startGitHubTransition(async () => {
-      try {
-        const response = await fetch(
-          `/internal/issues/${issueState.id}/github/branch`,
-          {
-            body: JSON.stringify({
-              branchTitle,
-            }),
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        const data = (await response.json()) as GitHubBranchResponse;
-
-        if (!response.ok || !data.success) {
-          if (response.status === 409 && data.installUrl) {
-            toast.info("Redirecting to GitHub App installation...");
-            window.location.href = data.installUrl;
-            return;
-          }
-
-          throw new Error(data.error ?? "Failed to prepare GitHub workflow.");
-        }
-
-        setGitHubBranchName(data.branchName);
-        setBranchModalIntent(null);
-
-        if (openPullRequest) {
-          window.open(data.compareUrl, "_blank", "noopener,noreferrer");
-          toast.success(`Opened PR flow for ${data.branchName}.`);
-          return;
-        }
-
-        if (navigator.clipboard?.writeText) {
-          await navigator.clipboard.writeText(data.branchName);
-          toast.success(
-            data.created
-              ? `Branch ${data.branchName} created and copied.`
-              : `Branch ${data.branchName} is ready and copied.`
-          );
-          return;
-        }
-
-        toast.success(
-          data.created
-            ? `Branch ${data.branchName} created.`
-            : `Branch ${data.branchName} is ready.`
-        );
-      } catch (error) {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Failed to prepare GitHub workflow."
-        );
-      }
-    });
-  };
-
-  const branchNamePreview = getIssueBranchNamePreview(
+  const {
+    activityState,
+    assigneeDraft,
+    assigneeLabel,
+    assigneeOptions,
+    availableLabels: editorAvailableLabels,
+    boardHref: editorBoardHref,
+    branchModalIntent,
+    branchNamePreview,
+    branchTitleDraft,
+    commentDraft,
+    commentsState,
+    conflictInfo,
+    descriptionDraft,
+    dueDateDraft,
+    editingCommentBody,
+    editingCommentId,
+    githubBranchName,
+    githubRepository: editorGithubRepository,
+    hasCommentContent,
+    hasEditingCommentContent,
+    hasPendingChanges,
+    isBranchTitleValid,
+    isGitHubPending,
+    isSaving,
     issueState,
-    branchTitleDraft
-  );
-  const isBranchTitleValid = branchTitleDraft.trim().length > 0;
+    lastEditedByLabel,
+    memberNamesById: editorMemberNamesById,
+    mobileMenuOpen,
+    now,
+    priorityDraft,
+    selectedLabelIds,
+    statusDraft,
+    titleDraft,
 
-  const openBranchModal = (intent: GitHubBranchIntent) => {
-    setBranchTitleDraft(issueState.title);
-    setBranchModalIntent(intent);
-  };
+    // Setters
+    setAssigneeDraft,
+    setBranchModalIntent,
+    setBranchTitleDraft,
+    setCommentDraft,
+    setConflictInfo,
+    setDescriptionDraft,
+    setDueDateDraft,
+    setEditingCommentBody,
+    setMobileMenuOpen,
+    setPriorityDraft,
+    setStatusDraft,
+    setTitleDraft,
 
-  const gitHubWorkflowCard = githubRepository ? (
+    // Event handlers
+    cancelEditComment,
+    deleteComment,
+    ensureGitHubBranch,
+    handleCreateLabel,
+    handleDeleteIssue,
+    handleLabelToggle,
+    openBranchModal,
+    saveAllChanges,
+    saveCommentEdit,
+    startEditComment,
+    submitComment,
+  } = useIssueDetailEditor({
+    activityLog,
+    assigneeOptions: assigneeOptionsProp,
+    availableLabels,
+    boardHref,
+    comments,
+    githubRepository,
+    initialNow,
+    issue,
+    memberNamesById,
+  });
+
+  const gitHubWorkflowCard = editorGithubRepository ? (
     <section className="rounded-[16px] border border-[#E6E8EC] bg-white p-4">
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -620,7 +179,7 @@ export function IssueDetailFullPageScreen({
             </p>
           </div>
           <div className="rounded-full border border-[#E6E8EC] bg-[#FCFCFD] px-3 py-1 text-[11px] font-[var(--app-font-weight-600)] text-[#4B5563]">
-            {githubRepository.owner}/{githubRepository.name}
+            {editorGithubRepository.owner}/{editorGithubRepository.name}
           </div>
         </div>
 
@@ -754,6 +313,9 @@ export function IssueDetailFullPageScreen({
         </div>
       ) : null}
 
+      {/* ----------------------------------------------------------------- */}
+      {/* Mobile layout                                                      */}
+      {/* ----------------------------------------------------------------- */}
       <div className="flex flex-col gap-4 px-4 py-4 md:hidden">
         {conflictInfo ? (
           <ConflictDialog
@@ -765,11 +327,11 @@ export function IssueDetailFullPageScreen({
 
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2">
-            {boardHref ? (
+            {editorBoardHref ? (
               <Link
                 aria-label="Back to board"
                 className="inline-flex h-4 w-4 items-center justify-center text-[#111318]"
-                href={boardHref}
+                href={editorBoardHref}
               >
                 <ChevronLeft aria-hidden="true" className="h-4 w-4" />
               </Link>
@@ -876,7 +438,8 @@ export function IssueDetailFullPageScreen({
                   <div className="flex items-start justify-between gap-3">
                     <IssueCommentMeta
                       authorLabel={
-                        memberNamesById[comment.authorId] ?? comment.authorId
+                        editorMemberNamesById[comment.authorId] ??
+                        comment.authorId
                       }
                       className="[&_span:first-child]:text-[11px] [&_span:first-child]:font-[var(--app-font-weight-600)] [&_span:last-child]:text-[11px]"
                       createdAt={comment.createdAt}
@@ -988,8 +551,9 @@ export function IssueDetailFullPageScreen({
               variant="relative"
             />
             {"\n"}Author{" "}
-            {memberNamesById[issueState.createdBy] ?? issueState.createdBy} ·{" "}
-            Last editor {lastEditedByLabel}
+            {editorMemberNamesById[issueState.createdBy] ??
+              issueState.createdBy}{" "}
+            · Last editor {lastEditedByLabel}
           </p>
         </section>
 
@@ -1008,7 +572,9 @@ export function IssueDetailFullPageScreen({
               .slice(0, 2)
               .map((entry) => (
                 <IssueActivityItem
-                  actorLabel={memberNamesById[entry.actorId] ?? entry.actorId}
+                  actorLabel={
+                    editorMemberNamesById[entry.actorId] ?? entry.actorId
+                  }
                   className="rounded-[12px] bg-[#FCFCFD] px-3 py-[10px]"
                   key={entry.id}
                   createdAt={entry.createdAt}
@@ -1027,6 +593,9 @@ export function IssueDetailFullPageScreen({
         </section>
       </div>
 
+      {/* ----------------------------------------------------------------- */}
+      {/* Desktop layout                                                     */}
+      {/* ----------------------------------------------------------------- */}
       <div className="hidden flex-col gap-6 px-8 py-6 md:flex">
         {conflictInfo ? (
           <ConflictDialog
@@ -1047,10 +616,10 @@ export function IssueDetailFullPageScreen({
           </div>
 
           <div className="flex items-center gap-3">
-            {boardHref ? (
+            {editorBoardHref ? (
               <Link
                 className={getButtonClassName("secondary", "sm")}
-                href={boardHref}
+                href={editorBoardHref}
               >
                 Close detail view
               </Link>
@@ -1162,7 +731,7 @@ export function IssueDetailFullPageScreen({
 
               <div className="mt-4">
                 <LabelSelector
-                  availableLabels={availableLabels.map((label) => ({
+                  availableLabels={editorAvailableLabels.map((label) => ({
                     id: label.id,
                     name: label.name,
                     color: label.color,
@@ -1246,7 +815,7 @@ export function IssueDetailFullPageScreen({
                       <div className="flex items-center justify-between gap-3">
                         <IssueCommentMeta
                           authorLabel={
-                            memberNamesById[comment.authorId] ??
+                            editorMemberNamesById[comment.authorId] ??
                             comment.authorId
                           }
                           createdAt={comment.createdAt}
@@ -1374,7 +943,7 @@ export function IssueDetailFullPageScreen({
                     .map((entry) => (
                       <IssueActivityItem
                         actorLabel={
-                          memberNamesById[entry.actorId] ?? entry.actorId
+                          editorMemberNamesById[entry.actorId] ?? entry.actorId
                         }
                         createdAt={entry.createdAt}
                         key={entry.id}

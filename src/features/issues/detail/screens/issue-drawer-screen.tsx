@@ -2,8 +2,6 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
-import { toast } from "sonner";
 
 import { Button } from "@/components/atoms/Button";
 import { Field } from "@/components/atoms/Field";
@@ -11,27 +9,16 @@ import { Select } from "@/components/atoms/Select";
 import { ConflictDialog } from "@/components/molecules/ConflictDialog";
 import { DueDateField } from "@/components/molecules/DueDateField";
 import { LabelSelector } from "@/components/molecules/LabelSelector";
-import { createLabelAction } from "@/features/issues/actions/create-label-action";
-import { updateIssueLabelsAction } from "@/features/issues/actions/update-issue-labels-action";
 import { IssueActivityItem } from "@/features/issues/detail/components/IssueActivityItem";
 import { IssueDateMeta } from "@/features/issues/detail/components/IssueDateMeta";
 import { IssueFieldBlock } from "@/features/issues/detail/components/IssueFieldBlock";
 import { IssueMetaRow } from "@/features/issues/detail/components/IssueMetaRow";
 import { IssuePanel } from "@/features/issues/detail/components/IssuePanel";
 import { IssueSectionHeader } from "@/features/issues/detail/components/IssueSectionHeader";
-import {
-  getMutationErrorCode,
-  getMutationErrorFallbackMessage,
-  getMutationErrorMessage,
-} from "@/features/issues/lib/mutation-error-messages";
+import { useIssueDrawerEditor } from "@/features/issues/detail/hooks/use-issue-drawer-editor";
 import { IssueAssigneePill } from "@/features/issues/shared/components/IssueAssigneePill";
 import { IssueEmptyState } from "@/features/issues/shared/components/IssueEmptyState";
-import type {
-  ActivityLogEntry,
-  ConflictError,
-  Issue,
-  Label,
-} from "@/features/issues/types";
+import type { ActivityLogEntry, Issue, Label } from "@/features/issues/types";
 import { ISSUE_PRIORITIES, ISSUE_STATUSES } from "@/features/issues/types";
 
 interface IssueDetailDrawerScreenProps {
@@ -50,14 +37,6 @@ interface IssueDetailDrawerScreenProps {
   onClose?: () => void;
 }
 
-interface IssueUpdateResponse {
-  activityLog: ActivityLogEntry[];
-  issue: Issue;
-}
-
-const EMPTY_ACTIVITY_LOG: ActivityLogEntry[] = [];
-const EMPTY_LABELS: Label[] = [];
-
 const MarkdownEditor = dynamic(
   () =>
     import("@/components/molecules/MarkdownEditor").then((module) => ({
@@ -71,28 +50,9 @@ const MarkdownEditor = dynamic(
   }
 );
 
-function isIssueUpdateResponse(value: unknown): value is IssueUpdateResponse {
-  return Boolean(
-    value &&
-      typeof value === "object" &&
-      "issue" in value &&
-      "activityLog" in value
-  );
-}
-
-function isConflictError(value: unknown): value is ConflictError {
-  return Boolean(
-    value &&
-      typeof value === "object" &&
-      "type" in value &&
-      value.type === "CONFLICT" &&
-      "currentIssue" in value
-  );
-}
-
 export function IssueDetailDrawerScreen({
-  activityLog = EMPTY_ACTIVITY_LOG,
-  availableLabels: availableLabelsProp = EMPTY_LABELS,
+  activityLog,
+  availableLabels,
   assigneeOptions,
   boardHref,
   createdByName,
@@ -102,170 +62,39 @@ export function IssueDetailDrawerScreen({
   memberNamesById = {},
   onClose,
 }: IssueDetailDrawerScreenProps) {
-  const [issueState, setIssueState] = useState(issue);
-  const [activityState, setActivityState] = useState(activityLog);
-  const [titleDraft, setTitleDraft] = useState(issue.title);
-  const [descriptionDraft, setDescriptionDraft] = useState(issue.description);
-  const [statusDraft, setStatusDraft] = useState(issue.status);
-  const [priorityDraft, setPriorityDraft] = useState(issue.priority);
-  const [assigneeDraft, setAssigneeDraft] = useState(issue.assigneeId ?? "");
-  const [dueDateDraft, setDueDateDraft] = useState(issue.dueDate);
-  const [selectedLabelIds, setSelectedLabelIds] = useState<string[]>(() =>
-    issue.labels.map((label) => label.id)
-  );
-  const [availableLabels, setAvailableLabels] =
-    useState<Label[]>(availableLabelsProp);
-  const [now] = useState(() => Date.now());
-  const [conflictInfo, setConflictInfo] = useState<{
-    currentVersion: number;
-    requestedVersion: number;
-  } | null>(null);
-  const [isSaving, startSavingTransition] = useTransition();
-
-  useEffect(() => {
-    setIssueState(issue);
-    setActivityState(activityLog);
-    setTitleDraft(issue.title);
-    setDescriptionDraft(issue.description);
-    setStatusDraft(issue.status);
-    setPriorityDraft(issue.priority);
-    setAssigneeDraft(issue.assigneeId ?? "");
-    setDueDateDraft(issue.dueDate);
-    setSelectedLabelIds(issue.labels.map((label) => label.id));
-  }, [activityLog, issue]);
-
-  useEffect(() => {
-    setAvailableLabels(availableLabelsProp);
-    setSelectedLabelIds(issue.labels.map((label) => label.id));
-  }, [availableLabelsProp, issue]);
-
-  const hasPendingChanges =
-    titleDraft.trim() !== issueState.title ||
-    descriptionDraft !== issueState.description ||
-    statusDraft !== issueState.status ||
-    priorityDraft !== issueState.priority ||
-    assigneeDraft.trim() !== (issueState.assigneeId ?? "") ||
-    dueDateDraft !== issueState.dueDate ||
-    JSON.stringify([...selectedLabelIds].sort()) !==
-      JSON.stringify([...issueState.labels.map((label) => label.id)].sort());
-
-  const handleLabelToggle = (labelId: string) => {
-    setSelectedLabelIds((current) =>
-      current.includes(labelId)
-        ? current.filter((id) => id !== labelId)
-        : [...current, labelId]
-    );
-  };
-
-  const handleCreateLabel = async (name: string) => {
-    const result = await createLabelAction({
-      projectId: issue.projectId,
-      name,
-    });
-
-    if (result.success && result.label) {
-      toast.success(`Label "${name}" created`);
-      setAvailableLabels((current) => [...current, result.label]);
-      setSelectedLabelIds((current) => [...current, result.label.id]);
-      return;
-    }
-
-    toast.error(result.error || "Failed to create label");
-  };
-
-  function saveChanges() {
-    setConflictInfo(null);
-
-    startSavingTransition(async () => {
-      try {
-        const labelResponse = await updateIssueLabelsAction({
-          issueId: issueState.id,
-          projectId: issueState.projectId,
-          labelIds: selectedLabelIds,
-        });
-
-        if (!labelResponse.success) {
-          throw new Error(labelResponse.error || "Failed to update labels");
-        }
-
-        const response = await fetch(
-          `/internal/issues/${issueState.id}/detail`,
-          {
-            body: JSON.stringify({
-              assigneeId: assigneeDraft.trim() || null,
-              description: descriptionDraft,
-              dueDate: dueDateDraft,
-              priority: priorityDraft,
-              status: statusDraft,
-              title: titleDraft.trim(),
-              version: issueState.version,
-            }),
-            headers: {
-              "Content-Type": "application/json",
-            },
-            method: "PATCH",
-          }
-        );
-        const data = (await response.json()) as unknown;
-
-        if (!response.ok) {
-          if (response.status === 409 && isConflictError(data)) {
-            setIssueState(data.currentIssue);
-            setTitleDraft(data.currentIssue.title);
-            setDescriptionDraft(data.currentIssue.description);
-            setStatusDraft(data.currentIssue.status);
-            setPriorityDraft(data.currentIssue.priority);
-            setAssigneeDraft(data.currentIssue.assigneeId ?? "");
-            setDueDateDraft(data.currentIssue.dueDate);
-            setConflictInfo({
-              currentVersion: data.currentVersion,
-              requestedVersion: data.requestedVersion,
-            });
-            return;
-          }
-
-          throw new Error(
-            getMutationErrorMessage({
-              actionLabel: "issue",
-              code: getMutationErrorCode(data),
-              fallbackMessage: getMutationErrorFallbackMessage(data),
-              status: response.status,
-            })
-          );
-        }
-
-        if (!isIssueUpdateResponse(data)) {
-          throw new Error("Invalid issue update response.");
-        }
-
-        setIssueState(data.issue);
-        setActivityState(data.activityLog);
-        setTitleDraft(data.issue.title);
-        setDescriptionDraft(data.issue.description);
-        setStatusDraft(data.issue.status);
-        setPriorityDraft(data.issue.priority);
-        setAssigneeDraft(data.issue.assigneeId ?? "");
-        setDueDateDraft(data.issue.dueDate);
-        setSelectedLabelIds(data.issue.labels.map((label) => label.id));
-        toast.success("Drawer changes saved.");
-      } catch (error) {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Failed to save drawer changes."
-        );
-      }
-    });
-  }
-
-  const visibleActivity = activityState.slice(0, 3);
+  const {
+    assigneeDraft,
+    availableLabels: resolvedLabels,
+    conflictInfo,
+    descriptionDraft,
+    dismissConflict,
+    dueDateDraft,
+    handleCreateLabel,
+    handleLabelToggle,
+    hasPendingChanges,
+    isSaving,
+    issueState,
+    now,
+    priorityDraft,
+    saveChanges,
+    selectedLabelIds,
+    setAssigneeDraft,
+    setDescriptionDraft,
+    setDueDateDraft,
+    setPriorityDraft,
+    setStatusDraft,
+    setTitleDraft,
+    statusDraft,
+    titleDraft,
+    visibleActivity,
+  } = useIssueDrawerEditor({ activityLog, availableLabels, issue });
 
   return (
     <aside className="pointer-events-auto my-6 mr-6 flex h-[calc(100vh-48px)] w-full flex-col gap-4 overflow-hidden rounded-[16px] border border-[#E6E8EC] bg-white p-6 shadow-[0_0_60px_-12px_rgba(15,23,42,0.25)]">
       {conflictInfo ? (
         <ConflictDialog
           currentVersion={conflictInfo.currentVersion}
-          onDismiss={() => setConflictInfo(null)}
+          onDismiss={dismissConflict}
           requestedVersion={conflictInfo.requestedVersion}
         />
       ) : null}
@@ -396,7 +225,7 @@ export function IssueDetailDrawerScreen({
               Labels
             </span>
             <LabelSelector
-              availableLabels={availableLabels.map((label) => ({
+              availableLabels={resolvedLabels.map((label) => ({
                 color: label.color,
                 id: label.id,
                 name: label.name,
