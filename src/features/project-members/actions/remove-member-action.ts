@@ -1,26 +1,25 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import type { RemoveMemberActionInput } from "@/features/project-members/contracts";
 import { canRemoveMember } from "@/features/project-members/lib/access-control";
 import { assertValidRemoveMemberInput } from "@/features/project-members/lib/membership-validation";
-import { SupabaseProjectMembersRepository } from "@/features/project-members/repositories/SupabaseProjectMembersRepository";
-import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
+import { getServerProjectMembersRepository } from "@/features/project-members/repositories/server-project-members-repository";
+import { requireAuthenticatedActorId } from "@/lib/supabase/server-auth";
 
 export async function removeMemberAction(
-  projectId: string,
-  userId: string,
-  removedBy: string
+  input: RemoveMemberActionInput
 ): Promise<void> {
-  // Validate input
-  assertValidRemoveMemberInput(projectId, userId, removedBy);
+  const actorId = await requireAuthenticatedActorId();
 
-  const supabase = await createRequestSupabaseServerClient();
-  const repository = new SupabaseProjectMembersRepository(supabase);
+  assertValidRemoveMemberInput(input);
+
+  const repository = await getServerProjectMembersRepository();
 
   // Check if actor has permission
   const actorRole = await repository.getMemberRole({
-    projectId,
-    userId: removedBy,
+    projectId: input.projectId,
+    userId: actorId,
   });
 
   if (!actorRole) {
@@ -28,14 +27,17 @@ export async function removeMemberAction(
   }
 
   // Get target member role
-  const targetMember = await repository.getMemberById(projectId, userId);
+  const targetMember = await repository.getMemberById(
+    input.projectId,
+    input.userId
+  );
 
   if (!targetMember) {
     throw new Error("멤버를 찾을 수 없습니다.");
   }
 
   // Check if last owner
-  const isLastOwner = await repository.isLastOwner(projectId);
+  const isLastOwner = await repository.isLastOwner(input.projectId);
 
   const accessCheck = canRemoveMember(
     actorRole,
@@ -47,9 +49,13 @@ export async function removeMemberAction(
   }
 
   // Remove member
-  await repository.removeMember({ projectId, userId, removedBy });
+  await repository.removeMember({
+    projectId: input.projectId,
+    userId: input.userId,
+    removedBy: actorId,
+  });
 
   // Revalidate project pages
-  revalidatePath(`/projects/${projectId}`);
+  revalidatePath(`/projects/${input.projectId}`);
   revalidatePath("/projects", "layout");
 }

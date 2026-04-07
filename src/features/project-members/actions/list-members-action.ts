@@ -1,15 +1,15 @@
 "use server";
 
 import type { ListMembersInput } from "@/features/project-members/contracts";
-import { SupabaseProjectMembersRepository } from "@/features/project-members/repositories/SupabaseProjectMembersRepository";
+import { getServerProjectMembersRepository } from "@/features/project-members/repositories/server-project-members-repository";
 import type { ProjectMember } from "@/features/project-members/types";
-import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
+import { requireAuthenticatedActorId } from "@/lib/supabase/server-auth";
 
 export async function listMembersAction(
   input: ListMembersInput
 ): Promise<ProjectMember[]> {
-  const supabase = await createRequestSupabaseServerClient();
-  const repository = new SupabaseProjectMembersRepository(supabase);
+  await requireAuthenticatedActorId();
+  const repository = await getServerProjectMembersRepository();
 
   return repository.listMembers(input);
 }

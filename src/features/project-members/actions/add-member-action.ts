@@ -1,26 +1,26 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import type { AddMemberInput } from "@/features/project-members/contracts";
+import type { AddMemberActionInput } from "@/features/project-members/contracts";
 import { canAddMember } from "@/features/project-members/lib/access-control";
 import { assertValidAddMemberInput } from "@/features/project-members/lib/membership-validation";
-import { SupabaseProjectMembersRepository } from "@/features/project-members/repositories/SupabaseProjectMembersRepository";
+import { getServerProjectMembersRepository } from "@/features/project-members/repositories/server-project-members-repository";
 import type { ProjectMember } from "@/features/project-members/types";
-import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
+import { requireAuthenticatedActorId } from "@/lib/supabase/server-auth";
 
 export async function addMemberAction(
-  input: AddMemberInput
+  input: AddMemberActionInput
 ): Promise<ProjectMember> {
-  // Validate input
+  const actorId = await requireAuthenticatedActorId();
+
   assertValidAddMemberInput(input);
 
-  const supabase = await createRequestSupabaseServerClient();
-  const repository = new SupabaseProjectMembersRepository(supabase);
+  const repository = await getServerProjectMembersRepository();
 
   // Check if actor has permission
   const actorRole = await repository.getMemberRole({
     projectId: input.projectId,
-    userId: input.addedBy,
+    userId: actorId,
   });
 
   if (!actorRole) {
@@ -33,7 +33,10 @@ export async function addMemberAction(
   }
 
   // Add member
-  const member = await repository.addMember(input);
+  const member = await repository.addMember({
+    ...input,
+    addedBy: actorId,
+  });
 
   // Revalidate project pages
   revalidatePath(`/projects/${input.projectId}`);

@@ -5,6 +5,34 @@
 import type { ProjectMemberRole } from "@/features/projects/types";
 import type { MemberRole, ProjectMember } from "./types";
 
+// Client-facing action input types (no user identity fields — injected from session)
+export interface AddMemberActionInput {
+  projectId: string;
+  userId: string;
+  role: MemberRole;
+}
+
+export interface RemoveMemberActionInput {
+  projectId: string;
+  userId: string;
+}
+
+export interface UpdateRoleActionInput {
+  projectId: string;
+  userId: string;
+  role: MemberRole;
+}
+
+export interface CheckAccessActionInput {
+  projectId: string;
+  permission: string;
+}
+
+export interface GetMemberRoleActionInput {
+  projectId: string;
+}
+
+// Repository-facing input types (include server-injected identity fields)
 export interface AddMemberInput {
   projectId: string;
   userId: string;

@@ -22,8 +22,6 @@ export function MemberItem({
   const roleColor = getRoleBadgeColor(member.role);
   const roleLabel = getRoleDisplayName(member.role);
 
-  // Owner cannot be removed or demoted if they're the last owner
-  // (This should be checked on the backend too)
   const canRemoveMember =
     canManage && !isCurrentUser && member.role !== "owner";
   const canUpdateRole = canManage && !isCurrentUser;
@@ -51,15 +49,15 @@ export function MemberItem({
             <span className="font-medium text-gray-900 truncate">
               {member.userName || "알 수 없음"}
             </span>
-            {isCurrentUser && (
+            {isCurrentUser ? (
               <span className="text-xs text-gray-500">(나)</span>
-            )}
+            ) : null}
           </div>
-          {member.userEmail && (
+          {member.userEmail ? (
             <div className="text-sm text-gray-500 truncate">
               {member.userEmail}
             </div>
-          )}
+          ) : null}
         </div>
 
         {/* Role badge */}
@@ -71,9 +69,9 @@ export function MemberItem({
       </div>
 
       {/* Actions */}
-      {(canRemoveMember || canUpdateRole) && (
+      {canRemoveMember || canUpdateRole ? (
         <div className="flex items-center gap-2 ml-4">
-          {canUpdateRole && onUpdateRole && (
+          {canUpdateRole && onUpdateRole ? (
             <button
               type="button"
               onClick={() =>
@@ -87,8 +85,8 @@ export function MemberItem({
             >
               {member.role === "owner" ? "멤버로" : "소유자로"}
             </button>
-          )}
-          {canRemoveMember && onRemove && (
+          ) : null}
+          {canRemoveMember && onRemove ? (
             <button
               type="button"
               onClick={() => onRemove(member.userId)}
@@ -97,9 +95,9 @@ export function MemberItem({
             >
               제거
             </button>
-          )}
+          ) : null}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

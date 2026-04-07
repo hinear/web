@@ -1,18 +1,18 @@
 "use server";
 
-import type { CheckAccessInput } from "@/features/project-members/contracts";
-import { SupabaseProjectMembersRepository } from "@/features/project-members/repositories/SupabaseProjectMembersRepository";
-import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
+import type { CheckAccessActionInput } from "@/features/project-members/contracts";
+import { getServerProjectMembersRepository } from "@/features/project-members/repositories/server-project-members-repository";
+import { requireAuthenticatedActorId } from "@/lib/supabase/server-auth";
 
 export async function checkAccessAction(
-  input: CheckAccessInput
+  input: CheckAccessActionInput
 ): Promise<boolean> {
-  const supabase = await createRequestSupabaseServerClient();
-  const repository = new SupabaseProjectMembersRepository(supabase);
+  const actorId = await requireAuthenticatedActorId();
+  const repository = await getServerProjectMembersRepository();
 
   return repository.hasProjectPermission(
     input.projectId,
-    input.userId,
+    actorId,
     input.permission
   );
 }

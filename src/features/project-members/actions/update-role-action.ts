@@ -1,26 +1,26 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import type { UpdateRoleInput } from "@/features/project-members/contracts";
+import type { UpdateRoleActionInput } from "@/features/project-members/contracts";
 import { canUpdateMemberRole } from "@/features/project-members/lib/access-control";
 import { assertValidUpdateRoleInput } from "@/features/project-members/lib/membership-validation";
-import { SupabaseProjectMembersRepository } from "@/features/project-members/repositories/SupabaseProjectMembersRepository";
+import { getServerProjectMembersRepository } from "@/features/project-members/repositories/server-project-members-repository";
 import type { ProjectMember } from "@/features/project-members/types";
-import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
+import { requireAuthenticatedActorId } from "@/lib/supabase/server-auth";
 
 export async function updateRoleAction(
-  input: UpdateRoleInput
+  input: UpdateRoleActionInput
 ): Promise<ProjectMember> {
-  // Validate input
+  const actorId = await requireAuthenticatedActorId();
+
   assertValidUpdateRoleInput(input);
 
-  const supabase = await createRequestSupabaseServerClient();
-  const repository = new SupabaseProjectMembersRepository(supabase);
+  const repository = await getServerProjectMembersRepository();
 
   // Check if actor has permission
   const actorRole = await repository.getMemberRole({
     projectId: input.projectId,
-    userId: input.updatedBy,
+    userId: actorId,
   });
 
   if (!actorRole) {
@@ -52,7 +52,10 @@ export async function updateRoleAction(
   }
 
   // Update role
-  const member = await repository.updateRole(input);
+  const member = await repository.updateRole({
+    ...input,
+    updatedBy: actorId,
+  });
 
   // Revalidate project pages
   revalidatePath(`/projects/${input.projectId}`);

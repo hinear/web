@@ -1,10 +1,6 @@
 import "server-only";
 
-import type { PostgrestError } from "@supabase/supabase-js";
-import {
-  createPostgrestRepositoryError,
-  createRepositoryError,
-} from "@/features/issues/lib/repository-errors";
+import { createRepositoryError } from "@/features/issues/lib/repository-errors";
 import type {
   AddMemberInput,
   GetMemberRoleInput,
@@ -20,47 +16,12 @@ import type {
 } from "@/features/project-members/types";
 import type { AppSupabaseServerClient } from "@/lib/supabase/server-client";
 import type { TableRow } from "@/lib/supabase/types";
-
-function assertQuerySucceeded(
-  context: string,
-  error: PostgrestError | null
-): void {
-  if (error) {
-    throw createPostgrestRepositoryError(context, error);
-  }
-}
-
-function assertDataPresent<T>(context: string, data: T | null): T {
-  if (!data) {
-    throw createRepositoryError(
-      "UNKNOWN",
-      `${context}: query returned no rows.`
-    );
-  }
-
-  return data;
-}
-
-function mapProjectMember(row: TableRow<"project_members">): ProjectMember {
-  return {
-    projectId: row.project_id,
-    userId: row.user_id,
-    role: row.role as MemberRole,
-    createdAt: row.created_at,
-  };
-}
-
-function isProjectSummary(
-  value: unknown
-): value is { id: string; key: string; name: string } {
-  return Boolean(
-    value &&
-      typeof value === "object" &&
-      "id" in value &&
-      "name" in value &&
-      "key" in value
-  );
-}
+import {
+  assertDataPresent,
+  assertQuerySucceeded,
+  isProjectSummary,
+  mapProjectMember,
+} from "./member-mappers";
 
 export class SupabaseProjectMembersRepository
   implements ProjectMembersRepository
@@ -68,22 +29,7 @@ export class SupabaseProjectMembersRepository
   constructor(private readonly client: AppSupabaseServerClient) {}
 
   async addMember(input: AddMemberInput): Promise<ProjectMember> {
-    const canManageMembers = await this.hasProjectPermission(
-      input.projectId,
-      input.addedBy,
-      "manage_members"
-    );
-
-    if (!canManageMembers) {
-      throw createRepositoryError(
-        "FORBIDDEN",
-        "Only project owners can add members."
-      );
-    }
-
-    // Check if user is already a member
     const existing = await this.getMemberById(input.projectId, input.userId);
-
     if (existing) {
       throw createRepositoryError(
         "ALREADY_MEMBER",
@@ -91,13 +37,12 @@ export class SupabaseProjectMembersRepository
       );
     }
 
-    // Check if adding as owner and there's already an owner
     if (input.role === "owner") {
-      const isLastOwner = await this.isLastOwner(input.projectId);
-      if (!isLastOwner) {
+      const isLast = await this.isLastOwner(input.projectId);
+      if (!isLast) {
         throw createRepositoryError(
           "OWNER_EXISTS",
-          "Project already has an owner. Only one owner allowed per project."
+          "Project already has an owner."
         );
       }
     }
@@ -118,19 +63,6 @@ export class SupabaseProjectMembersRepository
   }
 
   async removeMember(input: RemoveMemberInput): Promise<void> {
-    const canManageMembers = await this.hasProjectPermission(
-      input.projectId,
-      input.removedBy,
-      "manage_members"
-    );
-
-    if (!canManageMembers) {
-      throw createRepositoryError(
-        "FORBIDDEN",
-        "Only project owners can remove members."
-      );
-    }
-
     // Check if removing the last owner
     const member = await this.getMemberById(input.projectId, input.userId);
 
@@ -142,8 +74,8 @@ export class SupabaseProjectMembersRepository
     }
 
     if (member.role === "owner") {
-      const isLastOwner = await this.isLastOwner(input.projectId);
-      if (isLastOwner) {
+      const isLast = await this.isLastOwner(input.projectId);
+      if (isLast) {
         throw createRepositoryError(
           "LAST_OWNER",
           "Cannot remove the last owner of a project."
@@ -161,19 +93,11 @@ export class SupabaseProjectMembersRepository
   }
 
   async updateRole(input: UpdateRoleInput): Promise<ProjectMember> {
-    // Check if changing to owner and there's already an owner
-    if (input.role === "owner") {
-      const isLastOwner = await this.isLastOwner(input.projectId);
-      if (!isLastOwner) {
-        throw createRepositoryError(
-          "OWNER_EXISTS",
-          "Project already has an owner. Only one owner allowed per project."
-        );
-      }
-    }
-
-    // Check if changing away from owner and this is the only owner
-    const existing = await this.getMemberById(input.projectId, input.userId);
+    // Fetch existing member and owner count in parallel
+    const [existing, ownerCount] = await Promise.all([
+      this.getMemberById(input.projectId, input.userId),
+      this.getOwnerCount(input.projectId),
+    ]);
 
     if (!existing) {
       throw createRepositoryError(
@@ -182,14 +106,22 @@ export class SupabaseProjectMembersRepository
       );
     }
 
-    if (existing.role === "owner" && input.role !== "owner") {
-      const isLastOwner = await this.isLastOwner(input.projectId);
-      if (isLastOwner) {
-        throw createRepositoryError(
-          "LAST_OWNER",
-          "Cannot change the role of the last owner."
-        );
-      }
+    const isLast = ownerCount <= 1;
+
+    // Check if changing to owner and there's already an owner
+    if (input.role === "owner" && !isLast) {
+      throw createRepositoryError(
+        "OWNER_EXISTS",
+        "Project already has an owner. Only one owner allowed per project."
+      );
+    }
+
+    // Check if changing away from owner and this is the only owner
+    if (existing.role === "owner" && input.role !== "owner" && isLast) {
+      throw createRepositoryError(
+        "LAST_OWNER",
+        "Cannot change the role of the last owner."
+      );
     }
 
     const { data, error } = await this.client
@@ -266,17 +198,11 @@ export class SupabaseProjectMembersRepository
     permission: string
   ): Promise<boolean> {
     const member = await this.getMemberById(projectId, userId);
-
-    if (!member) {
-      return false;
-    }
-
-    // Check permission based on role
+    if (!member) return false;
     const permissions: Record<string, string[]> = {
       owner: ["read", "write", "delete", "manage_members", "settings"],
       member: ["read", "write"],
     };
-
     return permissions[member.role]?.includes(permission) ?? false;
   }
 
@@ -349,6 +275,11 @@ export class SupabaseProjectMembersRepository
   }
 
   async isLastOwner(projectId: string): Promise<boolean> {
+    const count = await this.getOwnerCount(projectId);
+    return count <= 1;
+  }
+
+  private async getOwnerCount(projectId: string): Promise<number> {
     const { data, error } = await this.client
       .from("project_members")
       .select("role")
@@ -357,8 +288,7 @@ export class SupabaseProjectMembersRepository
 
     assertQuerySucceeded("Failed to check owner count", error);
 
-    // Return true if there are 0 or 1 owners (allow adding first owner)
-    return (data ?? []).length <= 1;
+    return (data ?? []).length;
   }
 
   async canUserBeAdded(projectId: string, userId: string): Promise<boolean> {

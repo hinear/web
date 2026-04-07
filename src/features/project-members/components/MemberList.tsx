@@ -1,4 +1,5 @@
 import type { ProjectMemberWithUser } from "@/features/project-members/types";
+import { sortMembersByRole } from "../lib/role-manager";
 import { MemberItem } from "./MemberItem";
 
 interface MemberListProps {
@@ -26,13 +27,7 @@ export function MemberList({
     );
   }
 
-  // Sort by role (owner first), then by name
-  const sortedMembers = [...members].sort((a, b) => {
-    if (a.role === "owner" && b.role !== "owner") return -1;
-    if (a.role !== "owner" && b.role === "owner") return 1;
-    return (a.userName || "").localeCompare(b.userName || "");
-  });
-
+  const sortedMembers = sortMembersByRole(members);
   const canManage = currentRole === "owner";
 
   return (

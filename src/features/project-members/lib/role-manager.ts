@@ -120,3 +120,16 @@ export function getAllRoles(): MemberRole[] {
 export function isValidRole(role: string): role is MemberRole {
   return ["owner", "member"].includes(role);
 }
+
+/**
+ * Sort members by role (owner first), then by name alphabetically
+ */
+export function sortMembersByRole<
+  T extends { role: MemberRole; userName?: string | null },
+>(members: T[]): T[] {
+  return [...members].sort((a, b) => {
+    if (a.role === "owner" && b.role !== "owner") return -1;
+    if (a.role !== "owner" && b.role === "owner") return 1;
+    return (a.userName ?? "").localeCompare(b.userName ?? "");
+  });
+}
