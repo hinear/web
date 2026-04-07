@@ -1,15 +1,15 @@
 "use server";
 
 import type { ListCommentsInput } from "@/features/comments/contracts";
-import { SupabaseCommentsRepository } from "@/features/comments/repositories/SupabaseCommentsRepository";
+import { getServerCommentsRepository } from "@/features/comments/repositories/server-comments-repository";
 import type { Comment } from "@/features/comments/types";
-import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
+import { requireAuthenticatedActorId } from "@/lib/supabase/server-auth";
 
 export async function listCommentsAction(
   input: ListCommentsInput
 ): Promise<Comment[]> {
-  const supabase = await createRequestSupabaseServerClient();
-  const repository = new SupabaseCommentsRepository(supabase);
+  await requireAuthenticatedActorId();
+  const repository = await getServerCommentsRepository();
 
   return repository.listCommentsByIssueId(input);
 }

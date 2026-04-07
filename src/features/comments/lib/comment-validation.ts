@@ -3,7 +3,10 @@
  */
 
 import { createRepositoryError } from "@/features/issues/lib/repository-errors";
-import type { CreateCommentInput, UpdateCommentInput } from "../contracts";
+import type {
+  CreateCommentActionInput,
+  UpdateCommentActionInput,
+} from "../contracts";
 
 export const COMMENT_MIN_LENGTH = 1;
 export const COMMENT_MAX_LENGTH = 10_000;
@@ -14,7 +17,7 @@ export interface ValidationError {
 }
 
 export function validateCreateCommentInput(
-  input: CreateCommentInput
+  input: CreateCommentActionInput
 ): ValidationError[] {
   const errors: ValidationError[] = [];
 
@@ -24,10 +27,6 @@ export function validateCreateCommentInput(
 
   if (!input.projectId || input.projectId.trim() === "") {
     errors.push({ field: "projectId", message: "Project ID is required." });
-  }
-
-  if (!input.authorId || input.authorId.trim() === "") {
-    errors.push({ field: "authorId", message: "Author ID is required." });
   }
 
   if (!input.body || input.body.trim() === "") {
@@ -51,7 +50,7 @@ export function validateCreateCommentInput(
 }
 
 export function validateUpdateCommentInput(
-  input: UpdateCommentInput
+  input: UpdateCommentActionInput
 ): ValidationError[] {
   const errors: ValidationError[] = [];
 
@@ -68,13 +67,6 @@ export function validateUpdateCommentInput(
     });
   }
 
-  if (!input.updatedBy || input.updatedBy.trim() === "") {
-    errors.push({
-      field: "updatedBy",
-      message: "User ID performing the update is required.",
-    });
-  }
-
   return errors;
 }
 
@@ -85,14 +77,18 @@ export function throwValidationError(errors: ValidationError[]): never {
   );
 }
 
-export function assertValidCreateCommentInput(input: CreateCommentInput): void {
+export function assertValidCreateCommentInput(
+  input: CreateCommentActionInput
+): void {
   const errors = validateCreateCommentInput(input);
   if (errors.length > 0) {
     throwValidationError(errors);
   }
 }
 
-export function assertValidUpdateCommentInput(input: UpdateCommentInput): void {
+export function assertValidUpdateCommentInput(
+  input: UpdateCommentActionInput
+): void {
   const errors = validateUpdateCommentInput(input);
   if (errors.length > 0) {
     throwValidationError(errors);

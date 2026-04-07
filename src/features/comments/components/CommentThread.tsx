@@ -1,5 +1,5 @@
-import { useCallback, useState } from "react";
 import type { CommentThreadWithAuthor } from "@/features/comments/types";
+import { useCommentThread } from "../hooks/use-comment-thread";
 import { CommentForm } from "./CommentForm";
 import { CommentItem } from "./CommentItem";
 
@@ -24,31 +24,16 @@ export function CommentThread({
   onDelete,
   isSubmitting = false,
 }: CommentThreadProps) {
-  const [replyToId, setReplyToId] = useState<string | null>(null);
-  const [isReplying, setIsReplying] = useState(false);
-
-  const handleReply = useCallback(
-    async (body: string) => {
-      if (!onReply) return;
-
-      setIsReplying(true);
-      try {
-        await onReply(thread.rootComment.id, body, replyToId || undefined);
-        setReplyToId(null);
-      } finally {
-        setIsReplying(false);
-      }
-    },
-    [onReply, thread.rootComment.id, replyToId]
-  );
-
-  const handleReplyClick = useCallback((commentId: string) => {
-    setReplyToId(commentId);
-  }, []);
-
-  const handleCancelReply = useCallback(() => {
-    setReplyToId(null);
-  }, []);
+  const {
+    replyToId,
+    isReplying,
+    handleReply,
+    handleReplyClick,
+    handleCancelReply,
+  } = useCommentThread({
+    rootCommentId: thread.rootComment.id,
+    onReply,
+  });
 
   return (
     <div className="space-y-4">
@@ -62,7 +47,7 @@ export function CommentThread({
       />
 
       {/* Reply form for root comment */}
-      {replyToId === thread.rootComment.id && onReply && (
+      {replyToId === thread.rootComment.id && onReply ? (
         <div className="ml-8">
           <CommentForm
             onSubmit={handleReply}
@@ -72,10 +57,10 @@ export function CommentThread({
             isSubmitting={isReplying || isSubmitting}
           />
         </div>
-      )}
+      ) : null}
 
       {/* Replies */}
-      {thread.replies.length > 0 && (
+      {thread.replies.length > 0 ? (
         <div className="ml-8 space-y-3">
           {thread.replies.map((reply) => (
             <div key={reply.id}>
@@ -88,7 +73,7 @@ export function CommentThread({
                 depth={0}
               />
               {/* Reply form for nested comments */}
-              {replyToId === reply.id && onReply && (
+              {replyToId === reply.id && onReply ? (
                 <div className="ml-8 mt-3">
                   <CommentForm
                     onSubmit={handleReply}
@@ -98,18 +83,18 @@ export function CommentThread({
                     isSubmitting={isReplying || isSubmitting}
                   />
                 </div>
-              )}
+              ) : null}
             </div>
           ))}
         </div>
-      )}
+      ) : null}
 
       {/* Reply count */}
-      {thread.replyCount > 0 && (
+      {thread.replyCount > 0 ? (
         <div className="ml-8 text-sm text-gray-500">
           {thread.replyCount}개의 답글
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

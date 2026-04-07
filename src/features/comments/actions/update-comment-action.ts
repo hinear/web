@@ -1,37 +1,33 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import type { UpdateCommentInput } from "@/features/comments/contracts";
+import type { UpdateCommentActionInput } from "@/features/comments/contracts";
 import {
   normalizeLineEndings,
   sanitizeCommentBody,
 } from "@/features/comments/lib/comment-sanitization";
 import { assertValidUpdateCommentInput } from "@/features/comments/lib/comment-validation";
-import { SupabaseCommentsRepository } from "@/features/comments/repositories/SupabaseCommentsRepository";
+import { getServerCommentsRepository } from "@/features/comments/repositories/server-comments-repository";
 import type { Comment } from "@/features/comments/types";
-import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
+import { requireAuthenticatedActorId } from "@/lib/supabase/server-auth";
 
 export async function updateCommentAction(
-  input: UpdateCommentInput
+  input: UpdateCommentActionInput
 ): Promise<Comment> {
-  // Validate input
+  const actorId = await requireAuthenticatedActorId();
+
   assertValidUpdateCommentInput(input);
 
-  // Sanitize body
   const sanitizedBody = sanitizeCommentBody(normalizeLineEndings(input.body));
-
-  const supabase = await createRequestSupabaseServerClient();
-  const repository = new SupabaseCommentsRepository(supabase);
+  const repository = await getServerCommentsRepository();
 
   const comment = await repository.updateComment({
     commentId: input.commentId,
     body: sanitizedBody,
-    updatedBy: input.updatedBy,
+    updatedBy: actorId,
   });
 
-  // Revalidate issue detail page
-  // We need to fetch the issueId first or pass it in
-  // For now, revalidate the project page
+  // TODO: pass projectId/issueId for targeted revalidation
   revalidatePath("/projects", "layout");
 
   return comment;

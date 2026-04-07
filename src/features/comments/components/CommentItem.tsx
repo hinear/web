@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+import { formatCommentDate } from "@/features/comments/lib/comment-formatters";
 import { isEditedComment } from "@/features/comments/lib/comment-sanitization";
 import type { CommentWithAuthor } from "@/features/comments/types";
 
@@ -20,15 +22,19 @@ export function CommentItem({
 }: CommentItemProps) {
   const canEdit = currentUserId === comment.authorId;
   const canDelete = currentUserId === comment.authorId;
-  const edited = isEditedComment(comment.createdAt, comment.updatedAt);
-
-  // Indent nested replies
-  const marginLeft = depth > 0 ? `${depth * 2}rem` : "0";
+  const edited = useMemo(
+    () => isEditedComment(comment.createdAt, comment.updatedAt),
+    [comment.createdAt, comment.updatedAt]
+  );
+  const formattedDate = useMemo(
+    () => formatCommentDate(comment.createdAt),
+    [comment.createdAt]
+  );
 
   return (
     <div
       className={`border border-gray-200 rounded-lg p-4 bg-white ${depth > 0 ? "ml-8" : ""}`}
-      style={{ marginLeft }}
+      style={{ marginLeft: depth > 0 ? `${depth * 2}rem` : "0" }}
     >
       {/* Author info */}
       <div className="flex items-center gap-3 mb-2">
@@ -41,21 +47,13 @@ export function CommentItem({
               {comment.authorName || "Unknown"}
             </span>
             <span className="text-gray-400">·</span>
-            <span className="text-sm text-gray-500">
-              {new Date(comment.createdAt).toLocaleDateString("ko-KR", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </span>
-            {edited && (
+            <span className="text-sm text-gray-500">{formattedDate}</span>
+            {edited ? (
               <>
                 <span className="text-gray-400">·</span>
                 <span className="text-xs text-gray-400">(편집됨)</span>
               </>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
@@ -67,7 +65,7 @@ export function CommentItem({
 
       {/* Actions */}
       <div className="flex items-center gap-2 text-sm">
-        {onReply && (
+        {onReply ? (
           <button
             type="button"
             onClick={() => onReply(comment.id)}
@@ -75,8 +73,8 @@ export function CommentItem({
           >
             답글
           </button>
-        )}
-        {canEdit && onEdit && (
+        ) : null}
+        {canEdit && onEdit ? (
           <button
             type="button"
             onClick={() => onEdit(comment.id, comment.body)}
@@ -84,8 +82,8 @@ export function CommentItem({
           >
             편집
           </button>
-        )}
-        {canDelete && onDelete && (
+        ) : null}
+        {canDelete && onDelete ? (
           <button
             type="button"
             onClick={() => onDelete(comment.id)}
@@ -93,11 +91,11 @@ export function CommentItem({
           >
             삭제
           </button>
-        )}
+        ) : null}
       </div>
 
       {/* Nested replies */}
-      {comment.replies && comment.replies.length > 0 && (
+      {comment.replies && comment.replies.length > 0 ? (
         <div className="mt-4 space-y-3">
           {comment.replies.map((reply) => (
             <CommentItem
@@ -111,7 +109,7 @@ export function CommentItem({
             />
           ))}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

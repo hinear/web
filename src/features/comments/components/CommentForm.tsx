@@ -59,7 +59,7 @@ export function CommentForm({
           <span className="text-gray-400"> / {maxLength.toLocaleString()}</span>
         </div>
         <div className="flex gap-2">
-          {onCancel && (
+          {onCancel ? (
             <Button
               type="button"
               variant="secondary"
@@ -68,7 +68,7 @@ export function CommentForm({
             >
               취소
             </Button>
-          )}
+          ) : null}
           <Button
             type="submit"
             disabled={body.trim().length === 0 || isSubmitting}

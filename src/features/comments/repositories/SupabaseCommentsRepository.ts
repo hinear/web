@@ -1,7 +1,5 @@
 import "server-only";
 
-import type { PostgrestError } from "@supabase/supabase-js";
-
 import type {
   CommentsRepository,
   CreateCommentInput,
@@ -11,58 +9,15 @@ import type {
   SearchCommentsInput,
   UpdateCommentInput,
 } from "@/features/comments/contracts";
-import type { Comment, CommentThread } from "@/features/comments/types";
-import {
-  createPostgrestRepositoryError,
-  createRepositoryError,
-} from "@/features/issues/lib/repository-errors";
+import { createRepositoryError } from "@/features/issues/lib/repository-errors";
 import type { AppSupabaseServerClient } from "@/lib/supabase/server-client";
-import type { TableInsert, TableRow } from "@/lib/supabase/types";
-
-type CommentRow = TableRow<"comments"> & {
-  parent_comment_id?: string | null;
-  thread_id?: string | null;
-  updated_at?: string | null;
-};
-
-type CommentInsert = TableInsert<"comments"> & {
-  parent_comment_id?: string | null;
-  thread_id?: string | null;
-};
-
-function assertQuerySucceeded(
-  context: string,
-  error: PostgrestError | null
-): void {
-  if (error) {
-    throw createPostgrestRepositoryError(context, error);
-  }
-}
-
-function assertDataPresent<T>(context: string, data: T | null): T {
-  if (!data) {
-    throw createRepositoryError(
-      "UNKNOWN",
-      `${context}: query returned no rows.`
-    );
-  }
-
-  return data;
-}
-
-function mapComment(row: CommentRow): Comment {
-  return {
-    id: row.id,
-    issueId: row.issue_id,
-    projectId: row.project_id,
-    authorId: row.author_id,
-    body: row.body,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at ?? undefined,
-    parentCommentId: row.parent_comment_id ?? undefined,
-    threadId: row.thread_id ?? undefined,
-  };
-}
+import type { Comment, CommentThread } from "../types";
+import {
+  assertDataPresent,
+  assertQuerySucceeded,
+  type CommentInsert,
+  mapComment,
+} from "./comment-mappers";
 
 export class SupabaseCommentsRepository implements CommentsRepository {
   constructor(private readonly client: AppSupabaseServerClient) {}
@@ -75,7 +30,6 @@ export class SupabaseCommentsRepository implements CommentsRepository {
       body: input.body,
     };
 
-    // Set parent comment and thread if this is a reply
     if (input.parentCommentId) {
       const parentComment = await this.getCommentById(input.parentCommentId);
       if (!parentComment) {
@@ -83,7 +37,6 @@ export class SupabaseCommentsRepository implements CommentsRepository {
       }
 
       insertData.parent_comment_id = input.parentCommentId;
-      // Use the parent's thread_id, or the parent's id if it's a root comment
       insertData.thread_id = parentComment.threadId || parentComment.id;
     }
 
@@ -159,24 +112,53 @@ export class SupabaseCommentsRepository implements CommentsRepository {
   }
 
   async getCommentThread(input: GetCommentThreadInput): Promise<CommentThread> {
-    const rootComment = await this.getCommentById(input.rootCommentId);
+    // Fetch root comment and replies in parallel.
+    // For root comments (no parent), thread_id equals the root comment's id,
+    // so we can query with thread_id = rootCommentId directly.
+    const [rootResult, repliesResult] = await Promise.all([
+      this.client
+        .from("comments")
+        .select()
+        .eq("id", input.rootCommentId)
+        .maybeSingle(),
+      this.client
+        .from("comments")
+        .select()
+        .eq("thread_id", input.rootCommentId)
+        .neq("id", input.rootCommentId)
+        .order("created_at", { ascending: true }),
+    ]);
+
+    assertQuerySucceeded("Failed to get root comment", rootResult.error);
+
+    const rootComment = rootResult.data ? mapComment(rootResult.data) : null;
 
     if (!rootComment) {
       throw createRepositoryError("UNKNOWN", "Root comment not found.");
     }
 
-    // Get all replies in the thread
-    const threadId = rootComment.threadId || rootComment.id;
-    const { data: repliesData, error: repliesError } = await this.client
-      .from("comments")
-      .select()
-      .eq("thread_id", threadId)
-      .neq("id", rootComment.id)
-      .order("created_at", { ascending: true });
+    assertQuerySucceeded("Failed to load comment replies", repliesResult.error);
+    const replies = (repliesResult.data ?? []).map(mapComment);
 
-    assertQuerySucceeded("Failed to load comment replies", repliesError);
+    // If the root comment itself is a reply in a longer thread,
+    // fetch all siblings using the root's threadId.
+    if (rootComment.threadId && rootComment.threadId !== rootComment.id) {
+      const { data: threadRepliesData, error: threadRepliesError } =
+        await this.client
+          .from("comments")
+          .select()
+          .eq("thread_id", rootComment.threadId)
+          .neq("id", rootComment.threadId)
+          .order("created_at", { ascending: true });
 
-    const replies = (repliesData ?? []).map(mapComment);
+      assertQuerySucceeded("Failed to load thread replies", threadRepliesError);
+
+      return {
+        rootComment,
+        replies: (threadRepliesData ?? []).map(mapComment),
+        replyCount: (threadRepliesData ?? []).length,
+      };
+    }
 
     return {
       rootComment,
@@ -217,7 +199,6 @@ export class SupabaseCommentsRepository implements CommentsRepository {
       return false;
     }
 
-    // User can edit if they are the author
     return comment.authorId === userId;
   }
 
@@ -227,8 +208,6 @@ export class SupabaseCommentsRepository implements CommentsRepository {
       return false;
     }
 
-    // User can delete if they are the author
-    // TODO: Add project member/owner check later
     return comment.authorId === userId;
   }
 }

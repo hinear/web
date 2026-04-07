@@ -4,6 +4,25 @@
 
 import type { Comment, CommentThread, CommentWithAuthor } from "./types";
 
+// Client-facing action input types (no user identity fields — injected from session)
+export interface CreateCommentActionInput {
+  issueId: string;
+  projectId: string;
+  body: string;
+  parentCommentId?: string | null;
+}
+
+export interface UpdateCommentActionInput {
+  commentId: string;
+  body: string;
+}
+
+export interface DeleteCommentActionInput {
+  commentId: string;
+  projectId: string;
+}
+
+// Repository-facing input types (include server-injected identity fields)
 export interface CreateCommentInput {
   issueId: string;
   projectId: string;

@@ -1,34 +1,32 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import type { CreateCommentInput } from "@/features/comments/contracts";
+import type { CreateCommentActionInput } from "@/features/comments/contracts";
 import {
   normalizeLineEndings,
   sanitizeCommentBody,
 } from "@/features/comments/lib/comment-sanitization";
 import { assertValidCreateCommentInput } from "@/features/comments/lib/comment-validation";
-import { SupabaseCommentsRepository } from "@/features/comments/repositories/SupabaseCommentsRepository";
+import { getServerCommentsRepository } from "@/features/comments/repositories/server-comments-repository";
 import type { Comment } from "@/features/comments/types";
-import { createRequestSupabaseServerClient } from "@/lib/supabase/server-client";
+import { requireAuthenticatedActorId } from "@/lib/supabase/server-auth";
 
 export async function createCommentAction(
-  input: CreateCommentInput
+  input: CreateCommentActionInput
 ): Promise<Comment> {
-  // Validate input
+  const actorId = await requireAuthenticatedActorId();
+
   assertValidCreateCommentInput(input);
 
-  // Sanitize body
   const sanitizedBody = sanitizeCommentBody(normalizeLineEndings(input.body));
-
-  const supabase = await createRequestSupabaseServerClient();
-  const repository = new SupabaseCommentsRepository(supabase);
+  const repository = await getServerCommentsRepository();
 
   const comment = await repository.createComment({
     ...input,
+    authorId: actorId,
     body: sanitizedBody,
   });
 
-  // Revalidate issue detail page
   revalidatePath(`/projects/${input.projectId}/issues/${input.issueId}`);
 
   return comment;
