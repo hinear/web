@@ -1,7 +1,7 @@
 "use client";
 
-import { Chip } from "@/components/atoms/Chip/Chip";
-import { Select } from "@/components/atoms/Select/Select";
+import { Chip } from "@/components/atoms/Chip";
+import { Select } from "@/components/atoms/Select";
 import type { BoardFilterState } from "@/features/issues/board/hooks/use-board-filters";
 import {
   ISSUE_PRIORITIES,

@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Select } from "@/components/atoms/Select/Select";
+import { Select } from "@/components/atoms/Select";
 import { batchUpdateIssuesAction } from "@/features/issues/actions/batch-update-issues-action";
 import type { IssuePriority, IssueStatus } from "@/features/issues/types";
 

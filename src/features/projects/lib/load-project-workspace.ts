@@ -36,6 +36,62 @@ function mapProjectRow(row: {
   };
 }
 
+/**
+ * Load only the shell data needed for sidebar + header rendering.
+ * Fast (~3 queries): project info + accessible projects list.
+ */
+export async function loadProjectShell(projectId: string) {
+  const actorId = await getAuthenticatedActorIdOrNull();
+  if (!actorId) throw new Error("Authentication required");
+
+  const repository = await getServerProjectsRepository();
+  const requestSupabase = await createRequestSupabaseServerClient();
+
+  const [project, accessibleProjectIdsResult] = await Promise.all([
+    repository.getProjectById(projectId),
+    requestSupabase
+      .from("project_members")
+      .select("project_id")
+      .eq("user_id", actorId),
+  ]);
+
+  if (!project) notFound();
+
+  const accessibleProjectIds = [
+    ...new Set(
+      (accessibleProjectIdsResult.data ?? []).map((row) => row.project_id)
+    ),
+  ].filter(Boolean);
+
+  const { data: accessibleProjectRows } =
+    accessibleProjectIds.length > 0
+      ? await requestSupabase
+          .from("projects")
+          .select(
+            "id, key, name, type, issue_seq, created_by, created_at, updated_at, github_repo_owner, github_repo_name, github_integration_enabled"
+          )
+          .in("id", accessibleProjectIds)
+      : {
+          data: [] as Array<{
+            id: string;
+            key: string;
+            name: string;
+            type: Project["type"];
+            issue_seq: number;
+            created_by: string;
+            created_at: string;
+            updated_at: string;
+            github_repo_owner?: string | null;
+            github_repo_name?: string | null;
+            github_integration_enabled?: boolean | null;
+          }>,
+        };
+
+  const accessibleProjects = (accessibleProjectRows ?? []).map(mapProjectRow);
+
+  return { accessibleProjects, actorId, project };
+}
+
 export async function loadProjectWorkspace(
   projectId: string,
   _returnTo: string

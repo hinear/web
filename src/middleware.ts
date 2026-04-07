@@ -1,5 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
 
+import {
+  createMiddlewareSupabaseClient,
+  redirectWithCookies,
+} from "@/lib/supabase/middleware-client";
+
 const ALLOWED_ORIGINS = [
   "https://claude.ai",
   "https://mcp.hinear.dev",
@@ -24,9 +29,35 @@ function isAllowedOrigin(origin: string | undefined): boolean {
   return ALLOWED_ORIGIN_PATTERNS.some((pattern) => pattern.test(origin));
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const origin = request.headers.get("origin") ?? undefined;
+
+  // Handle root path: auth check + direct redirect to user's project
+  if (pathname === "/") {
+    const { supabase, response } = createMiddlewareSupabaseClient(request);
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return redirectWithCookies(new URL("/auth", request.url), response);
+    }
+
+    const { data } = await supabase
+      .from("project_members")
+      .select("project_id")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    const targetPath = data?.project_id
+      ? `/projects/${data.project_id}/overview`
+      : "/projects/new";
+
+    return redirectWithCookies(new URL(targetPath, request.url), response);
+  }
 
   // Only apply CORS to OAuth and well-known routes
   const isOAuthRoute =
@@ -37,33 +68,35 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  const origin = request.headers.get("origin") ?? undefined;
+
   // Handle CORS preflight
   if (request.method === "OPTIONS") {
-    const response = new NextResponse(null, { status: 204 });
+    const resp = new NextResponse(null, { status: 204 });
 
     if (origin && isAllowedOrigin(origin)) {
-      response.headers.set("Access-Control-Allow-Origin", origin);
+      resp.headers.set("Access-Control-Allow-Origin", origin);
       for (const [key, value] of Object.entries(CORS_HEADERS)) {
-        response.headers.set(key, value);
+        resp.headers.set(key, value);
       }
     }
 
-    return response;
+    return resp;
   }
 
   // Forward request with CORS headers
-  const response = NextResponse.next();
+  const resp = NextResponse.next();
 
   if (origin && isAllowedOrigin(origin)) {
-    response.headers.set("Access-Control-Allow-Origin", origin);
+    resp.headers.set("Access-Control-Allow-Origin", origin);
     for (const [key, value] of Object.entries(CORS_HEADERS)) {
-      response.headers.set(key, value);
+      resp.headers.set(key, value);
     }
   }
 
-  return response;
+  return resp;
 }
 
 export const config = {
-  matcher: ["/api/mcp/oauth/:path*", "/.well-known/:path*"],
+  matcher: ["/", "/api/mcp/oauth/:path*", "/.well-known/:path*"],
 };

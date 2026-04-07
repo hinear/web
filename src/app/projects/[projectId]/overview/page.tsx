@@ -1,5 +1,9 @@
-import { loadProjectWorkspace } from "@/features/projects/lib/load-project-workspace";
-import { ProjectOverviewScreen } from "@/features/projects/overview/screens/project-overview-screen";
+import { Suspense } from "react";
+
+import { loadProjectShell } from "@/features/projects/lib/load-project-workspace";
+import { OverviewContentSkeleton } from "@/features/projects/overview/components/overview-content-skeleton";
+import { ProjectOverviewContent } from "@/features/projects/overview/components/project-overview-content";
+import { ProjectOverviewShell } from "@/features/projects/overview/components/project-overview-shell";
 
 interface ProjectOverviewPageProps {
   params: Promise<{
@@ -11,15 +15,13 @@ export default async function ProjectOverviewPage({
   params,
 }: ProjectOverviewPageProps) {
   const { projectId } = await params;
-  const { accessibleProjects, issues, project, summary } =
-    await loadProjectWorkspace(projectId, `/projects/${projectId}/overview`);
+  const { accessibleProjects, project } = await loadProjectShell(projectId);
 
   return (
-    <ProjectOverviewScreen
-      issues={issues}
-      project={project}
-      projects={accessibleProjects}
-      summary={summary}
-    />
+    <ProjectOverviewShell project={project} projects={accessibleProjects}>
+      <Suspense fallback={<OverviewContentSkeleton />}>
+        <ProjectOverviewContent projectId={projectId} />
+      </Suspense>
+    </ProjectOverviewShell>
   );
 }

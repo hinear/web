@@ -13,11 +13,13 @@ import type {
   ProjectInvitationSummary,
   ProjectMemberSummary,
 } from "@/features/projects/types";
+import type { Issue } from "@/specs/issue-detail.contract";
 
 interface ProjectWorkspaceScreenProps {
   action: (formData: FormData) => void | Promise<void>;
   activeNavigation?: SidebarItemVariant;
   createdByLabel?: string;
+  initialIssues?: Issue[];
   inviteAction?: (formData: FormData) => void | Promise<void>;
   invitationAction?: (formData: FormData) => void | Promise<void>;
   memberAction?: (formData: FormData) => void | Promise<void>;
@@ -41,6 +43,7 @@ interface ProjectWorkspaceScreenProps {
 export function ProjectWorkspaceScreen({
   action,
   activeNavigation = "issues",
+  initialIssues,
   members,
   project,
   projects,
@@ -107,6 +110,7 @@ export function ProjectWorkspaceScreen({
               boardHref={getProjectPath(project.id)}
               createIssueAction={action}
               dashboardHref={getProjectOverviewPath(project.id)}
+              initialIssues={initialIssues}
               projectId={project.id}
               projectKey={project.key}
               projectName={project.name}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar } from "@/components/atoms/Avatar/Avatar";
+import { Avatar } from "@/components/atoms/Avatar";
 import { cn } from "@/lib/utils";
 
 interface IssueAssigneePillProps {

@@ -1,11 +1,31 @@
 import type { SidebarItemVariant } from "@/components/molecules/SidebarItem";
 import { createIssueAction } from "@/features/issues/actions/create-issue-action";
+import type { Issue as DbIssue } from "@/features/issues/types";
 import { inviteProjectMemberAction } from "@/features/projects/actions/invite-project-member-action";
 import { manageProjectInvitationAction } from "@/features/projects/actions/manage-project-invitation-action";
 import { manageProjectMemberAction } from "@/features/projects/actions/manage-project-member-action";
 import { loadProjectWorkspace } from "@/features/projects/lib/load-project-workspace";
 import { getProjectPath } from "@/features/projects/lib/project-routes";
 import { ProjectWorkspaceScreen } from "@/features/projects/workspace/screens/project-workspace-screen";
+import type { Issue as ContractIssue } from "@/specs/issue-detail.contract";
+
+function toContractIssues(issues: DbIssue[]): ContractIssue[] {
+  return issues.map((issue) => ({
+    id: issue.id,
+    identifier: issue.identifier,
+    title: issue.title,
+    status: issue.status as ContractIssue["status"],
+    priority: issue.priority as ContractIssue["priority"],
+    assignee: null,
+    labels: issue.labels,
+    description: issue.description,
+    dueDate: issue.dueDate,
+    comments: [],
+    activityLog: [],
+    createdAt: issue.createdAt,
+    updatedAt: issue.updatedAt,
+  }));
+}
 
 interface ProjectPageProps {
   params: Promise<{
@@ -61,6 +81,7 @@ export default async function ProjectPage({
     accessibleProjects,
     createdByLabel,
     invitations,
+    issues,
     members,
     project,
     summary,
@@ -71,6 +92,7 @@ export default async function ProjectPage({
       action={createIssueAction.bind(null, projectId)}
       activeNavigation={getActiveProjectNavigation(query.statuses)}
       createdByLabel={createdByLabel}
+      initialIssues={toContractIssues(issues)}
       inviteAction={inviteProjectMemberAction.bind(null, projectId)}
       invitationAction={manageProjectInvitationAction.bind(null, projectId)}
       memberAction={manageProjectMemberAction.bind(null, projectId)}

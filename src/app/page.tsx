@@ -1,12 +1,8 @@
 import { redirect } from "next/navigation";
 
-import { getDefaultPostAuthPath } from "@/features/auth/lib/default-post-auth-path";
-import { getAuthenticatedActorIdOrNull } from "@/lib/supabase/server-auth";
-
+// Middleware handles the `/` redirect for both authenticated and
+// unauthenticated users. This page is kept as a safety-net fallback
+// and should not be reached in normal operation.
 export default async function Home() {
-  if (await getAuthenticatedActorIdOrNull()) {
-    redirect(await getDefaultPostAuthPath());
-  }
-
   redirect("/auth");
 }
