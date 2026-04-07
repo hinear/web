@@ -16,7 +16,7 @@ vi.mock("next/navigation", () => ({
   redirect: redirectMock,
 }));
 
-vi.mock("@/features/auth/actions/start-email-auth-action", () => ({
+vi.mock("@/features/auth/actions/require-auth-redirect", () => ({
   requireAuthRedirect: requireAuthRedirectMock,
 }));
 

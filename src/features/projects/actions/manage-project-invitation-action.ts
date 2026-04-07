@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 
-import { requireAuthRedirect } from "@/features/auth/actions/start-email-auth-action";
+import { requireAuthRedirect } from "@/features/auth/actions/require-auth-redirect";
 import { getServerProjectsRepository } from "@/features/projects/repositories/server-projects-repository";
 import { sendProjectInvitationEmail } from "@/lib/email/send-project-invitation-email";
 import { findUserIdByEmail } from "@/lib/notifications/find-user-id-by-email";

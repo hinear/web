@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { requireAuthRedirect } from "@/features/auth/actions/start-email-auth-action";
+import { requireAuthRedirect } from "@/features/auth/actions/require-auth-redirect";
 import { getCreateProjectErrorMessage } from "@/features/projects/lib/create-project-error-message";
 import { createProjectFlow } from "@/features/projects/lib/create-project-flow";
 import { getServerProjectsRepository } from "@/features/projects/repositories/server-projects-repository";

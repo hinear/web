@@ -35,11 +35,9 @@ vi.mock("@/lib/supabase/server-client", () => ({
   }),
 }));
 
-import {
-  requireAuthRedirect,
-  startEmailAuthAction,
-  startGoogleAuthAction,
-} from "@/features/auth/actions/start-email-auth-action";
+import { requireAuthRedirect } from "@/features/auth/actions/require-auth-redirect";
+import { startEmailAuthAction } from "@/features/auth/actions/start-email-auth";
+import { startGoogleAuthAction } from "@/features/auth/actions/start-google-auth";
 
 describe("startEmailAuthAction", () => {
   beforeEach(() => {

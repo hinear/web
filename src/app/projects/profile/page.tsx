@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { signOutAction } from "@/features/auth/actions/logout-action";
+import { signOutAction } from "@/features/auth/actions/logout";
 import { ProfileSettingsScreen } from "@/features/auth/components/profile-settings-screen";
 import { buildAuthPath } from "@/features/auth/lib/next-path";
 import { getAuthenticatedUserOrNull } from "@/lib/supabase/server-auth";

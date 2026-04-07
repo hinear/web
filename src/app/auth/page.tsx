@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { AuthForm } from "@/components/organisms/AuthForm";
-import { startEmailAuthAction } from "@/features/auth/actions/start-email-auth-action";
+import { startEmailAuthAction } from "@/features/auth/actions/start-email-auth";
 import { getDefaultPostAuthPath } from "@/features/auth/lib/default-post-auth-path";
 import {
   type AuthRedirectReason,

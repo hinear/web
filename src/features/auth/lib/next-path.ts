@@ -19,3 +19,39 @@ export function buildAuthPath(
 ): string {
   return `/auth?next=${encodeURIComponent(normalizeNextPath(nextPath))}&reason=${reason}`;
 }
+
+export function buildAuthStatusPath({
+  email,
+  error,
+  next,
+  reason,
+  sent,
+}: {
+  email: string;
+  error?: string;
+  next: string;
+  reason?: AuthRedirectReason;
+  sent?: boolean;
+}): string {
+  const searchParams = new URLSearchParams();
+
+  searchParams.set("next", next);
+
+  if (reason) {
+    searchParams.set("reason", reason);
+  }
+
+  if (email) {
+    searchParams.set("email", email);
+  }
+
+  if (sent) {
+    searchParams.set("sent", "1");
+  }
+
+  if (error) {
+    searchParams.set("error", error);
+  }
+
+  return `/auth?${searchParams.toString()}`;
+}

@@ -3,7 +3,7 @@
 import { useFormStatus } from "react-dom";
 
 import { Button } from "@/components/atoms/Button";
-import { startGitHubAuthAction } from "@/features/auth/actions/start-email-auth-action";
+import { startGitHubAuthAction } from "@/features/auth/actions/start-github-auth";
 import type { AuthRedirectReason } from "@/features/auth/lib/next-path";
 
 interface GitHubAuthButtonProps {

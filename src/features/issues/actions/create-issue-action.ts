@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 
-import { requireAuthRedirect } from "@/features/auth/actions/start-email-auth-action";
+import { requireAuthRedirect } from "@/features/auth/actions/require-auth-redirect";
 import { createIssueFlow } from "@/features/issues/lib/create-issue-flow";
 import { parseLabelInput } from "@/features/issues/lib/labels";
 import { getServerIssuesRepository } from "@/features/issues/repositories/server-issues-repository";

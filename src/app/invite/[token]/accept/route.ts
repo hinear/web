@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { requireAuthRedirect } from "@/features/auth/actions/start-email-auth-action";
+import { requireAuthRedirect } from "@/features/auth/actions/require-auth-redirect";
 import { getServiceProjectsRepository } from "@/features/projects/repositories/service-projects-repository";
 import { getAuthenticatedUserOrNull } from "@/lib/supabase/server-auth";
 

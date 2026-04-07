@@ -3,7 +3,7 @@
 import { useFormStatus } from "react-dom";
 
 import { Button } from "@/components/atoms/Button";
-import { startGoogleAuthAction } from "@/features/auth/actions/start-email-auth-action";
+import { startGoogleAuthAction } from "@/features/auth/actions/start-google-auth";
 import type { AuthRedirectReason } from "@/features/auth/lib/next-path";
 
 interface GoogleAuthButtonProps {
