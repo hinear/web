@@ -1,4 +1,4 @@
-import { ChevronDown, Settings } from "lucide-react";
+import { Settings } from "lucide-react";
 import Link from "next/link";
 
 import { getButtonClassName } from "@/components/atoms/Button";
@@ -13,6 +13,10 @@ import {
   getProjectOverviewPath,
   getProjectPath,
 } from "@/features/projects/lib/project-routes";
+import { ProjectOverviewMobileHeader } from "@/features/projects/overview/components/project-overview-mobile-header";
+import { ProjectOverviewMobileSwitcher } from "@/features/projects/overview/components/project-overview-mobile-switcher";
+import { RecentActivityList } from "@/features/projects/overview/components/recent-activity-list";
+import { StatCard } from "@/features/projects/overview/components/stat-card";
 import type { Project } from "@/features/projects/types";
 
 interface ProjectOverviewScreenProps {
@@ -53,145 +57,6 @@ function getStatCards(summary: ProjectOverviewScreenProps["summary"]) {
       value: summary.backlogIssueCount,
     },
   ];
-}
-
-function ProjectOverviewMobileHeader({ project }: { project: Project }) {
-  return (
-    <div
-      className="app-mobile-top-surface flex items-center justify-between gap-3"
-      data-testid="project-overview-mobile-header"
-    >
-      <div className="min-w-0">
-        <h1 className="truncate text-[18px] leading-[18px] font-[var(--app-font-weight-600)] text-[#111318]">
-          {project.name}
-        </h1>
-        <p className="mt-[2px] truncate text-[12px] leading-[12px] font-[var(--app-font-weight-500)] text-[#6B7280]">
-          Overview
-        </p>
-      </div>
-
-      <div className="flex shrink-0 items-center gap-2">
-        <Link
-          className={getButtonClassName("secondary", "sm")}
-          href={getProjectPath(project.id)}
-        >
-          Open Project
-        </Link>
-        <Link
-          aria-label="Profile settings"
-          className={getButtonClassName(
-            "secondary",
-            "sm",
-            "app-mobile-touch-target h-[34px] w-[34px] rounded-[10px] px-0 py-0"
-          )}
-          href={getProfileSettingsPath()}
-        >
-          <Settings aria-hidden="true" className="h-[14px] w-[14px]" />
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-function ProjectOverviewMobileSwitcher({
-  project,
-  projects,
-}: {
-  project: Project;
-  projects: Project[];
-}) {
-  return (
-    <details className="group rounded-[12px] border border-[#E6E8EC] bg-white">
-      <summary className="flex list-none items-center justify-between gap-3 px-3 py-[10px] marker:content-none">
-        <div className="min-w-0">
-          <p className="text-[11px] leading-[11px] font-[var(--app-font-weight-500)] text-[#6B7280]">
-            Project
-          </p>
-          <p className="mt-[2px] truncate text-[13px] leading-[13px] font-[var(--app-font-weight-600)] text-[#111318]">
-            {project.name}
-          </p>
-        </div>
-        <ChevronDown
-          aria-hidden="true"
-          className="h-4 w-4 shrink-0 text-[#6B7280] transition-transform group-open:rotate-180"
-        />
-      </summary>
-
-      <div className="border-t border-[#E6E8EC] px-2 py-2">
-        <div className="flex flex-col gap-1">
-          {projects.map((candidate) => (
-            <Link
-              className={`rounded-[10px] px-[10px] py-[9px] text-[13px] leading-[13px] ${
-                candidate.id === project.id
-                  ? "bg-[#F3F4F6] font-[var(--app-font-weight-600)] text-[#111318]"
-                  : "font-[var(--app-font-weight-500)] text-[#4B5563]"
-              }`}
-              href={getProjectOverviewPath(candidate.id)}
-              key={candidate.id}
-            >
-              {candidate.name}
-            </Link>
-          ))}
-        </div>
-      </div>
-    </details>
-  );
-}
-
-function StatCard({
-  label,
-  tone,
-  value,
-}: {
-  label: string;
-  tone: string;
-  value: number;
-}) {
-  return (
-    <article className="rounded-[14px] border border-[#E6E8EC] bg-white px-[14px] py-[14px]">
-      <p className="text-[12px] leading-[12px] font-[var(--app-font-weight-500)] text-[#6B7280]">
-        {label}
-      </p>
-      <p
-        className={`mt-[6px] text-[28px] leading-none font-[var(--app-font-weight-700)] ${tone}`}
-      >
-        {value}
-      </p>
-    </article>
-  );
-}
-
-function RecentActivityList({
-  issues,
-  projectId,
-}: {
-  issues: Issue[];
-  projectId: string;
-}) {
-  return (
-    <div className="flex flex-col gap-[10px]">
-      {issues.length > 0 ? (
-        issues.map((issue) => (
-          <Link
-            className="rounded-[14px] border border-[#E6E8EC] bg-white px-[14px] py-[14px] transition-colors hover:bg-[#F7F8FA]"
-            href={getIssuePath(projectId, issue.id, { view: "full" })}
-            key={issue.id}
-          >
-            <p className="truncate text-[13px] leading-[1.35] font-[var(--app-font-weight-500)] text-[#111318]">
-              {issue.identifier} {issue.title}
-            </p>
-            <p className="mt-1 text-[11px] leading-[11px] font-[var(--app-font-weight-500)] text-[#6B7280]">
-              <IssueDateMeta value={issue.updatedAt} variant="relative" />
-            </p>
-          </Link>
-        ))
-      ) : (
-        <div className="rounded-[14px] border border-dashed border-[#D6DAE1] bg-white px-[14px] py-[14px] text-[13px] leading-[1.4] text-[#6B7280]">
-          No recent activity yet.
-        </div>
-      )}
-    </div>
-  );
 }
 
 export function ProjectOverviewScreen({

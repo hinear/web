@@ -35,7 +35,7 @@ export function GitHubIntegrationSettingsCard({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [settings, setSettings] = useState<GitHubIntegrationSettings>(
-    initialSettings ?? { enabled: false }
+    () => initialSettings ?? { enabled: false }
   );
   const [loading, setLoading] = useState(!initialSettings);
   const [saving, setSaving] = useState(false);

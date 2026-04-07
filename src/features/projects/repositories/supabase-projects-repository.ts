@@ -300,7 +300,9 @@ export class SupabaseProjectsRepository implements ProjectsRepository {
         type: input.type,
       })
       .eq("id", input.projectId)
-      .select()
+      .select(
+        "id, key, name, type, issue_seq, created_by, created_at, updated_at, github_repo_owner, github_repo_name, github_integration_enabled"
+      )
       .single();
 
     assertQuerySucceeded("Failed to update project", error);
@@ -353,7 +355,7 @@ export class SupabaseProjectsRepository implements ProjectsRepository {
         role: member.role,
         created_at: member.createdAt,
       })
-      .select()
+      .select("project_id, user_id, role, created_at")
       .single();
 
     assertQuerySucceeded("Failed to add project member", error);
@@ -552,7 +554,9 @@ export class SupabaseProjectsRepository implements ProjectsRepository {
         token: crypto.randomUUID(),
       })
       .eq("id", invitationId)
-      .select()
+      .select(
+        "id, project_id, email, role, status, token, invited_by, expires_at, accepted_by, created_at, updated_at"
+      )
       .single();
 
     assertQuerySucceeded("Failed to resend project invitation", error);
@@ -571,7 +575,9 @@ export class SupabaseProjectsRepository implements ProjectsRepository {
         status: "revoked",
       })
       .eq("id", invitationId)
-      .select()
+      .select(
+        "id, project_id, email, role, status, token, invited_by, expires_at, accepted_by, created_at, updated_at"
+      )
       .single();
 
     assertQuerySucceeded("Failed to revoke project invitation", error);
